@@ -1,0 +1,740 @@
+EO LEXICAL ANALYSIS — EXEMPLAR REPORT
+Top exemplars per cell and face position, ranked by discrimination margin.
+Margin = how far a clause is from its nearest competing centroid.
+Higher margin = clause is more unambiguously in this cell than any other.
+27-cell composite margin = minimum margin across all four faces simultaneously.
+
+==========================================================================
+  ACT FACE — Mode × Domain — The Nine Operators
+==========================================================================
+
+  What transformation is happening. The Act face crosses how an operatio
+  n is structured (Mode: differentiating/relating/generating) with what 
+  level of reality it operates on (Domain: existence/structure/significa
+  nce). The 9 operators are the primary vocabulary of transformation in 
+  EO. Each operator names a distinct kind of act.
+
+  Margin summary (best exemplar per position, highest to lowest):
+    NUL                            Δ=0.168  █████████████████████████████████
+    SYN                            Δ=0.167  █████████████████████████████████
+    INS                            Δ=0.121  ████████████████████████
+    ALT                            Δ=0.105  ████████████████████
+    SUP                            Δ=0.093  ██████████████████
+    SEG                            Δ=0.088  █████████████████
+    REC                            Δ=0.051  ██████████
+    CON                            Δ=0.047  █████████
+
+  NUL
+  ───
+  Recognize absence. The precondition of all other operations — before difference can be registered, absence must be acknowledged.
+  ⚠ 49 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.610   0.168  He shall return no more to his house, neither shall his place know him any more.
+  2    en      0.519   0.140  But after this he has no more to say;
+  3    en      0.519   0.140  But after this he has no more to say;
+  4    en      0.509   0.134  He doesn’t believe that he shall return out of darkness. He is waited for by the s...
+  5    en      0.392   0.123  his followers fell away from him, and he was assassinated.
+
+  INS
+  ───
+  Create instance. Something new comes into existence as a discrete event.
+  ⚠ 13 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.635   0.121  Behold, this is the joy of his way: out of the earth, others shall spring.
+  2    en      0.446   0.099  The tree which fills the arms grew from the tiniest sprout;
+  3    en      0.390   0.087  He makes the Bear, Orion, and the Pleiades, and the rooms of the south.
+  4    en      0.398   0.079  the tower of nine storeys rose from a (small) heap of earth;
+  5    en      0.503   0.078  yet through the scent of water it will bud, and sprout boughs like a plant.
+
+  SEG
+  ───
+  Draw boundary. Partition, divide, separate — something is set apart from its surroundings.
+  ⚠ 64 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.508   0.088  1.] Or a more general division into two parts may be adopted;
+  2    en      0.497   0.084  Or a more general division into two parts may be adopted;
+  3    en      0.446   0.080  Hence there must be a division of labour into different employments;
+  4    en      0.446   0.080  Hence there must be a division of labour into different employments;
+  5    en      0.380   0.051  It is not all on the same plane;
+
+  CON
+  ───
+  Connect across boundary. Hold two things in relation.
+  ⚠ 75 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.231   0.047  In 140 Marcus was raised to the consulship, and in 145 his betrothal was consummat...
+  2    en      0.452   0.038  When the intelligent and animal souls are held together in one embrace, they can b...
+  3    en      0.319   0.030  They live on the best of terms with each other, and take care not to have too many...
+  4    en      0.319   0.030  They live on the best of terms with each other, and take care not to have too many...
+  5    en      0.349   0.028  The sense of these needs and the possibility of satisfying them by exchange, draw ...
+
+  SYN
+  ───
+  Merge into emergent whole. Parts integrate into something that is more than their sum.
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.687   0.167  This allows us to design entanglement purification protocols for any number of cop...
+  2    en      0.691   0.165  In this paper, we introduce a superposed entanglement purification design strategy...
+  3    en      0.682   0.160  We show that this measurement can supply non-Gaussian entangled states frequently ...
+  4    en      0.649   0.158  We consider entanglement purification protocols for multiple copies of qubit states.
+  5    en      0.597   0.158  Multiple strategies have been proposed to approach and optimize such protocols, mo...
+
+  ALT
+  ───
+  Change value within frame. Reframe without changing the frame itself.
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.560   0.105  but we do not therefore attribute them to the worse rather than to the better moti...
+  2    en      0.560   0.104  but we do not therefore attribute them to the worse rather than to the better moti...
+  3    en      0.539   0.102  Of course this was not the original assertion, nor is the new interpretation accep...
+  4    en      0.539   0.102  Of course this was not the original assertion, nor is the new interpretation accep...
+  5    en      0.499   0.099  Another flaw or inaccuracy of language may be noted in the words ‘men who are inju...
+
+  SUP
+  ───
+  Hold contradictions simultaneously. Two incompatible things are both present.
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.570   0.093  Therefore the sage holds in his embrace the one thing (of humility), and manifests...
+  2    en      0.552   0.090  And it is a lofty and serene soul which is here disclosed before us.
+  3    en      0.474   0.090  Tao has of all things the most honoured place.
+  4    en      0.512   0.086  Appearance is master of truth and lord of happiness.
+  5    en      0.512   0.086  Appearance is master of truth and lord of happiness.
+
+  REC
+  ───
+  Change the frame itself. The interpretive structure undergoes transformation.
+  ⚠ 85 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(15)
+  ⚠ Language concentration: 15/15 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.469   0.051  He will surely reprove you, if you secretly show partiality.
+  2    en      0.517   0.050  and thirdly, he will prove the reasonableness of this view.
+  3    en      0.517   0.050  and thirdly, he will prove the reasonableness of this view.
+  4    en      0.516   0.045  Shall we then dispense with correction? The (method of) correction shall by a turn...
+  5    en      0.535   0.019  Gorgias.) ‘And now let us frame an ideal of the just and unjust.
+
+==========================================================================
+  SITE FACE — Domain × Object — Nine Terrain Types
+==========================================================================
+
+  Where in reality the target is located. The Site face crosses what lev
+  el of reality (Domain: existence/structure/significance) with what gra
+  in of object (Object: condition/entity/pattern). The 9 terrain types d
+  escribe the phenomenological address of a target before any operation 
+  is performed. Reading the Site face tells you what kind of thing you a
+  re working with.
+
+  Margin summary (best exemplar per position, highest to lowest):
+    Network                        Δ=0.311  ██████████████████████████████████████████████████████████████
+    Void                           Δ=0.170  █████████████████████████████████
+    Entity                         Δ=0.136  ███████████████████████████
+    Field                          Δ=0.122  ████████████████████████
+    Lens                           Δ=0.117  ███████████████████████
+    Atmosphere                     Δ=0.116  ███████████████████████
+    Paradigm                       Δ=0.098  ███████████████████
+    Kind                           Δ=0.088  █████████████████
+    Link                           Δ=0.086  █████████████████
+
+  Void
+  ────
+  Existence × Condition. The ambient substrate of being — what is present as background before anything is picked out.
+  ⚠ 50 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.574   0.170  Passing through the valley of Weeping, they make it a place of springs. Yes, the a...
+  2    en      0.546   0.162  The floods have lifted up, Yahweh, the floods have lifted up their voice. The floo...
+  3    en      0.547   0.152  who gives rain on the earth, and sends waters on the fields;
+  4    en      0.539   0.143  Yes, Yahweh will give that which is good. Our land will yield its increase.
+  5    en      0.593   0.136  As the waters fail from the sea, and the river wastes and dries up,
+
+  Entity
+  ──────
+  Existence × Entity. A specific existent — this thing, graspable, nameable.
+  ⚠ 7 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.448   0.136  and the Sabeans attacked, and took them away. Yes, they have killed the servants w...
+  2    en      0.437   0.114  I will beat down his adversaries before him, and strike those who hate him.
+  3    en      0.496   0.097  His offspring will endure forever, his throne like the sun before me.
+  4    en      0.530   0.086  even that it would please God to crush me; that he would let loose his hand, and c...
+  5    en      0.471   0.080  fear came on me, and trembling, which made all my bones shake.
+
+  Kind
+  ────
+  Existence × Pattern. A type or category — not any particular instance but the recurring class.
+  ⚠ 71 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.530   0.088  Between morning and evening they are destroyed. They perish forever without any re...
+  2    en      0.422   0.072  all that blasphemous nonsense with which mothers fool the manhood out of their chi...
+  3    en      0.422   0.072  all that blasphemous nonsense with which mothers fool the manhood out of their chi...
+  4    en      0.503   0.069  and what is not in accordance with it soon comes to an end.
+  5    en      0.513   0.069  When things (in the vegetable world) have displayed their luxuriant growth, we see...
+
+  Field
+  ─────
+  Structure × Condition. The ambient relational environment — the implicit rules nobody names but everyone navigates.
+  ⚠ 56 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.372   0.122  The provinces were protected against oppression, and public help was given to citi...
+  2    en      0.541   0.090  Among early enquirers into the nature of human action the arts helped to fill up t...
+  3    en      0.541   0.089  Among early enquirers into the nature of human action the arts helped to fill up t...
+  4    en      0.528   0.083  Therefore a sage has said, 'I will do nothing (of purpose), and the people will be...
+  5    en      0.533   0.072  If princes and kings were able to maintain it, all things would of themselves be t...
+
+  Link
+  ────
+  Structure × Entity. A specific connection — this bond, this dependency.
+  ⚠ 27 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.477   0.086  Henceforth the two are colleagues in the empire, the junior being trained as it we...
+  2    en      0.341   0.084  Ceionius Commodus, whom Antoninus had adopted as a younger son at the same time wi...
+  3    en      0.309   0.079  In 140 Marcus was raised to the consulship, and in 145 his betrothal was consummat...
+  4    en      0.468   0.071  These are the steps by which Plato constructs the first or primitive State, introd...
+  5    en      0.339   0.070  Hence it came about that Antoninus, having no son, adopted Marcus, changing his na...
+
+  Network
+  ───────
+  Structure × Pattern. An architecture of connections — the system as recurring structure.
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.680   0.311  We investigate the inseparability of states generated by superposition of a multip...
+  2    en      0.671   0.304  We investigate the multipartite entanglement structure that emerges in hybrid quan...
+  3    en      0.678   0.296  We investigate entanglement properties of a recently introduced class of macroscop...
+  4    en      0.656   0.295  We propose a method to characterize and quantify multipartite entanglement for pur...
+  5    en      0.651   0.294  We calculate the entanglement of formation and the entanglement of distillation fo...
+
+  Atmosphere
+  ──────────
+  Significance × Condition. The ambient interpretive weather — what makes certain readings feel obvious.
+  ⚠ 57 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.610   0.116  It is high time for thee to understand the true nature both of the world, whereof ...
+  2    en      0.620   0.108  To him, as to other great teachers both philosophical and religious, when they loo...
+  3    en      0.620   0.108  To him, as to other great teachers both philosophical and religious, when they loo...
+  4    en      0.544   0.096  To the saint as to the emperor, the world is a poor thing at best.
+  5    en      0.527   0.072  Why should any of these things that happen externally, so much distract thee? Give...
+
+  Lens
+  ────
+  Significance × Entity. A specific reading or frame applied to one situation.
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.610   0.117  Socrates praises his frankness, and assumes the attitude of one whose only wish is...
+  2    en      0.610   0.117  Socrates praises his frankness, and assumes the attitude of one whose only wish is...
+  3    en      0.478   0.108  But from his own tone in speaking of the Christians it is clear he knew them only ...
+  4    en      0.536   0.102  Moreover, that he was never commended by any man, as either a learned acute man, o...
+  5    en      0.576   0.099  Rhet.), ‘thou wast ever bold in battle,’ seems to show that the description of him...
+
+  Paradigm
+  ────────
+  Significance × Pattern. A worldview or interpretive framework through which everything is filtered.
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.520   0.098  Moreover, nothing is good but virtue, and nothing but vice is bad.
+  2    en      0.534   0.095  and possibly in the more complex frame we may sooner find justice and injustice.
+  3    en      0.534   0.095  and possibly in the more complex frame we may sooner find justice and injustice.
+  4    en      0.526   0.094  or that virtue is self-love or the love of power;
+  5    en      0.526   0.094  or that virtue is self-love or the love of power;
+
+==========================================================================
+  RESOLUTION FACE — Mode × Object — Nine Engagement Stances
+==========================================================================
+
+  At what grain the transformation lands. The Resolution face crosses ho
+  w an operation is structured (Mode: differentiating/relating/generatin
+  g) with what grain of object it targets (Object: condition/entity/patt
+  ern). The 9 stances describe the actor's relationship to the target — 
+  not what they are doing or where, but how they are engaging.
+
+  Margin summary (best exemplar per position, highest to lowest):
+    Cultivating                    Δ=0.196  ███████████████████████████████████████
+    Composing                      Δ=0.173  ██████████████████████████████████
+    Tending                        Δ=0.137  ███████████████████████████
+    Dissecting                     Δ=0.127  █████████████████████████
+    Clearing                       Δ=0.126  █████████████████████████
+    Binding                        Δ=0.103  ████████████████████
+    Unraveling                     Δ=0.075  ███████████████
+    Making                         Δ=0.063  ████████████
+    Tracing                        Δ=0.052  ██████████
+
+  Clearing
+  ────────
+  Differentiating × Condition. Dissolving ambient conditions — making space before analysis.
+  ⚠ 59 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.584   0.126  Why should any of these things that happen externally, so much distract thee? Give...
+  2    en      0.579   0.103  free from all contentiousness, envy, and suspicion, and from whatsoever else thou ...
+  3    en      0.570   0.093  nor of the pestilence that walks in darkness, nor of the destruction that wastes a...
+  4    en      0.518   0.087  Their court(-yards and buildings) shall be well kept, but their fields shall be il...
+  5    en      0.477   0.086  They say, “Yah will not see, neither will Jacob’s God consider.”
+
+  Dissecting
+  ──────────
+  Differentiating × Entity. Taking apart a specific thing — investigation, surgery.
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.542   0.127  perhaps because Plato became sensible of some incongruity in a fictitious history,...
+  2    en      0.542   0.127  perhaps because Plato became sensible of some incongruity in a fictitious history,...
+  3    en      0.561   0.110  Of course this was not the original assertion, nor is the new interpretation accep...
+  4    en      0.561   0.110  Of course this was not the original assertion, nor is the new interpretation accep...
+  5    en      0.576   0.106  To Plato himself, the enquiry 'what was the intention of the writer,' or 'what was...
+
+  Unraveling
+  ──────────
+  Differentiating × Pattern. Deconstructing a regularity — showing how a recurring structure works.
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.502   0.075  whereas health, wealth, honour, and other such are generally not so.
+  2    en      0.512   0.070  and then the comparative advantages of just and unjust:
+  3    en      0.512   0.070  and then the comparative advantages of just and unjust:
+  4    en      0.480   0.070  Now men have different natures, and one man will do one thing better than many;
+  5    en      0.503   0.066  Moreover, nothing is good but virtue, and nothing but vice is bad.
+
+  Tending
+  ───────
+  Relating × Condition. Maintaining conditions — the gardener's stance.
+  ⚠ 39 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.503   0.137  and their memories into the general age and time of the world.
+  2    en      0.621   0.120  How deep and unfathomable it is, as if it were the Honoured Ancestor of all things...
+  3    en      0.562   0.117  It clothes all things as with a garment, and makes no assumption of being their lo...
+  4    en      0.516   0.100  The Tao is (like) the emptiness of a vessel;
+  5    en      0.537   0.096  the bodies and substances themselves, into the matter and substance of the world:
+
+  Binding
+  ───────
+  Relating × Entity. Connecting specific things — tying this to that.
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.485   0.103  and indeed his pages are full of generous gratitude to those who had served him.
+  2    en      0.563   0.101  Socrates praises the sons of Ariston, *368* 'inspired offspring of the renowned he...
+  3    en      0.563   0.100  ...Socrates praises the sons of Ariston, ‘inspired offspring of the renowned hero,...
+  4    en      0.472   0.097  by whom also I came to the knowledge of Thrasea and Helvidius, and Cato, and Dio, ...
+  5    en      0.536   0.096  freely and heartily to speak well of all my masters upon any occasion, as it is re...
+
+  Tracing
+  ───────
+  Relating × Pattern. Mapping regularities — the analyst's stance.
+  ⚠ 1 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.486   0.052  Ability to know this model and rule constitutes what we call the mysterious excell...
+  2    en      0.410   0.048  the product state means A has property A1 if and only if B has property B1.
+  3    en      0.527   0.046  The superposition consists merely in the fact that both correlations are simultane...
+  4    en      0.473   0.044  that the musical notes and tones become harmonious through the relation of one wit...
+  5    en      0.449   0.043  It is in fact what one expects intuitively.
+
+  Cultivating
+  ───────────
+  Generating × Condition. Producing conditions for emergence without producing the thing itself.
+  ⚠ 50 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.574   0.196  Yes, Yahweh will give that which is good. Our land will yield its increase.
+  2    en      0.541   0.184  The floods have lifted up, Yahweh, the floods have lifted up their voice. The floo...
+  3    en      0.552   0.182  Make a joyful noise to Yahweh, all the earth! Burst out and sing for joy, yes, sin...
+  4    en      0.639   0.167  Let the heavens be glad, and let the earth rejoice. Let the sea roar, and its full...
+  5    en      0.509   0.166  Satisfy us in the morning with your loving kindness, that we may rejoice and be gl...
+
+  Making
+  ──────
+  Generating × Entity. Producing a specific thing — the gravity well of language.
+  ⚠ 41 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.481   0.063  For the plan grows under the author’s hand;
+  2    en      0.476   0.061  *369* Accordingly he begins to construct the State.
+  3    en      0.489   0.059  For the plan grows under the author's hand;
+  4    en      0.449   0.059  He is developing his idea gradually in a series of positions or situations.
+  5    en      0.449   0.059  He is developing his idea gradually in a series of positions or situations.
+
+  Composing
+  ─────────
+  Generating × Pattern. Producing regularities or structures that recur.
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.642   0.173  We present a method to construct entanglement measures for pure states of multipar...
+  2    en      0.608   0.170  In this work, we present an algorithm for generating multipartite entanglement bet...
+  3    en      0.655   0.163  We propose a method to characterize and quantify multipartite entanglement for pur...
+  4    en      0.603   0.160  We consider entanglement purification protocols for multiple copies of qubit states.
+  5    en      0.614   0.160  We present a new class of entanglement-assisted entanglement purification protocol...
+
+==========================================================================
+  FULL 27-CELL ADDRESS — All Three Axes
+==========================================================================
+
+  Complete specification: operator(Resolution, Site). Each cell simultan
+  eously encodes the Act face (what), the Site face (where), and the Res
+  olution face (how). The composite margin ranks exemplars that are unam
+  biguous on all three faces simultaneously — the most discriminative in
+  stances in the corpus.
+
+  Margin summary (best exemplar per position, highest to lowest):
+    SYN(Composing, Network)        Δ=0.112  ██████████████████████
+    ALT(Dissecting, Lens)          Δ=0.082  ████████████████
+    INS(Cultivating, Void)         Δ=0.077  ███████████████
+    ALT(Unraveling, Paradigm)      Δ=0.071  ██████████████
+    SUP(Binding, Lens)             Δ=0.056  ███████████
+    SUP(Tracing, Paradigm)         Δ=0.052  ██████████
+    NUL(Dissecting, Entity)        Δ=0.050  ██████████
+    CON(Binding, Link)             Δ=0.047  █████████
+    SIG(Tending, Void)             Δ=0.047  █████████
+    SIG(Binding, Entity)           Δ=0.036  ███████
+    SUP(Tending, Atmosphere)       Δ=0.034  ██████
+    ALT(Clearing, Atmosphere)      Δ=0.032  ██████
+    SEG(Unraveling, Network)       Δ=0.022  ████
+    INS(Making, Entity)            Δ=0.019  ███
+    NUL(Unraveling, Kind)          Δ=0.015  ██
+    CON(Tracing, Network)          Δ=0.014  ██
+    CON(Tending, Field)            Δ=0.012  ██
+    SEG(Dissecting, Link)          Δ=0.011  ██
+    REC(Making, Lens)              Δ=0.009  █
+    REC(Composing, Paradigm)       Δ=0.003  
+
+  NUL(Dissecting, Entity)
+  ───────────────────────
+  ⚠ 27 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(4)
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.561   0.050  He doesn’t believe that he shall return out of darkness. He is waited for by the s...
+  2    en      0.450   0.047  his followers fell away from him, and he was assassinated.
+  3    en      0.584   0.021  But after this he has no more to say;
+  4    en      0.584   0.021  But after this he has no more to say;
+
+  NUL(Unraveling, Kind)
+  ─────────────────────
+  ⚠ 43 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(1)
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.552   0.015  and what is not in accordance with it soon comes to an end.
+
+  SIG(Binding, Entity)
+  ────────────────────
+  ⚠ 39 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(6)
+  ⚠ Language concentration: 6/6 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.488   0.036  Again, on the day when the God’s sons came to present themselves before Yahweh, Sa...
+  2    en      0.532   0.034  Who is he who will contend with me? For then would I hold my peace and give up the...
+  3    en      0.389   0.031  Why did the knees receive me? Or why the breast, that I should nurse?
+  4    en      0.617   0.028  Preserve my soul, for I am godly. You, my God, save your servant who trusts in you.
+  5    en      0.503   0.022  That my body in such a life, hath been able to hold out so long.
+
+  SIG(Tending, Void)
+  ──────────────────
+  ⚠ 12 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(2)
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.650   0.047  How still it was and formless, standing alone, and undergoing no change, reaching ...
+  2    en      0.621   0.032  The valley spirit dies not, aye the same;
+
+  SIG(Tracing, Kind)
+  ──────────────────
+  ⚠ 29 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  No positive-margin exemplars for this cell.
+
+  INS(Composing, Kind)
+  ────────────────────
+  ⚠ 88 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  No positive-margin exemplars for this cell.
+
+  INS(Cultivating, Void)
+  ──────────────────────
+  ⚠ 37 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(18)
+  ⚠ Language concentration: 18/18 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.670   0.077  Behold, he withholds the waters, and they dry up. Again, he sends them out, and th...
+  2    en      0.588   0.073  Passing through the valley of Weeping, they make it a place of springs. Yes, the a...
+  3    en      0.655   0.057  Let the heavens be glad, and let the earth rejoice. Let the sea roar, and its full...
+  4    en      0.485   0.049  'Tis moved again, and sends forth air the more.
+  5    en      0.542   0.048  If not so filled, the drought would parch each vale;
+
+  INS(Making, Entity)
+  ───────────────────
+  ⚠ 86 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(14)
+  ⚠ Language concentration: 14/14 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.490   0.019  For the plan grows under the author’s hand;
+  2    en      0.416   0.016  I will beat down his adversaries before him, and strike those who hate him.
+  3    en      0.465   0.016  For he breaks me with a storm, and multiplies my wounds without cause.
+  4    en      0.354   0.015  There were born to him seven sons and three daughters.
+  5    en      0.453   0.011  new thoughts occur to him in the act of writing;
+
+  SEG(Dissecting, Link)
+  ─────────────────────
+  ⚠ 97 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(3)
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.593   0.011  The natural divisions are five in number;—(1) Book I and the first half of Book II...
+  2    en      0.593   0.010  The natural divisions are five in number;--(1) Book I and the first half of Book I...
+  3    en      0.490   0.006  The division into books, like all similar divisions,[1] is probably later than the...
+
+  SEG(Unraveling, Network)
+  ────────────────────────
+  ⚠ 98 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(2)
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.453   0.022  The properties of the operation of superposition are very different from those tha...
+  2    en      0.490   0.001  Or a more general division into two parts may be adopted;
+
+  CON(Binding, Link)
+  ──────────────────
+  ⚠ 92 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(8)
+  ⚠ Language concentration: 8/8 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.357   0.047  In 140 Marcus was raised to the consulship, and in 145 his betrothal was consummat...
+  2    en      0.495   0.024  Henceforth the two are colleagues in the empire, the junior being trained as it we...
+  3    en      0.387   0.016  Ceionius Commodus, whom Antoninus had adopted as a younger son at the same time wi...
+  4    en      0.345   0.012  The boy's aunt, Annia Galeria Faustina, was married to Antoninus Pius, afterwards ...
+  5    en      0.382   0.011  Hence it came about that Antoninus, having no son, adopted Marcus, changing his na...
+
+  CON(Tending, Field)
+  ───────────────────
+  ⚠ 67 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(1)
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.399   0.012  The provinces were protected against oppression, and public help was given to citi...
+
+  CON(Tracing, Network)
+  ─────────────────────
+  ⚠ 99 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(1)
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.394   0.014  superposed with) a decayed nucleus is 100% positively correlated with a dead cat.
+
+  SYN(Composing, Network)
+  ───────────────────────
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.575   0.112  We introduce a construction for entanglement-assisted quantum error-correcting cod...
+  2    en      0.703   0.110  This allows us to design entanglement purification protocols for any number of cop...
+  3    en      0.606   0.109  Multiple strategies have been proposed to approach and optimize such protocols, mo...
+  4    en      0.669   0.096  In this work, we present an algorithm for generating multipartite entanglement bet...
+  5    en      0.697   0.094  We present a method to construct entanglement measures for pure states of multipar...
+
+  SYN(Making, Link)
+  ─────────────────
+  ⚠ 85 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  No positive-margin exemplars for this cell.
+
+  ALT(Clearing, Atmosphere)
+  ─────────────────────────
+  ⚠ 57 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(4)
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.595   0.032  Heaven and earth do not act from (the impulse of) any wish to be benevolent;
+  2    en      0.630   0.022  Why should any of these things that happen externally, so much distract thee? Give...
+  3    en      0.648   0.004  they must penetrate deeper into the nature of things.
+  4    en      0.647   0.004  they must penetrate deeper into the nature of things.
+
+  ALT(Dissecting, Lens)
+  ─────────────────────
+  ⚠ 23 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.589   0.082  Moreover, that he was never commended by any man, as either a learned acute man, o...
+  2    en      0.604   0.077  He has not yet experienced the influence of the Sophists like Glaucon and Adeimant...
+  3    en      0.563   0.073  perhaps because Plato became sensible of some incongruity in a fictitious history,...
+  4    en      0.563   0.073  perhaps because Plato became sensible of some incongruity in a fictitious history,...
+  5    en      0.615   0.072  He has not yet experienced the influence of the Sophists like Glaucon and {xi} Ade...
+
+  ALT(Unraveling, Paradigm)
+  ─────────────────────────
+  ⚠ 11 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.526   0.071  whereas health, wealth, honour, and other such are generally not so.
+  2    en      0.476   0.063  The common sense of mankind has revolted against this view, or has only partially ...
+  3    en      0.477   0.063  The common sense of mankind has revolted against this view, or has only partially ...
+  4    en      0.570   0.062  but we do not therefore attribute them to the worse rather than to the better moti...
+  5    en      0.570   0.062  but we do not therefore attribute them to the worse rather than to the better moti...
+
+  SUP(Binding, Lens)
+  ──────────────────
+  ⚠ 16 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.544   0.056  freely and heartily to speak well of all my masters upon any occasion, as it is re...
+  2    en      0.594   0.055  Rhet.), ‘thou wast ever bold in battle,’ seems to show that the description of him...
+  3    en      0.418   0.054  To their accuracy and scholarship I am under great obligations.
+  4    en      0.495   0.053  and indeed his pages are full of generous gratitude to those who had served him.
+  5    en      0.575   0.053  Socrates praises the sons of Ariston, *368* 'inspired offspring of the renowned he...
+
+  SUP(Tending, Atmosphere)
+  ────────────────────────
+  ⚠ 79 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(17)
+  ⚠ Language concentration: 17/17 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.522   0.034  without looking out from his window, one sees the Tao of Heaven.
+  2    en      0.504   0.028  Without going outside his door, one understands (all that takes place) under the sky;
+  3    en      0.545   0.023  How pure and still the Tao is, as if it would ever so continue! 3.
+  4    en      0.607   0.020  it being the thing, whereon true knowledge of things both divine and human, doth d...
+  5    en      0.446   0.017  The universe, then, is God, of whom the popular gods are manifestations;
+
+  SUP(Tracing, Paradigm)
+  ──────────────────────
+  ⚠ 49 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(20)
+  ⚠ Language concentration: 20/20 top exemplars are en. Results may reflect corpus artifact, not operator semantics.
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.530   0.052  Ability to know this model and rule constitutes what we call the mysterious excell...
+  2    en      0.463   0.035  It is in fact what one expects intuitively.
+  3    en      0.485   0.035  The answer is, that the two blend in one, and are two faces of the same truth;
+  4    en      0.485   0.035  The answer is, that the two blend in one, and are two faces of the same truth;
+  5    en      0.551   0.026  but is only a type of the method or {ix} spirit in which the higher knowledge is t...
+
+  REC(Composing, Paradigm)
+  ────────────────────────
+  ⚠ 99 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(1)
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.439   0.003  These doubts have inspired a variety of proposed interpretations and alterations o...
+
+  REC(Making, Lens)
+  ─────────────────
+  ⚠ 86 exemplar(s) with negative margin excluded (closer to a competing centroid than their own).
+  Language distribution (top 20): en(3)
+
+  #    Lang      sim       Δ  Clause
+  ──── ────── ────── ───────  ──────────────────────────────────────────────────
+  1    en      0.546   0.009  and thirdly, he will prove the reasonableness of this view.
+  2    en      0.546   0.009  and thirdly, he will prove the reasonableness of this view.
+  3    en      0.491   0.003  He strikes it as a matter of necessity;
+
+==========================================================================
+  END OF EXEMPLAR REPORT
+==========================================================================
