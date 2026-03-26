@@ -277,10 +277,13 @@ def ensure_classified(run_dir: Path) -> Path:
 # AVAILABLE RUN SELECTION
 # ─────────────────────────────────────────────────────────────────────────────
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+
 def find_available_runs() -> list:
-    """Find all run_* directories that have the required files."""
+    """Find all run_* directories that have the required files.
+    Searches relative to the script's own directory, not the cwd."""
     runs = []
-    for d in sorted(Path(".").glob("run_*")):
+    for d in sorted(SCRIPT_DIR.glob("run_*")):
         if d.is_dir() and (d / "classified.jsonl").exists():
             has_emb = (d / "embeddings.npz").exists()
             runs.append({"dir": d, "has_embeddings": has_emb})
@@ -405,7 +408,11 @@ def main():
     if args.run_dir:
         run_dir = Path(args.run_dir)
         if not run_dir.exists():
-            err(f"Directory not found: {run_dir}")
+            # Try relative to script directory
+            run_dir = SCRIPT_DIR / args.run_dir
+        if not run_dir.exists():
+            err(f"Directory not found: {args.run_dir}")
+            err(f"(also tried: {SCRIPT_DIR / args.run_dir})")
             sys.exit(1)
         ok(f"Using: {run_dir}")
     else:
