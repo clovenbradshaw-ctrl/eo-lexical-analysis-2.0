@@ -3257,13 +3257,9 @@ def run_centroids(embeddings_file: Path, classified_file: Path, run_dir: Path):
     info("Format: exemplars[face][cell] = list of top-100 discriminative clauses (ranked by margin)")
     info("See exemplars['_legend'] for full schema and vocabulary reference")
 
-    # ── Exemplar analysis report ──────────────────────────────────────────────
-    section("Generating exemplar analysis report")
-    generate_exemplar_report(exemplars_out, run_dir)
-
     # ── Save results ──────────────────────────────────────────────────────────
     (run_dir / "centroid_results.json").write_text(json.dumps(results, indent=2))
-    return results, centroid_file
+    return results, centroid_file, exemplars_out
 
 
 
@@ -4736,23 +4732,9 @@ def compute_intermodel_agreement(classified_file: Path, models: list) -> dict:
 # The report is written for someone who doesn't know EO but can read carefully.
 # ─────────────────────────────────────────────────────────────────────────────
 
-def run_centroid_phase(embeddings_file: Path, run_dir: Path) -> Path:
-    """
-    Phase 5 — Centroid Classification.
-
-    For each EO cell (27-cell, 9 operators, 3 triads), compute the mean
-    embedding vector of all consensus-classified clauses in that cell.
-    Then classify ALL clauses (including non-consensus) by nearest centroid
-    and measure how well the geometry recovers the AI classifications.
-
-    This tests whether the 27 cells are geometrically stable regions —
-    not just statistically significant on average, but individually
-    locatable in embedding space.
-
-    Saves:
-      centroids.npz     — centroid vectors for all cells at all levels
-      centroid_report.txt — accuracy and coverage report
-    """
+def _run_centroid_phase_DEPRECATED(embeddings_file: Path, run_dir: Path) -> Path:
+    """DEPRECATED — centroid results are now integrated into the main analysis report.
+    This function is no longer called. Kept temporarily for reference."""
     section("Phase 5 — Computing centroids and centroid classification")
 
     data = np.load(embeddings_file, allow_pickle=True)
@@ -5830,6 +5812,169 @@ disagreement cases express the Q2 anomaly geometrically.""")
     report_path = run_dir / "analysis_report.txt"
     report_path.write_text("\n".join(lines), encoding="utf-8")
     return report_path
+
+def append_centroid_and_exemplar_sections(
+    run_dir: Path,
+    centroid_results: dict,
+    exemplars_out: dict,
+):
+    """Append Phase 5 centroid classification and exemplar sections to analysis_report.txt."""
+    report_path = run_dir / "analysis_report.txt"
+    if not report_path.exists():
+        return report_path
+
+    lines = []
+    def w(s=""): lines.append(s)
+    def h1(s):   w(); w("=" * 74); w(f"  {s}"); w("=" * 74)
+    def h2(s):   w(); w(f"── {s} {'─'*(68-len(s))}"); w()
+    def p(s, indent=2): lines.extend(textwrap.wrap(s, width=70, initial_indent=" "*indent, subsequent_indent=" "*indent)); w()
+
+    # ── Centroid classification section ───────────────────────────────────────
+    h1("CENTROID CLASSIFICATION (PHASE 5)")
+    p("Centroids built from consensus clauses (both models agreed). "
+      "Classification: each clause assigned to nearest centroid by cosine similarity. "
+      "This tests whether the 27 cells are stable geometric regions — "
+      "not just statistically significant on average, but individually locatable "
+      "in embedding space.")
+    w()
+
+    w(f"  {'Level':<28} {'Held-out':>10} {'All':>10} {'Chance':>8} {'×Chance':>8}")
+    w(f"  {'─'*28} {'─'*10} {'─'*10} {'─'*8} {'─'*8}")
+
+    for level_name in [
+        "Triads (3 groups)",
+        "Operators (9 groups)",
+        "Site face (9)",
+        "Resolution face (9)",
+        "Full 27-cell",
+    ]:
+        r = centroid_results.get(level_name)
+        if not r:
+            continue
+        held = f"{r['accuracy_heldout']:.1%}"
+        all_acc = f"{r['accuracy_all']:.1%}"
+        chance = f"{r['chance_baseline']:.1%}"
+        mult = f"{r['multiple_of_chance']:.1f}×"
+        w(f"  {level_name:<28} {held:>10} {all_acc:>10} {chance:>8} {mult:>8}")
+
+    w()
+    p("Accuracy well above chance means the cells are geometrically stable "
+      "regions — new clauses fall into the right neighborhood without any "
+      "AI classification. Accuracy near chance means the cell boundaries "
+      "are fuzzy — real on average but not individually locatable.")
+
+    # Per-cell accuracy for 27-cell
+    cell_27 = centroid_results.get("Full 27-cell", {}).get("per_cell", {})
+    if cell_27:
+        w()
+        h2("Per-cell centroid accuracy (held-out, 27-cell)")
+        w(f"  {'Cell':<35} {'Accuracy':>8}  {'n':>5}")
+        w(f"  {'─'*35} {'─'*8}  {'─'*5}")
+        for cell, cr in sorted(cell_27.items(), key=lambda x: -x[1]["accuracy"]):
+            bar = "█" * int(cr["accuracy"] * 20)
+            w(f"  {cell:<35} {cr['accuracy']:>7.1%}  {cr['n']:>5}  {bar}")
+
+    # ── Exemplar section ──────────────────────────────────────────────────────
+    if exemplars_out:
+        h1("TOP EXEMPLARS PER CELL AND FACE")
+        p("Top exemplars per cell and face position, ranked by discrimination margin. "
+          "Margin = how far a clause is from its nearest competing centroid. "
+          "Higher margin = clause is more unambiguously in this cell than any other. "
+          "27-cell composite margin = minimum margin across all four faces simultaneously.")
+
+        FACE_DESCRIPTIONS = {
+            "act_face": (
+                "ACT FACE — Mode × Domain — The Nine Operators",
+                "What transformation is happening."
+            ),
+            "site_face": (
+                "SITE FACE — Domain × Object — Nine Terrain Types",
+                "Where in reality the target is located."
+            ),
+            "resolution_face": (
+                "RESOLUTION FACE — Mode × Object — Nine Engagement Stances",
+                "At what grain the transformation lands."
+            ),
+            "27cell": (
+                "FULL 27-CELL ADDRESS — All Three Axes",
+                "Complete specification: operator(Resolution, Site)."
+            ),
+        }
+
+        FACE_ORDER = [
+            ("act_face",        ["NUL","SIG","INS","SEG","CON","SYN","ALT","SUP","REC"]),
+            ("site_face",       ["Void","Entity","Kind","Field","Link","Network","Atmosphere","Lens","Paradigm"]),
+            ("resolution_face", ["Clearing","Dissecting","Unraveling","Tending","Binding","Tracing","Cultivating","Making","Composing"]),
+            ("27cell",          None),
+        ]
+
+        for face_name, position_order in FACE_ORDER:
+            face_data = exemplars_out.get(face_name, {})
+            if not face_data:
+                continue
+
+            title, description = FACE_DESCRIPTIONS.get(face_name, (face_name, ""))
+            h2(title)
+            p(description)
+
+            if position_order:
+                positions = [pos for pos in position_order if pos in face_data]
+            else:
+                helix = ["NUL","SIG","INS","SEG","CON","SYN","ALT","SUP","REC"]
+                def cell_sort_key(k):
+                    op = k.split("(")[0]
+                    return (helix.index(op) if op in helix else 99, k)
+                positions = sorted(face_data.keys(), key=cell_sort_key)
+
+            # Margin summary
+            all_top_margins = []
+            for pos in positions:
+                exs = face_data.get(pos, [])
+                if exs:
+                    mk = "margin_composite" if face_name == "27cell" else "margin_face"
+                    pos_exs = [e for e in exs
+                               if e.get(mk, e.get("margin_composite", e.get("margin_face", 0))) > 0]
+                    if pos_exs:
+                        all_top_margins.append((pos, pos_exs[0].get(mk,
+                            pos_exs[0].get("margin_composite", pos_exs[0].get("margin_face", 0)))))
+
+            if all_top_margins:
+                all_top_margins.sort(key=lambda x: -x[1])
+                w()
+                w("  Margin summary (best exemplar per position, highest to lowest):")
+                for pos, m in all_top_margins:
+                    bar = "█" * int(m * 200)
+                    w(f"    {pos:<30} Δ={m:.3f}  {bar}")
+
+            # Top 3 exemplars per position
+            for pos in positions:
+                exs = face_data.get(pos, [])
+                if not exs:
+                    continue
+                margin_key = "margin_composite" if face_name == "27cell" else "margin_face"
+                positive_exs = [e for e in exs
+                                if e.get(margin_key, e.get("margin_composite",
+                                   e.get("margin_face", 0))) > 0]
+                if not positive_exs:
+                    continue
+
+                w()
+                w(f"  {pos}:")
+                w(f"    {'#':<3} {'Lang':<5} {'sim':>5} {'Δ':>6}  Clause")
+                w(f"    {'─'*3} {'─'*5} {'─'*5} {'─'*6}  {'─'*48}")
+                for i, ex in enumerate(positive_exs[:3]):
+                    clause = ex.get("clause", "")
+                    if len(clause) > 75:
+                        clause = clause[:72] + "..."
+                    m = ex.get(margin_key, ex.get("margin_composite", ex.get("margin_face", 0)))
+                    sim = ex.get("sim_own", 0)
+                    w(f"    {i+1:<3} {ex['language']:<5} {sim:>5.3f} {m:>6.3f}  {clause}")
+
+    # Append to existing report
+    existing = report_path.read_text(encoding="utf-8")
+    report_path.write_text(existing + "\n" + "\n".join(lines), encoding="utf-8")
+    return report_path
+
 
 def _zscore_verdict(z):
     return ""
@@ -7399,11 +7544,16 @@ def main():
             err(f"embeddings.npz not found. Run --phase embed first.")
             sys.exit(1)
 
-        centroid_results, centroid_file = run_centroids(
+        centroid_results, centroid_file, exemplars_out = run_centroids(
             embeddings_file=embeddings_file,
             classified_file=classified_file,
             run_dir=run_dir,
         )
+
+        # Append centroid + exemplar sections to the unified analysis report
+        section("Integrating centroid results into analysis report")
+        append_centroid_and_exemplar_sections(run_dir, centroid_results, exemplars_out)
+        ok(f"Integrated report: {run_dir / 'analysis_report.txt'}")
 
     # ── Done ──────────────────────────────────────────────────────────────────
     header("COMPLETE")
@@ -7414,13 +7564,12 @@ def main():
     raw_clauses.jsonl      Corpus clauses (language-tagged)
     classified.jsonl       Q1/Q2/Q3 per model per clause
     embeddings.npz         Clause vectors (numpy archive)
-    analysis_report.txt    Full results with plain-English commentary
+    analysis_report.txt    Full integrated report (analysis + centroids + exemplars)
     results.json           Raw numbers (for further analysis)
     figures/               PCA projection, z-score chart, proportionality curve
-    centroids.npz          Centroid vectors for all 27 cells, 9 operators, 3 triads
-    centroid_report.txt    Centroid classification accuracy report
     centroids.npz          27-cell centroid vectors (for classifying new text)
     centroid_results.json  Centroid classifier accuracy per level
+    exemplars.json         Top-100 exemplars per cell (machine-readable)
     """)
 
 
