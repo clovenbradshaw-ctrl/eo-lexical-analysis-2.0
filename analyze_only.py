@@ -331,6 +331,98 @@ def select_run() -> Path:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# RUN ANALYSIS ON A SINGLE DATASET
+# ─────────────────────────────────────────────────────────────────────────────
+
+def run_one(run_dir: Path, app2, force: bool = False):
+    """Download data if needed and run Phase 4 + Phase 5 on a single run directory."""
+
+    # ── Download / validate data ──────────────────────────────────────────────
+    header(f"DATA PREPARATION — {run_dir.name}")
+    section("Checking classified.jsonl")
+    classified_file = ensure_classified(run_dir)
+
+    section("Checking embeddings.npz")
+    embeddings_file = ensure_embeddings(run_dir)
+
+    # ── Detect which models were used ─────────────────────────────────────────
+    models_used = []
+    with open(classified_file) as f:
+        for i, line in enumerate(f):
+            if i >= 20:
+                break
+            try:
+                rec = json.loads(line)
+                cls = rec.get("classifications", {})
+                for m in cls:
+                    if m == "claude" and "claude" not in models_used:
+                        models_used.append("claude")
+                    if m in ("gpt4", "gpt-4o", "gpt-4o-mini") and "gpt4" not in models_used:
+                        models_used.append("gpt4")
+            except Exception:
+                pass
+    if not models_used:
+        models_used = ["claude"]
+    info(f"Models detected in data: {', '.join(models_used)}")
+
+    # ── Phase 4: Analysis ─────────────────────────────────────────────────────
+    header("PHASE 4 — ANALYSIS (UNIFIED POOL)")
+    print("""
+  All clauses combined into a single unified analysis pool.
+  Metrics computed on all clauses with best-available labels:
+
+  (a) Per-axis z-score — geometric separation vs random baseline
+  (b) Proportionality — distance scales with axis-difference count
+  (c) Axis independence (ARI) — are the three axes orthogonal?
+  (d) Operator/face z-scores — combinatorial structure
+  (e) Coordinate geometry — axis spacing patterns
+  (f) Helix dependency — Mode-Domain correlation structure
+    """)
+
+    results = app2.run_analysis(
+        embeddings_file=embeddings_file,
+        classified_file=classified_file,
+        run_dir=run_dir,
+        models_used=models_used,
+        force=force,
+    )
+
+    # ── Phase 5: Centroids ────────────────────────────────────────────────────
+    header("PHASE 5 — CENTROID CLASSIFIER")
+    print("""
+  Computes geometric centroids for each EO cell from consensus-classified
+  clauses, then classifies ALL clauses by nearest centroid — no AI
+  classifiers involved, pure geometry.
+
+  Tests whether the 27 cells are stable geometric regions that can
+  address new text without any classification prompt.
+    """)
+
+    centroid_results, centroid_file = app2.run_centroids(
+        embeddings_file=embeddings_file,
+        classified_file=classified_file,
+        run_dir=run_dir,
+    )
+
+    # ── Per-run summary ───────────────────────────────────────────────────────
+    header(f"COMPLETE — {run_dir.name}")
+    print(f"""
+  Output directory: {run_dir}/
+
+  Key files:
+    analysis_report.txt    Full results with plain-English commentary
+    results.json           Raw numbers (for further analysis)
+    centroids.npz          27-cell centroid vectors
+    centroid_results.json  Centroid classifier accuracy
+    composite_test.json    Geometry tests (reconstruction, cross-axis)
+    helix_geometry.json    Helix dependency tests
+    coord_geometry.json    Coordinate metric analysis
+    exemplars.json         Top-100 exemplars per cell
+    figures/               PCA/LDA projections, z-score charts
+    """)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # MAIN
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -344,6 +436,7 @@ def main():
 
           Examples:
             python analyze_only.py                           # interactive run selection
+            python analyze_only.py --all                     # run on ALL datasets
             python analyze_only.py --run-dir run_2026-03-15_122636
             python analyze_only.py --force                   # recompute everything
             python analyze_only.py --list                    # show available datasets
@@ -351,6 +444,8 @@ def main():
     )
     parser.add_argument("--run-dir", type=str, default=None,
                         help="Path to a specific run directory")
+    parser.add_argument("--all", action="store_true",
+                        help="Run analysis on ALL available datasets (sequentially)")
     parser.add_argument("--force", action="store_true",
                         help="Force recomputation of all analysis (ignore cached results.json)")
     parser.add_argument("--list", action="store_true",
@@ -403,34 +498,9 @@ def main():
             print(f"  {d.name}  {desc}")
         sys.exit(0)
 
-    # ── Select run directory ──────────────────────────────────────────────────
-    section("Selecting dataset")
-    if args.run_dir:
-        run_dir = Path(args.run_dir)
-        if not run_dir.exists():
-            # Try relative to script directory
-            run_dir = SCRIPT_DIR / args.run_dir
-        if not run_dir.exists():
-            err(f"Directory not found: {args.run_dir}")
-            err(f"(also tried: {SCRIPT_DIR / args.run_dir})")
-            sys.exit(1)
-        ok(f"Using: {run_dir}")
-    else:
-        run_dir = select_run()
-
-    # ── Download / validate data ──────────────────────────────────────────────
-    header("DATA PREPARATION")
-    section("Checking classified.jsonl")
-    classified_file = ensure_classified(run_dir)
-
-    section("Checking embeddings.npz")
-    embeddings_file = ensure_embeddings(run_dir)
-
-    # ── Import analysis functions from app2.py ────────────────────────────────
-    # We import app2 as a module to reuse all 5000+ lines of analysis code
-    # without duplication.
+    # ── Import analysis engine (once, before any runs) ──────────────────────
     section("Loading analysis engine")
-    app2_path = Path(__file__).parent / "app2.py"
+    app2_path = SCRIPT_DIR / "app2.py"
     if not app2_path.exists():
         err("app2.py not found — it must be in the same directory as this script.")
         err("The analysis functions live in app2.py.")
@@ -441,7 +511,6 @@ def main():
     app2 = importlib.util.module_from_spec(spec)
 
     # Suppress the interactive setup and corpus download code during import
-    # by temporarily replacing sys.argv
     old_argv = sys.argv
     sys.argv = ["app2.py", "--help-hidden"]  # won't trigger main()
     try:
@@ -453,81 +522,44 @@ def main():
 
     ok("Analysis engine loaded from app2.py")
 
-    # ── Detect which models were used ─────────────────────────────────────────
-    models_used = []
-    with open(classified_file) as f:
-        for i, line in enumerate(f):
-            if i >= 20:
-                break
-            try:
-                rec = json.loads(line)
-                cls = rec.get("classifications", {})
-                for m in cls:
-                    if m == "claude" and "claude" not in models_used:
-                        models_used.append("claude")
-                    if m in ("gpt4", "gpt-4o", "gpt-4o-mini") and "gpt4" not in models_used:
-                        models_used.append("gpt4")
-            except Exception:
-                pass
-    if not models_used:
-        models_used = ["claude"]
-    info(f"Models detected in data: {', '.join(models_used)}")
+    # ── Build list of run directories to process ──────────────────────────────
+    section("Selecting dataset(s)")
+    if args.all:
+        runs = find_available_runs()
+        if not runs:
+            err("No run directories found with classified.jsonl")
+            sys.exit(1)
+        run_dirs = [r["dir"] for r in runs]
+        ok(f"Running on ALL {len(run_dirs)} datasets: {', '.join(d.name for d in run_dirs)}")
+    elif args.run_dir:
+        run_dir = Path(args.run_dir)
+        if not run_dir.exists():
+            # Try relative to script directory
+            run_dir = SCRIPT_DIR / args.run_dir
+        if not run_dir.exists():
+            err(f"Directory not found: {args.run_dir}")
+            err(f"(also tried: {SCRIPT_DIR / args.run_dir})")
+            sys.exit(1)
+        run_dirs = [run_dir]
+        ok(f"Using: {run_dir}")
+    else:
+        run_dirs = [select_run()]
 
-    # ── Phase 4: Analysis ─────────────────────────────────────────────────────
-    header("PHASE 4 — ANALYSIS (UNIFIED POOL)")
-    print("""
-  All clauses combined into a single unified analysis pool.
-  Metrics computed on all clauses with best-available labels:
+    # ── Process each dataset ──────────────────────────────────────────────────
+    completed = []
+    for run_idx, run_dir in enumerate(run_dirs, 1):
+        if len(run_dirs) > 1:
+            header(f"DATASET {run_idx}/{len(run_dirs)} — {run_dir.name}")
 
-  (a) Per-axis z-score — geometric separation vs random baseline
-  (b) Proportionality — distance scales with axis-difference count
-  (c) Axis independence (ARI) — are the three axes orthogonal?
-  (d) Operator/face z-scores — combinatorial structure
-  (e) Coordinate geometry — axis spacing patterns
-  (f) Helix dependency — Mode-Domain correlation structure
-    """)
+        run_one(run_dir, app2, force=args.force)
+        completed.append(run_dir)
 
-    results = app2.run_analysis(
-        embeddings_file=embeddings_file,
-        classified_file=classified_file,
-        run_dir=run_dir,
-        models_used=models_used,
-        force=args.force,
-    )
-
-    # ── Phase 5: Centroids ────────────────────────────────────────────────────
-    header("PHASE 5 — CENTROID CLASSIFIER")
-    print("""
-  Computes geometric centroids for each EO cell from consensus-classified
-  clauses, then classifies ALL clauses by nearest centroid — no AI
-  classifiers involved, pure geometry.
-
-  Tests whether the 27 cells are stable geometric regions that can
-  address new text without any classification prompt.
-    """)
-
-    centroid_results, centroid_file = app2.run_centroids(
-        embeddings_file=embeddings_file,
-        classified_file=classified_file,
-        run_dir=run_dir,
-    )
-
-    # ── Done ──────────────────────────────────────────────────────────────────
-    header("COMPLETE")
+    # ── Final summary ─────────────────────────────────────────────────────────
+    header("ALL COMPLETE")
+    for d in completed:
+        desc = RUN_DATASETS.get(d.name, {}).get("description", "")
+        print(f"  {green('✓')} {d.name}  {dim(desc)}")
     print(f"""
-  Output directory: {run_dir}/
-
-  Key files:
-    analysis_report.txt    Full results with plain-English commentary
-    results.json           Raw numbers (for further analysis)
-    centroids.npz          27-cell centroid vectors
-    centroid_results.json  Centroid classifier accuracy
-    composite_test.json    Geometry tests (reconstruction, cross-axis)
-    helix_geometry.json    Helix dependency tests
-    coord_geometry.json    Coordinate metric analysis
-    exemplars.json         Top-100 exemplars per cell
-    figures/               PCA/LDA projections, z-score charts
-
   No API keys were used. No classifications were performed.
   No embeddings were generated. All analysis was done on pre-computed data.
     """)
