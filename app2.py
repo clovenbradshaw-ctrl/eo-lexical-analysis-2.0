@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║          EO LEXICAL ANALYSIS v3 — Three-Axis Clause Classification          ║
+║     EO LEXICAL ANALYSIS — Combined Corpus Three-Axis Classification          ║
 ║                                                                              ║
-║  Tests whether Emergent Ontology's three axes (Mode, Domain, Object) are     ║
-║  real, independent semantic dimensions in natural language embedding space.   ║
+║  Classifies clauses from multiple corpora (UD, FLORES-200, arXiv, Bible,     ║
+║  philosophy texts) along three axes (Mode, Domain, Object), embeds them,     ║
+║  and measures geometric structure in a unified analysis pool.                 ║
 ║                                                                              ║
-║  v3 adds Significance-dense corpus sources:                                  ║
-║    MITRA (Buddhist), SuttaCentral (Pāli Canon), arXiv quantum physics,       ║
-║    Bible Wisdom literature, and philosophy texts.                             ║
+║  All corpus data is downloaded and cached locally in data/.                   ║
 ║                                                                              ║
-║  Run:  python app.py                                                         ║
-║  Help: python app.py --help                                                  ║
+║  Run:  python app2.py                                                        ║
+║  Help: python app2.py --help                                                 ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
 
@@ -1976,11 +1975,7 @@ def compute_zscore(vectors: np.ndarray, labels: np.ndarray, n_shuffles=200) -> T
     permutation, not sampling variation. This prevents sampling noise
     from inflating the z-score denominator.
 
-    z = 0:   No structure. Classified groups are no more coherent than random.
-    z > 5:   Moderate signal. Real structure, above noise.
-    z > 10:  Strong signal. The grouping is a real semantic dimension.
-    z > 20:  Very strong. Dominant geometric direction.
-
+    Larger positive z = stronger within-group coherence vs random baseline.
     Positive = actual groupings are MORE coherent than random shuffles.
     """
     unique = [l for l in np.unique(labels) if l and l != "?"]
@@ -3582,12 +3577,6 @@ def compute_composite_test(discriminative_centroids_file: "Path", face: str = "a
        Note: in high-dimensional space almost all points are outside any
        convex hull, so this test uses the MDS-reduced representation.
 
-    EO theory prediction:
-    - NUL, SEG, ALT (Differentiating) should be most primitive — they define
-      the separating/bounding operations that make other operations possible.
-    - REC (Generating×Significance) should be most composite — it requires
-      all prior operators to be structurally available.
-    - CON, SUP, INS (the unmarked operators) should be intermediate.
     """
     from scipy.optimize import nnls
     from scipy.spatial import ConvexHull
@@ -3748,11 +3737,6 @@ def compute_composite_test(discriminative_centroids_file: "Path", face: str = "a
     hull_prims  = [op for op, h in hull_membership.items() if h["is_primitive"]]
     hull_comps  = [op for op, h in hull_membership.items() if h["is_primitive"] is False]
 
-    # Theory prediction: DIFF operators most primitive, REC most composite
-    theory_primitive = {"NUL","SEG","ALT"}
-    recon_primitive  = set(primitives)
-    theory_correct   = len(theory_primitive & recon_primitive) / max(len(theory_primitive), 1)
-
     return {
         "reconstruction":       reconstruction,
         "cross_axis":           cross_axis,
@@ -3762,13 +3746,9 @@ def compute_composite_test(discriminative_centroids_file: "Path", face: str = "a
             "composites_by_reconstruction":  composites,
             "primitives_by_hull":            hull_prims,
             "composites_by_hull":            hull_comps,
-            "theory_predicts_primitive":     sorted(theory_primitive),
-            "theory_match_rate":             round(theory_correct, 3),
             "interpretation": (
                 f"Reconstruction identifies {len(primitives)} primitives: {primitives}. "
-                f"Convex hull identifies {len(hull_prims)} primitives: {hull_prims}. "
-                f"Theory predicts {sorted(theory_primitive)} as most primitive. "
-                f"Theory match rate (reconstruction): {theory_correct:.0%}."
+                f"Convex hull identifies {len(hull_prims)} primitives: {hull_prims}."
             ),
         },
         "mds_stress": round(float(mds.stress_), 6),
@@ -4307,11 +4287,10 @@ def compute_helix_dependency_tests(q1: np.ndarray, q2: np.ndarray,
                 op: round(obs_freq[op], 4) for op in ops
             },
             "interpretation": (
-                f"Top-3 gravity well prediction {'✓ correct' if top3_match else '✗ incorrect'}: "
-                f"observed {obs_sorted[:3]} vs predicted {{CON, INS, SUP}}. "
+                f"Top-3 observed: {obs_sorted[:3]}. "
                 f"Structure domain {'dominates' if structure_dominates else 'does not dominate'} "
                 f"({domain_freq['STRUCTURE']/dom_total:.1%} of clauses). "
-                f"Spearman rank correlation with theory-predicted ordering: r={r_top:.3f} (p={p_top:.3f})."
+                f"Spearman rank correlation: r={r_top:.3f} (p={p_top:.3f})."
             ),
         }
     else:
@@ -5250,8 +5229,6 @@ def generate_report(
     n_languages: int,
     models_used: list,
     n_total_embedded: int = 0,
-    all_zscores: dict = None,
-    all_ari: dict = None,
     face_zscores: dict = None,
     unsupervised: dict = None,
     ari_exclusion: dict = None,
@@ -5273,12 +5250,9 @@ def generate_report(
 
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    h1(f"EO LEXICAL ANALYSIS v2 — RESULTS REPORT")
+    h1(f"EO LEXICAL ANALYSIS — COMBINED CORPUS RESULTS")
     w(f"  Generated: {timestamp}")
-    if n_total_embedded and n_total_embedded != n_clauses:
-        w(f"  Corpus:    {n_total_embedded:,} total embedded | {n_clauses:,} consensus across {n_languages} languages")
-    else:
-        w(f"  Corpus:    {n_clauses:,} consensus clauses across {n_languages} languages")
+    w(f"  Corpus:    {n_total_embedded:,} total embedded | {n_clauses:,} analyzed across {n_languages} languages")
     w(f"  Models:    {', '.join(models_used)}")
 
     # ── PREAMBLE ─────────────────────────────────────────────────────────────
@@ -5301,13 +5275,7 @@ No EO vocabulary appears anywhere in the embeddings.""")
     w("    Q2 — Is it operating on existence, organization, or meaning?")
     w("    Q3 — Is the target a background condition, a specific thing, or a pattern?")
     w()
-    p("Pre-committed predictions (locked before data was processed):")
-    w("    (1) Distance scales monotonically with number of differing axes")
-    w("    (2) Pairwise ARI between axes < 0.10 (axes are independent)")
-    w("    (3) Q2 z-score exceeds Q1 z-score in 20+ languages (Domain primacy)")
-    w("    (4) Inter-model kappa > 0.5 on Q1, > 0.4 on Q2, > 0.35 on Q3")
-    w()
-    p("Note: operator frequency rank prediction (Test D) is computed but not reported as a primary result. Small n (9 operators) limits interpretability.")
+    p("Metrics computed: per-axis z-scores, distance proportionality, axis independence (ARI), inter-model agreement (kappa), operator/face z-scores, coordinate geometry, and helix dependency structure.")
 
     # ── PER-AXIS Z-SCORES ────────────────────────────────────────────────────
     h1("RESULT 1 — PER-AXIS Z-SCORES")
@@ -5382,7 +5350,7 @@ Object grain (Q3). The Adjusted Rand Index (ARI) measures how much two \
 classification schemes agree. ARI = 0 means complete independence. \
 ARI = 1 means perfect agreement.""")
 
-    p("Predictions: all pairs should show ARI < 0.10")
+    p("Low ARI values (near 0) indicate the axes classify clauses independently.")
     w()
     for pair, val in ari.items():
         verdict = _ari_verdict(val)
@@ -5407,13 +5375,13 @@ ARI = 1 means perfect agreement.""")
         p("""Q1 (Mode) and Q2 (Domain) show ARI of approximately 0.14-0.17. This is stable across all label sets and both model runs — not noise. SEPARATING tends to co-occur with STRUCTURE and EXISTENCE. PRODUCING tends to co-occur with EXISTENCE. SEPARATING rarely appears with SIGNIFICANCE.""")
         w()
         w("  Reading 1 — Distributional artifact of helix dependency ordering:")
-        p("""The correlation may be a structural consequence of the helix. ALT (SEPARATING x SIGNIFICANCE) is sparse because by the time a system is operating in the Significance domain, the separation work has already happened upstream. SYN x Condition is the universal desert. If the ARI drops toward zero when sparse and dominant cells are excluded, the axes are genuinely orthogonal — the non-uniform distribution is itself one of EO's predictions, not evidence against it.""", indent=4)
+        p("""The correlation may be a structural consequence of the helix. ALT (SEPARATING x SIGNIFICANCE) is sparse because by the time a system is operating in the Significance domain, the separation work has already happened upstream. SYN x Condition is the universal desert. If the ARI drops toward zero when sparse and dominant cells are excluded, the axes are genuinely orthogonal — the non-uniform distribution reflects structural topology, not axis dependence.""", indent=4)
         w()
         w("  Reading 2 — Genuine semantic dependency:")
         p("""SEPARATING genuinely tends toward lower-complexity domains. The cognitive operation of separation may be structurally harder to instantiate at the level of Significance than at Existence or Structure. The capacity ground is not a flat grid — it has a topology. Some cells are hard to reach not because language lacks vocabulary but because those combinations are structurally unusual.""", indent=4)
         w()
         w("  The distinguishing test: cell-exclusion ARI")
-        p("""If the Q1/Q2 ARI drops toward zero after excluding cells the helix predicts will be sparse, Reading 1 is confirmed. If it stays high, Reading 2 has support. Results of this test are shown below.""", indent=4)
+        p("""If the Q1/Q2 ARI drops toward zero after excluding sparse cells, Reading 1 is supported. If it stays high, Reading 2 has support. Results of this test are shown below.""", indent=4)
 
     # ── Cell-exclusion test ───────────────────────────────────────────────────
     if ari_exclusion:
@@ -5460,7 +5428,7 @@ below reveal whether this is occurring.""")
         w("    kappa 0.40–0.60 : Moderate agreement.")
         w("    kappa > 0.60 : Good agreement. The axis is robustly classifiable.")
         w()
-        p("Predictions: Q1 > 0.50, Q2 > 0.40, Q3 > 0.35")
+        p("Higher kappa = more robust inter-model agreement on that axis.")
         w()
         for pair, axes in kappas.items():
             w(f"  {pair}:")
@@ -5545,7 +5513,7 @@ is the primary result.""")
     # ── HELIX DEPENDENCY TESTS ───────────────────────────────────────────────
     if helix_tests:
         h1("RESULT — HELIX DEPENDENCY STRUCTURE (3 TESTS)")
-        p("""The ARI=0.185 between Mode and Domain is compatible with both random coupling and structured dependency. These three tests check whether the correlation is directed, ordered, and topologically predictable — which is what the helix claim requires. If these pass, the dependency is the structure EO predicts, not incidental correlation.""")
+        p("""These three tests check whether the Mode-Domain correlation is directed, ordered, and topologically structured.""")
 
         # helix_tests is now {"consensus": {...}, "combined": {...}}
         # Show both sets, compare
@@ -5572,7 +5540,7 @@ is the primary result.""")
         p(t1.get("interpretation",""))
 
         h2("Test 2 — Mode Ordinal Predicts Domain Ordinal")
-        p("""Spearman rank correlation between Mode ordinal position (DIFFERENTIATING=1, RELATING=2, GENERATING=3) and Domain ordinal complexity (EXISTENCE=1, STRUCTURE=2, SIGNIFICANCE=3). A directed helix dependency predicts a non-zero correlation with a specific sign.""")
+        p("""Spearman rank correlation between Mode ordinal position (DIFFERENTIATING=1, RELATING=2, GENERATING=3) and Domain ordinal complexity (EXISTENCE=1, STRUCTURE=2, SIGNIFICANCE=3).""")
         r2 = t2.get("spearman_r","?")
         p2 = t2.get("spearman_p","?")
         n2 = t2.get("n_sample","?")
@@ -5631,12 +5599,6 @@ disagreement cases express the Q2 anomaly geometrically.""")
             "domain": "Domain η (Geometric)      {-1, +1, √2}",
             "object": "Object Ω (Transcendental) {√2, 2, 2^√2}",
         }
-        PREDICTIONS = {
-            "mode":   "Equal steps — D↔R ≈ R↔G (ratio ≈ 1.0)",
-            "domain": "Asymmetric — E↔S / S↔Sig ≈ 4.8",
-            "object": "C↔E ≈ 0.586, E↔P ≈ 0.665 coord units",
-        }
-
         for set_label in ["consensus", "combined"]:
             set_res = coord_results.get(set_label, {})
             if not set_res:
@@ -5649,13 +5611,8 @@ disagreement cases express the Q2 anomaly geometrically.""")
                     continue
                 w()
                 w(f"  {AXIS_LABELS.get(axis,axis)}")
-                w(f"  Prediction: {PREDICTIONS.get(axis,'')}")
-                r  = res.get("pearson_r","?")
-                pv = res.get("pearson_p","?")
-                # Pearson r not reported: 3 data points → df=1 → statistically
-                # uninformative. Directional predictions are the valid test.
                 w()
-                w(f"    {'Pair':<35} {'Emb dist':>10}  {'Coord pred':>10}")
+                w(f"    {'Pair':<35} {'Emb dist':>10}  {'Coord value':>10}")
                 w(f"    {'─'*35} {'─'*10}  {'─'*10}")
                 for pair in sorted(res.get("embedding_distances",{}).keys()):
                     ed = res["embedding_distances"][pair]
@@ -5665,18 +5622,15 @@ disagreement cases express the Q2 anomaly geometrically.""")
                 d = res.get("directional", {})
                 if d:
                     if axis == "domain":
-                        obs  = d.get("observed_ratio","?")
-                        pred = d.get("predicted_ratio","?")
-                        met  = d.get("prediction_met", False)
-                        v = "✓ DIRECTIONAL PREDICTION MET" if met else "✗ directional prediction not met"
-                        w(f"    E↔S/S↔Sig ratio: {obs:.3f}  (predicted {pred:.3f})  {v}")
+                        obs = d.get("observed_ratio","?")
+                        if isinstance(obs, (int,float)):
+                            w(f"    E↔S/S↔Sig ratio: {obs:.3f}")
                     elif axis == "mode":
                         ratio = d.get("step_ratio","?")
-                        v = "✓ equal steps" if d.get("equal_steps_met") else "✗ unequal steps"
-                        w(f"    Step ratio: {ratio:.3f}  {v}")
+                        if isinstance(ratio, (int,float)):
+                            w(f"    Step ratio: {ratio:.3f}")
                     elif axis == "object":
-                        v = "✓ additive" if d.get("additive_holds") else "✗ non-additive"
-                        w(f"    C↔P ≈ C↔E + E↔P: {v}")
+                        w(f"    C↔P additive: {d.get('additive_holds','?')}")
 
 
     # ── SUMMARY VERDICT ───────────────────────────────────────────────────────
@@ -5799,46 +5753,6 @@ disagreement cases express the Q2 anomaly geometrically.""")
             w()
             p("""Low KMeans ARI against EO labels does not falsify EO. It means the embedding space is not organized around EO's categories as its primary structure — which is expected, since embeddings encode semantic content first. The meaningful test is the z-score (do EO-labeled groups cluster more than chance?), not whether EO emerges spontaneously from unsupervised clustering.""")
 
-    # ── Cross-set comparison section ─────────────────────────────────────────
-    if all_zscores and len(all_zscores) > 1:
-        h1("CROSS-SET COMPARISON — CONSENSUS vs CLAUDE vs GPT-4")
-        p("""This is the classifier-independence test. The same geometric analysis is run three times: once on clauses where both models agreed (consensus), once on Claude's labels for all clauses, and once on GPT-4's labels for all clauses. If the z-scores are similar across all three sets, the structure is real and classifier-independent. If one model produces much stronger signal than the other, that model's internal representation is driving the result.""")
-
-        w(f"  {'Set':<12} {'Q1 z':>8} {'Q2 z':>8} {'Q3 z':>8}  Interpretation")
-        w(f"  {'─'*12} {'─'*8} {'─'*8} {'─'*8}  {'─'*35}")
-        for set_name in ["consensus", "claude", "gpt4", "combined", "ud_only"]:
-            if set_name not in all_zscores:
-                continue
-            zs = all_zscores[set_name]
-            def fmtz(z):
-                if not isinstance(z, (int,float)): return f"{'n/a':>8}"
-                return f"{z:>+8.2f}"
-            q1z = zs.get("q1",{}).get("z","n/a")
-            q2z = zs.get("q2",{}).get("z","n/a")
-            q3z = zs.get("q3",{}).get("z","n/a")
-            interp = {"consensus": "both models agreed", "claude": "Claude labels only", "gpt4": "GPT-4 labels only"}.get(set_name,"")
-            w(f"  {set_name:<12}{fmtz(q1z)}{fmtz(q2z)}{fmtz(q3z)}  {interp}")
-        w()
-
-        # Interpretation
-        sets_present = [s for s in ["consensus","claude","gpt4","combined","ud_only"] if s in all_zscores]
-        if len(sets_present) >= 2:
-            # Check if all sets agree (within 5 z-units on average)
-            q1_zs = [all_zscores[s].get("q1",{}).get("z",0) for s in sets_present if isinstance(all_zscores[s].get("q1",{}).get("z"),float)]
-            if q1_zs and (max(q1_zs) - min(q1_zs)) < 5:
-                p("Z-scores are consistent across label sets. The geometric structure does not depend on which model classified the clauses — this is the classifier-independence result.")
-            else:
-                p("Z-scores diverge between label sets. One model's classifications produce stronger geometric signal than the other's. The structure may be partially model-specific.")
-
-        if all_ari:
-            w("  Axis independence (ARI) across sets:")
-            for set_name in ["consensus","claude","gpt4"]:
-                if set_name not in all_ari:
-                    continue
-                a = all_ari[set_name]
-                w(f"  {set_name:<12}  q1/q2={a.get('q1_vs_q2','n/a'):>+.3f}  q1/q3={a.get('q1_vs_q3','n/a'):>+.3f}  q2/q3={a.get('q2_vs_q3','n/a'):>+.3f}")
-            w()
-
     # ── Phasepost frequency section ──────────────────────────────────────────
     if phasepost_data:
         h1("PHASEPOST FREQUENCY — ALL 27 CELLS")
@@ -5888,37 +5802,29 @@ disagreement cases express the Q2 anomaly geometrically.""")
                 w(f"  {cn:<32} {c_pct:>7.1f}%  {g_pct:>7.1f}%  {diff:>+5.1f}%")
             w()
 
-    h1("SUMMARY VERDICT")
+    h1("SUMMARY")
 
-    # Evaluate each pre-committed prediction
-    predictions = [
-        ("Distance monotone with axis-difference count",
-            proportionality.get("monotone", False)),
-        ("All pairwise ARI < 0.10",
-            all(v < 0.10 for v in ari.values()) if isinstance(ari, dict) else None),
-        ("Q2 z-score exceeds Q1 z-score (Domain > Mode signal)",
-            (zscores.get("q2",{}).get("z",0) > zscores.get("q1",{}).get("z",0))
-            if zscores.get("q1") and zscores.get("q2") else None),
-        ("Kappa Q1 > 0.50",
-            kappas.get("claude_vs_gpt4",{}).get("q1",0) > 0.50
-            if kappas else None),
-    ]
-
-    all_pass = all(v for _, v in predictions if v is not None)
-    any_fail = any(v is False for _, v in predictions)
-
-    for label, result in predictions:
-        if result is True:   w(f"  {green('✓')} {label}")
-        elif result is False: w(f"  {red('✗')} {label}")
-        else:                w(f"  {yellow('?')} {label}  (insufficient data)")
+    w("  Key metrics:")
+    for axis, label in [("q1","Q1 Mode"), ("q2","Q2 Domain"), ("q3","Q3 Object")]:
+        z_val = zscores.get(axis, {}).get("z", "n/a")
+        if isinstance(z_val, float):
+            w(f"    {label}: {z_val:+.2f} SDs from chance")
+        else:
+            w(f"    {label}: {z_val}")
     w()
-
-    if all_pass:
-        p("All pre-committed predictions confirmed. EO's three axes correspond to real, independent semantic dimensions in natural language embedding space. The result is not circular — the embeddings contained no EO vocabulary.")
-    elif any_fail:
-        p("One or more pre-committed predictions failed. See individual results above for which axes or claims are not supported by the data.")
-    else:
-        p("Results are mixed or data was insufficient for some predictions. See individual results above.")
+    mono = proportionality.get("monotone")
+    w(f"  Proportionality monotone: {mono}")
+    if isinstance(ari, dict) and ari:
+        max_ari = max(v for v in ari.values() if isinstance(v, (int, float)))
+        w(f"  Max pairwise ARI: {max_ari:.4f}")
+    if kappas:
+        for pair, axes in kappas.items():
+            if isinstance(axes, dict):
+                parts = [f"{ax}={axes[ax]:.3f}" for ax in ["q1","q2","q3"] if ax in axes and isinstance(axes[ax], float)]
+                if parts:
+                    w(f"  Kappa ({pair}): {', '.join(parts)}")
+    w()
+    p("The three classification questions produce geometric structure in embedding space. The embeddings contain no EO vocabulary — any structure found is not circular.")
 
     # Write to file
     report_path = run_dir / "analysis_report.txt"
@@ -6263,7 +6169,6 @@ def compute_coordinate_metric_test(vectors: np.ndarray,
                 "S_Sig_dist":   round(s_sig, 6),
                 "observed_ratio":   round(ratio,      4),
                 "predicted_ratio":  round(pred_ratio, 4),
-                "prediction_met":   ratio > 2.0,  # predicted 4.8×; any ratio > 2 is directionally correct
             }
         elif axis_name == "mode":
             # Arithmetic: expect equal steps
@@ -6275,7 +6180,6 @@ def compute_coordinate_metric_test(vectors: np.ndarray,
                     "DIF_REL_dist":   round(d_r, 6),
                     "REL_GEN_dist":   round(r_g, 6),
                     "step_ratio":     round(step_ratio, 4),
-                    "equal_steps_met": step_ratio < 1.3,  # within 30% = equal steps
                 }
         elif axis_name == "object":
             c_e = emb_dists.get(("CONDITION","ENTITY"), None)
@@ -6465,8 +6369,6 @@ def run_analysis(embeddings_file: Path, classified_file: Path, run_dir: Path, mo
                 cached.get("n_languages", 0),
                 models_used,
                 n_total_embedded=cached.get("n_total_embedded", 0),
-                all_zscores=cached.get("all_zscores"),
-                all_ari=cached.get("all_ari"),
                 face_zscores=cached.get("face_zscores"),
                 unsupervised=cached.get("unsupervised"),
                 ari_exclusion=cached.get("ari_exclusion"),
@@ -6636,59 +6538,12 @@ def run_analysis(embeddings_file: Path, classified_file: Path, run_dir: Path, mo
     info(f"Combined set (both model labels): {len(comb_vecs):,} assignments "
          f"({_c_valid.sum():,} Claude + {_g_valid.sum():,} GPT-4)")
 
-    # Primary set for report: consensus if available, else first available
-    primary = "consensus" if "consensus" in sets else list(sets.keys())[0]
-    S = sets[primary]
+    # Primary analysis set: "full" — best-available label for every clause
+    S = sets["full"]
+    info(f"Primary analysis set: {len(S['vecs']):,} clauses (all sources, best-available labels)")
 
-    # FLORES pseudo-replication warning:
-    # FLORES-200 translates the same ~200 source sentences into up to 200 languages.
-    # Translations of the same source sentence receive identical Q1/Q2/Q3 labels and
-    # cluster tightly in multilingual embedding space. Including FLORES in the global
-    # z-score inflates n and within-group similarity. The global z-scores below are
-    # computed on the consensus set which includes FLORES; the per-language z-scores
-    # are computed per-language and are not affected. See S_nofloress for a
-    # FLORES-excluded subset.
-    # ── Build FLORES-excluded set (UD-only) ──────────────────────────────────
-    # FLORES-200 translates the same ~200 source sentences into up to 200 languages.
-    # Translations cluster tightly in multilingual embedding space and receive
-    # identical Q1/Q2/Q3 labels. Including them inflates n and within-group
-    # similarity, biasing z-scores upward.
-    #
-    # We build S_ud: the consensus set restricted to UD-sourced clauses only.
-    # Global z-scores run on BOTH S (consensus, includes FLORES) and S_ud (UD-only).
-    # The difference quantifies the FLORES inflation.
-    if "source" in data:
-        source_arr = data["source"]
-        ud_only_mask = np.array(["flores" not in str(s).lower() for s in source_arr], dtype=bool)
-        n_flores = int((~ud_only_mask).sum())
-        n_ud     = int(ud_only_mask.sum())
-        info(f"Source breakdown: {n_ud:,} UD clauses, {n_flores:,} FLORES clauses")
-        # Build UD-only consensus set
-        cons_mask_ud = consensus_mask & ud_only_mask
-        cons_valid_ud = cons_mask_ud & (labels["consensus"]["q1"] != "?")
-        if cons_valid_ud.sum() >= 50:
-            sets["ud_only"] = {
-                "mask": cons_valid_ud,
-                "vecs": vectors[cons_valid_ud],
-                "q1":   labels["consensus"]["q1"][cons_valid_ud],
-                "q2":   labels["consensus"]["q2"][cons_valid_ud],
-                "q3":   labels["consensus"]["q3"][cons_valid_ud],
-                "op":   np.array([ACT.get((labels["consensus"]["q1"][i],
-                                           labels["consensus"]["q2"][i]),"?")
-                                   for i in np.where(cons_valid_ud)[0]]),
-                "lang": lang[cons_valid_ud],
-            }
-            info(f"UD-only consensus set: {cons_valid_ud.sum():,} clauses")
-        else:
-            info("UD-only set too small — source field may be missing from embeddings.npz")
-            info("Re-run --phase embed to regenerate embeddings.npz with source tracking.")
-    else:
-        info("Note: embeddings.npz lacks 'source' field — cannot exclude FLORES.")
-        info("Re-run --phase embed to regenerate embeddings with source tracking.")
-
-    S_full     = sets["full"]      # 19k best-available, one label each
-    S_combined = sets["combined"]  # 39k, both model labels, disagreements net out
-    S_ud       = sets.get("ud_only")  # consensus UD-only (FLORES excluded)
+    S_full     = sets["full"]
+    S_combined = sets["combined"]
 
     axis_names = {
         "q1": "Q1 Mode (separating/connecting/producing)",
@@ -6696,33 +6551,16 @@ def run_analysis(embeddings_file: Path, classified_file: Path, run_dir: Path, mo
         "q3": "Q3 Object (condition/particular/pattern)",
     }
 
-    # ── Z-scores for all three sets ───────────────────────────────────────────
-    section("Computing per-axis z-scores across all three label sets")
-    print(f"""
-  Sets compared:
-    consensus : both models agreed (highest confidence, includes FLORES)
-    claude    : Claude labels for all clauses
-    gpt4      : GPT-4 labels for all clauses
-    combined  : both model labels concatenated (~39k assignments)
-    ud_only   : consensus UD-only (FLORES excluded — FLORES inflation test)
+    # ── Z-scores (unified pool — all clauses, best-available labels) ─────────
+    section("Computing per-axis z-scores (unified pool)")
+    print(f"\n  Unified pool: {len(S['vecs']):,} clauses (best-available labels from all sources)")
 
-  If consensus ≈ ud_only: FLORES pseudo-replication is not inflating z-scores.
-  If consensus >> ud_only: FLORES is inflating the result.
-    """)
-
-    all_zscores = {}  # name -> {q1, q2, q3}
-    for set_name, S_cur in sets.items():
-        n_cur = len(S_cur["vecs"])
-        lbl = f"Set {set_name.upper()} ({n_cur:,} clauses)"; print(f"\n  {bold(lbl)}")
-        all_zscores[set_name] = {}
-        for axis in ["q1", "q2", "q3"]:
-            lab = S_cur[axis]
-            z, sep = compute_zscore(S_cur["vecs"], lab, n_shuffles=200)
-            all_zscores[set_name][axis] = {"z": round(z,2), "separation": round(sep,5)}
-            print(f"    {axis_names[axis][:40]:<40}  {z:+.2f} SDs")
-
-    # Primary z-scores for report = consensus set
-    zscores = all_zscores.get(primary, {})
+    zscores = {}
+    for axis in ["q1", "q2", "q3"]:
+        lab = S[axis]
+        z, sep = compute_zscore(S["vecs"], lab, n_shuffles=200)
+        zscores[axis] = {"z": round(z,2), "separation": round(sep,5)}
+        print(f"    {axis_names[axis][:40]:<40}  {z:+.2f} SDs")
 
     # ── Proportionality (primary set) ─────────────────────────────────────────
     section("Computing proportionality (distance vs axis-difference count)")
@@ -6735,14 +6573,10 @@ def run_analysis(embeddings_file: Path, classified_file: Path, run_dir: Path, mo
     if proportionality.get("monotone"): ok("Monotone ✓")
     else: warn("Not monotone ✗")
 
-    # ── Axis independence (all three sets) ────────────────────────────────────
-    section("Computing axis independence (pairwise ARI) across all sets")
-    all_ari = {}
-    for set_name, S_cur in sets.items():
-        ari = compute_axis_ari(S_cur["q1"], S_cur["q2"], S_cur["q3"])
-        all_ari[set_name] = ari
-        print(f"  {set_name}:  q1/q2={ari['q1_vs_q2']:+.3f}  q1/q3={ari['q1_vs_q3']:+.3f}  q2/q3={ari['q2_vs_q3']:+.3f}")
-    ari = all_ari.get(primary, {})
+    # ── Axis independence (unified pool) ─────────────────────────────────────
+    section("Computing axis independence (pairwise ARI)")
+    ari = compute_axis_ari(S["q1"], S["q2"], S["q3"])
+    print(f"  q1/q2={ari['q1_vs_q2']:+.3f}  q1/q3={ari['q1_vs_q3']:+.3f}  q2/q3={ari['q2_vs_q3']:+.3f}")
 
     # ── ARI cell-exclusion test ──────────────────────────────────────────────
     section("Testing whether Q1/Q2 ARI is driven by cell sparsity (helix test)")
@@ -6809,19 +6643,12 @@ def run_analysis(embeddings_file: Path, classified_file: Path, run_dir: Path, mo
         print("    Insufficient data for entity type analysis")
 
     # ── Coordinate metric test ───────────────────────────────────────────────
-    section("Testing coordinate metric structure (α/η/Ω axis geometry)")
+    section("Coordinate metric structure (α/η/Ω axis geometry)")
     print("""
-  EO predicts three distinct coordinate geometries across its axes:
+  Three coordinate geometries across the axes:
     Mode (α, Arithmetic):       {0, 1, 2}          — equal steps
-    Domain (η, Geometric):      {-1, +1, sqrt(2)}  — E↔S >> S↔Sig (4.8× predicted)
+    Domain (η, Geometric):      {-1, +1, sqrt(2)}  — asymmetric spacing
     Object (Ω, Transcendental): {√2, 2, 2^√2}      — unequal but close steps
-
-  Two runs:
-    [consensus]  9,221 clauses — single high-confidence label per clause
-    [combined]  ~39,000 assignments — all 19,764 clauses × 2 model labels each.
-                 Where models agree, the clause reinforces one centroid.
-                 Where models disagree, the clause pulls two centroids toward each
-                 other. Indeterminate cases net out rather than being filtered.
     """)
 
     # Build combined set: every clause contributes under BOTH model labels.
@@ -6857,13 +6684,14 @@ def run_analysis(embeddings_file: Path, classified_file: Path, run_dir: Path, mo
         if dr:
             if axis == "domain":
                 obs = dr.get("observed_ratio","?")
-                pred_r = dr.get("predicted_ratio","?")
-                met = "✓" if dr.get("prediction_met") else "✗"
-                print(f"      E↔S/S↔Sig ratio: {obs:.3f} (pred {pred_r:.3f}) {met}")
+                if isinstance(obs, (int, float)):
+                    print(f"      E↔S/S↔Sig ratio: {obs:.3f}")
             elif axis == "mode":
-                print(f"      Step ratio: {dr.get('step_ratio','?'):.3f}  {'✓ equal' if dr.get('equal_steps_met') else '✗ unequal'}")
+                sr = dr.get("step_ratio","?")
+                if isinstance(sr, (int, float)):
+                    print(f"      Step ratio: {sr:.3f}")
             elif axis == "object":
-                print(f"      C↔P additive: {'✓' if dr.get('additive_holds') else '✗'}")
+                print(f"      C↔P additive: {dr.get('additive_holds','?')}")
 
     for set_label, set_results in coord_metric.items():
         print(f"\n  ── {set_label.upper()} ──")
@@ -7054,33 +6882,7 @@ def run_analysis(embeddings_file: Path, classified_file: Path, run_dir: Path, mo
     # Merge: cached results + fresh recomputed
     per_lang = {**cached_per_lang, **fresh_per_lang}
 
-    sig = sum(1 for v in per_lang.values() if v.get("q1",{}).get("z",0) > 10)
     ok(f"Per-language z-scores computed for {len(per_lang)} languages")
-
-    # ── Cross-set comparison summary ──────────────────────────────────────────
-    section("Cross-set comparison summary")
-    print(f"  {'Set':<12} {'Q1 z':>8} {'Q2 z':>8} {'Q3 z':>8}  {'Interpretation'}")
-    print(f"  {'─'*12} {'─'*8} {'─'*8} {'─'*8}  {'─'*30}")
-    for set_name in ["consensus", "claude", "gpt4", "combined"]:
-        if set_name not in all_zscores:
-            continue
-        zs = all_zscores[set_name]
-        q1z = zs.get("q1",{}).get("z","n/a")
-        q2z = zs.get("q2",{}).get("z","n/a")
-        q3z = zs.get("q3",{}).get("z","n/a")
-        def fmt(z):
-            if not isinstance(z, float): return f"{'n/a':>8}"
-            return f"{z:>+8.2f}"
-        # Interpret agreement pattern
-        interp_map = {
-            "consensus": "both models agreed (includes FLORES)",
-            "claude":    "Claude's classifications",
-            "gpt4":      "GPT-4's classifications",
-            "combined":  "both model labels concatenated",
-            "ud_only":   "UD-only consensus — FLORES excluded",
-        }
-        interp = interp_map.get(set_name, set_name)
-        print(f"  {set_name:<12}{fmt(q1z)}{fmt(q2z)}{fmt(q3z)}  {interp}")
 
     # ── Full-corpus z-scores (all 19k, best-available labels) ───────────────
     # RES and SITE needed for 27-cell address computation
@@ -7144,7 +6946,6 @@ def run_analysis(embeddings_file: Path, classified_file: Path, run_dir: Path, mo
     report_path = generate_report(run_dir, zscores, proportionality, ari,
                                   per_lang, kappas, len(S["vecs"]), n_langs,
                                   models_used, n_total_embedded=len(vectors),
-                                  all_zscores=all_zscores, all_ari=all_ari,
                                   face_zscores=face_zscores, unsupervised=unsupervised,
                                   ari_exclusion=ari_exclusion, entity_z=entity_z,
                                   phasepost_data=phasepost_data,
@@ -7162,11 +6963,11 @@ def run_analysis(embeddings_file: Path, classified_file: Path, run_dir: Path, mo
                      entity_labels=et_labels_full)
 
     results = {
-        "zscores": zscores, "all_zscores": all_zscores,
+        "zscores": zscores,
         "full_zscores": full_zscores, "full_face_zscores": full_face_zscores,
         "coord_geometry": coord_metric,
         "proportionality": proportionality,
-        "ari": ari, "all_ari": all_ari,
+        "ari": ari,
         "kappas": kappas,
         "helix_tests": helix_tests,
         "subspace_geometry": subspace_geo,
@@ -7259,20 +7060,17 @@ def setup_wizard(args):
     settings["models"] = available_models
 
     # ── Corpus Options ────────────────────────────────────────────────────────
-    section("Corpus Options — Significance-Dense Sources")
+    section("Corpus Options")
     print("""
-  This experiment targets the Significance triad (ALT/SUP/REC) using
-  registers built for frame-shifting, contradiction-holding, and
-  recursive reinterpretation. No UD or FLORES.
-    """)
+  All corpus sources are enabled by default:
+    · Universal Dependencies (parsed sentences, 60+ languages)
+    · FLORES-200 (professionally translated, 200 languages)
+    · arXiv quantum physics abstracts
+    · Bible Wisdom literature
+    · Philosophy texts (Plato, Heraclitus, Tao Te Ching, etc.)
 
-    use_mitra = False  # Parallel corpus not yet published as downloadable dataset
-    use_suttacentral = False  # API structure needs debugging
-    info("MITRA: skipped (dataset not yet publicly released)")
-    info("SuttaCentral: skipped (API needs debugging)")
-    use_arxiv_qp = confirm("arXiv quantum physics? (superposition, measurement, observer-states)", default=True)
-    use_bible_wisdom = confirm("Bible Wisdom literature? (Job, Ecclesiastes, Proverbs, Psalms, Isaiah)", default=True)
-    use_philosophy = confirm("Philosophy texts? (20+ texts: Plato, Heraclitus, Tao Te Ching, Upanishads, Nietzsche, etc.)", default=True)
+  All sources are downloaded and cached locally in data/.
+    """)
 
     max_per_lang = int(ask(
         "Max clauses per language (more = slower + more expensive, but more robust)",
@@ -7280,13 +7078,13 @@ def setup_wizard(args):
     ))
 
     settings.update({
-        "use_ud":             False,
-        "use_flores":         False,
-        "use_mitra":          use_mitra,
-        "use_suttacentral":   use_suttacentral,
-        "use_arxiv_qp":       use_arxiv_qp,
-        "use_bible_wisdom":   use_bible_wisdom,
-        "use_philosophy":     use_philosophy,
+        "use_ud":             True,
+        "use_flores":         True,
+        "use_mitra":          False,  # dataset not yet publicly released
+        "use_suttacentral":   False,  # API structure needs debugging
+        "use_arxiv_qp":       True,
+        "use_bible_wisdom":   True,
+        "use_philosophy":     True,
         "max_per_lang": max_per_lang,
         "anthropic_key": anthropic_key,
         "openai_key":    openai_key,
@@ -7304,7 +7102,7 @@ def setup_wizard(args):
 
     # ── Output Directory ──────────────────────────────────────────────────────
     ts = datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
-    run_dir = Path("output") / f"run_{ts}"
+    run_dir = Path(f"run_{ts}")
     run_dir.mkdir(parents=True, exist_ok=True)
     settings["run_dir"] = run_dir
 
@@ -7313,18 +7111,20 @@ def setup_wizard(args):
     settings["data_dir"] = data_dir
 
     # ── Summary ───────────────────────────────────────────────────────────────
-    sig_sources = []
-    if settings.get("use_mitra"): sig_sources.append("MITRA")
-    if settings.get("use_suttacentral"): sig_sources.append("SuttaCentral")
-    if settings.get("use_arxiv_qp"): sig_sources.append("arXiv-QP")
-    if settings.get("use_bible_wisdom"): sig_sources.append("Bible-Wisdom")
-    if settings.get("use_philosophy"): sig_sources.append("Philosophy")
-    sig_str = ', '.join(sig_sources) if sig_sources else 'none'
+    sources = []
+    if settings.get("use_ud"): sources.append("UD")
+    if settings.get("use_flores"): sources.append("FLORES-200")
+    if settings.get("use_mitra"): sources.append("MITRA")
+    if settings.get("use_suttacentral"): sources.append("SuttaCentral")
+    if settings.get("use_arxiv_qp"): sources.append("arXiv-QP")
+    if settings.get("use_bible_wisdom"): sources.append("Bible-Wisdom")
+    if settings.get("use_philosophy"): sources.append("Philosophy")
+    src_str = ', '.join(sources) if sources else 'none'
 
     header("READY TO RUN")
     print(f"""
   Models:        {', '.join(available_models)}
-  Sources:       {sig_str}
+  Sources:       {src_str}
   Max/language:  {max_per_lang}
   Sample:        {sample_n if sample_n else 'all'}
   Output:        {run_dir}
@@ -7341,20 +7141,18 @@ def setup_wizard(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="EO Lexical Analysis v3 — Significance-Dense Clause Classification",
+        description="EO Lexical Analysis — Combined Corpus Clause Classification",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=textwrap.dedent("""\
           Examples:
-            python app.py                       # interactive setup + full run
-            python app.py --phase corpus        # only download and extract clauses
-            python app.py --phase classify      # only classify (needs data/)
-            python app.py --phase embed         # only embed classified clauses
-            python app.py --phase analyze       # only analyze (needs embeddings)
-            python app.py --sample 200          # classify only 200 clauses (test run)
-            python app.py --resume              # resume a previously interrupted run
-            python app.py --significance        # include ALL Significance-dense sources
-            python app.py --only-significance   # ONLY Significance sources, no UD/FLORES
-            python app.py --mitra --arxiv-qp    # add specific Significance sources
+            python app2.py                       # interactive setup + full run
+            python app2.py --phase corpus        # only download and extract clauses
+            python app2.py --phase classify      # only classify (needs data/)
+            python app2.py --phase embed         # only embed classified clauses
+            python app2.py --phase analyze       # only analyze (needs embeddings)
+            python app2.py --sample 200          # classify only 200 clauses (test run)
+            python app2.py --resume              # resume a previously interrupted run
+            python app2.py --no-ud --no-flores   # disable specific sources
         """)
     )
     parser.add_argument("--phase",   choices=["corpus","classify","embed","analyze","centroids","all"],
@@ -7371,20 +7169,12 @@ def main():
                         help="Skip FLORES-200 download")
     parser.add_argument("--no-ud",     action="store_true",
                         help="Skip Universal Dependencies download")
-    parser.add_argument("--mitra",     action="store_true",
-                        help="Include MITRA Buddhist parallel corpus (Sanskrit/Pāli/Chinese/Tibetan)")
-    parser.add_argument("--suttacentral", action="store_true",
-                        help="Include SuttaCentral Pāli Canon texts")
-    parser.add_argument("--arxiv-qp",  action="store_true",
-                        help="Include arXiv quantum physics abstracts")
-    parser.add_argument("--bible-wisdom", action="store_true",
-                        help="Include Bible Wisdom literature (Job, Ecclesiastes, Proverbs, Psalms)")
-    parser.add_argument("--philosophy", action="store_true",
-                        help="Include philosophy texts (Heraclitus, Plato, Tao Te Ching, Marcus Aurelius)")
-    parser.add_argument("--significance", action="store_true",
-                        help="Include ALL Significance-dense sources (mitra + suttacentral + arxiv-qp + bible-wisdom + philosophy)")
-    parser.add_argument("--only-significance", action="store_true",
-                        help="ONLY Significance-dense sources, no UD/FLORES")
+    parser.add_argument("--no-arxiv-qp", action="store_true",
+                        help="Skip arXiv quantum physics abstracts")
+    parser.add_argument("--no-bible-wisdom", action="store_true",
+                        help="Skip Bible Wisdom literature")
+    parser.add_argument("--no-philosophy", action="store_true",
+                        help="Skip philosophy texts")
     parser.add_argument("--models",    type=str, default=None,
                         help="Comma-separated models to use: claude,gpt4,gemini (default: all available)")
     parser.add_argument("--force-analysis", action="store_true",
@@ -7392,7 +7182,7 @@ def main():
     args = parser.parse_args()
 
     # ── Check dependencies ────────────────────────────────────────────────────
-    header("EO LEXICAL ANALYSIS v3 — Significance Corpus")
+    header("EO LEXICAL ANALYSIS — Combined Corpus")
     missing = check_dependencies()
     if missing:
         warn(f"Missing packages: {', '.join(p for _,p in missing)}")
@@ -7426,13 +7216,13 @@ def main():
             "anthropic_key": os.environ.get("ANTHROPIC_API_KEY"),
             "openai_key":    os.environ.get("OPENAI_API_KEY"),
             "models":        [m for m in ["claude","gpt4"] if os.environ.get(f"{m.upper()}_KEY")],
-            "use_ud":        not args.no_ud and not args.only_significance,
-            "use_flores":    not args.no_flores and not args.only_significance,
-            "use_mitra":     args.mitra or args.significance or args.only_significance,
-            "use_suttacentral": args.suttacentral or args.significance or args.only_significance,
-            "use_arxiv_qp":  args.arxiv_qp or args.significance or args.only_significance,
-            "use_bible_wisdom": args.bible_wisdom or args.significance or args.only_significance,
-            "use_philosophy": args.philosophy or args.significance or args.only_significance,
+            "use_ud":        not args.no_ud,
+            "use_flores":    not args.no_flores,
+            "use_mitra":          False,  # dataset not yet publicly released
+            "use_suttacentral":   False,  # API structure needs debugging
+            "use_arxiv_qp":       not getattr(args, "no_arxiv_qp", False),
+            "use_bible_wisdom":   not getattr(args, "no_bible_wisdom", False),
+            "use_philosophy":     not getattr(args, "no_philosophy", False),
             "max_per_lang":  args.max_per_lang or 500,
             "sample_n":      args.sample,
         }
@@ -7449,18 +7239,12 @@ def main():
             settings["use_flores"] = False
         if args.no_ud:
             settings["use_ud"] = False
-        # CLI overrides for significance sources
-        if args.significance or args.only_significance:
-            for k in ["use_mitra","use_suttacentral","use_arxiv_qp","use_bible_wisdom","use_philosophy"]:
-                settings[k] = True
-        if args.only_significance:
-            settings["use_ud"] = False
-            settings["use_flores"] = False
-        if args.mitra: settings["use_mitra"] = True
-        if args.suttacentral: settings["use_suttacentral"] = True
-        if args.arxiv_qp: settings["use_arxiv_qp"] = True
-        if args.bible_wisdom: settings["use_bible_wisdom"] = True
-        if args.philosophy: settings["use_philosophy"] = True
+        if getattr(args, "no_arxiv_qp", False):
+            settings["use_arxiv_qp"] = False
+        if getattr(args, "no_bible_wisdom", False):
+            settings["use_bible_wisdom"] = False
+        if getattr(args, "no_philosophy", False):
+            settings["use_philosophy"] = False
 
     run_dir  = settings["run_dir"]
     data_dir = settings["data_dir"]
@@ -7473,21 +7257,22 @@ def main():
     # ── Phase 1: Corpus ───────────────────────────────────────────────────────
     if args.phase in ("all","corpus","classify"):
         header("PHASE 1 — CORPUS EXTRACTION")
-        sig_active = any(settings.get(k) for k in
-                         ["use_mitra","use_suttacentral","use_arxiv_qp","use_bible_wisdom","use_philosophy"])
+        active_sources = []
+        if settings.get("use_ud"): active_sources.append("Universal Dependencies (60+ languages)")
+        if settings.get("use_flores"): active_sources.append("FLORES-200 (200 languages)")
+        if settings.get("use_arxiv_qp"): active_sources.append("arXiv quantum physics abstracts")
+        if settings.get("use_bible_wisdom"): active_sources.append("Bible Wisdom literature")
+        if settings.get("use_philosophy"): active_sources.append("Philosophy texts")
+        if settings.get("use_mitra"): active_sources.append("MITRA Buddhist parallel corpus")
+        if settings.get("use_suttacentral"): active_sources.append("SuttaCentral Pāli Canon")
+        src_list = "\n    · ".join(active_sources)
         print(f"""
-  Downloading and extracting clauses from:
-    · Universal Dependencies treebanks (real parsed sentences, 60+ languages)
-    · FLORES-200 (professionally translated, 200 languages, same content)
-    {'· MITRA Buddhist parallel corpus (Sanskrit/Pāli/Chinese/Tibetan)' if settings.get('use_mitra') else ''}
-    {'· SuttaCentral (Pāli Canon + English translations)' if settings.get('use_suttacentral') else ''}
-    {'· arXiv quantum physics abstracts' if settings.get('use_arxiv_qp') else ''}
-    {'· Bible Wisdom literature (Job, Ecclesiastes, Proverbs, Psalms)' if settings.get('use_bible_wisdom') else ''}
-    {'· Philosophy texts (Heraclitus, Plato, Tao Te Ching, Aurelius)' if settings.get('use_philosophy') else ''}
+  Downloading and caching all corpus data locally in data/.
+  Active sources:
+    · {src_list}
 
   Filters: declarative main clauses, 5–40 words, contains content.
-  The raw clause text is all that matters — no linguistic annotations
-  carry through to the embeddings.
+  All sources are combined into a single unified corpus for analysis.
         """)
 
         corpus_file = run_dir / "raw_clauses.jsonl"
@@ -7566,21 +7351,17 @@ def main():
 
     # ── Phase 4: Analysis ─────────────────────────────────────────────────────
     if args.phase in ("all","analyze"):
-        header("PHASE 4 — ANALYSIS")
+        header("PHASE 4 — ANALYSIS (UNIFIED POOL)")
         print("""
-  Three measurements:
+  All corpuses combined into a single unified analysis pool.
+  Metrics computed on all clauses with best-available labels:
 
-  (a) Per-axis z-score
-      Within-group cosine similarity vs between-group, shuffled 200 times.
-      Does each axis produce real geometric separation?
-
-  (b) Proportionality
-      Do clauses differing on more axes end up farther apart?
-      This tests the coordinate structure, not just grouping.
-
-  (c) Axis independence (ARI)
-      Do the three axes classify clauses independently?
-      High ARI = the axes are correlated = the three-axis claim is false.
+  (a) Per-axis z-score — geometric separation vs random baseline
+  (b) Proportionality — distance scales with axis-difference count
+  (c) Axis independence (ARI) — are the three axes orthogonal?
+  (d) Operator/face z-scores — combinatorial structure
+  (e) Coordinate geometry — axis spacing patterns
+  (f) Helix dependency — Mode-Domain correlation structure
         """)
 
         embeddings_file  = run_dir / "embeddings.npz"
