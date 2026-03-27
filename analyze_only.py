@@ -398,16 +398,31 @@ def run_one(run_dir: Path, app2, force: bool = False):
   address new text without any classification prompt.
     """)
 
-    centroid_results, centroid_file, exemplars_out = app2.run_centroids(
+    centroid_ret = app2.run_centroids(
         embeddings_file=embeddings_file,
         classified_file=classified_file,
         run_dir=run_dir,
     )
 
+    # Handle both 2-tuple and 3-tuple returns from run_centroids
+    if isinstance(centroid_ret, tuple) and len(centroid_ret) == 3:
+        centroid_results, centroid_file, exemplars_out = centroid_ret
+    elif isinstance(centroid_ret, tuple) and len(centroid_ret) == 2:
+        centroid_results, centroid_file = centroid_ret
+        exemplars_out = None
+    else:
+        centroid_results = centroid_ret
+        centroid_file = None
+        exemplars_out = None
+
     # ── Append centroid + exemplar sections to the analysis report ────────
-    section("Integrating centroid results into analysis report")
-    app2.append_centroid_and_exemplar_sections(run_dir, centroid_results, exemplars_out)
-    ok(f"Integrated report: {run_dir / 'analysis_report.txt'}")
+    if hasattr(app2, 'append_centroid_and_exemplar_sections'):
+        section("Integrating centroid results into analysis report")
+        if exemplars_out is not None:
+            app2.append_centroid_and_exemplar_sections(run_dir, centroid_results, exemplars_out)
+        else:
+            app2.append_centroid_and_exemplar_sections(run_dir, centroid_results, {})
+        ok(f"Integrated report: {run_dir / 'analysis_report.txt'}")
 
     # ── Per-run summary ───────────────────────────────────────────────────────
     header(f"COMPLETE — {run_dir.name}")
