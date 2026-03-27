@@ -554,11 +554,39 @@ def main():
         run_one(run_dir, app2, force=args.force)
         completed.append(run_dir)
 
+    # ── Combine reports when --all is used ──────────────────────────────────
+    if args.all and len(completed) > 1:
+        section("Combining analysis reports")
+        combined_parts = []
+        for d in completed:
+            report_path = d / "analysis_report.txt"
+            if report_path.exists():
+                combined_parts.append(f"{'='*74}")
+                combined_parts.append(f"  DATASET: {d.name}")
+                desc = RUN_DATASETS.get(d.name, {}).get("description", "")
+                if desc:
+                    combined_parts.append(f"  {desc}")
+                combined_parts.append(f"{'='*74}\n")
+                combined_parts.append(report_path.read_text(encoding="utf-8"))
+                combined_parts.append("\n")
+            else:
+                combined_parts.append(f"{'='*74}")
+                combined_parts.append(f"  DATASET: {d.name} — analysis_report.txt not found")
+                combined_parts.append(f"{'='*74}\n")
+
+        combined_path = SCRIPT_DIR / "all_analysis_report.txt"
+        combined_path.write_text("\n".join(combined_parts), encoding="utf-8")
+        ok(f"Combined report saved: {combined_path}")
+
     # ── Final summary ─────────────────────────────────────────────────────────
     header("ALL COMPLETE")
     for d in completed:
         desc = RUN_DATASETS.get(d.name, {}).get("description", "")
         print(f"  {green('✓')} {d.name}  {dim(desc)}")
+
+    if args.all and len(completed) > 1:
+        print(f"\n  {green('✓')} Combined report: {SCRIPT_DIR / 'all_analysis_report.txt'}")
+
     print(f"""
   No API keys were used. No classifications were performed.
   No embeddings were generated. All analysis was done on pre-computed data.
