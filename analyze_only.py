@@ -398,11 +398,17 @@ def run_one(run_dir: Path, app2, force: bool = False):
   address new text without any classification prompt.
     """)
 
-    centroid_results, centroid_file, exemplars_out = app2.run_centroids(
+    centroid_ret = app2.run_centroids(
         embeddings_file=embeddings_file,
         classified_file=classified_file,
         run_dir=run_dir,
     )
+    # Handle both old (results, centroid_file) and new (results, centroid_file, exemplars_out) signatures
+    if len(centroid_ret) == 3:
+        centroid_results, centroid_file, exemplars_out = centroid_ret
+    else:
+        centroid_results, centroid_file = centroid_ret
+        exemplars_out = {}
 
     # ── Append centroid + exemplar sections to the analysis report ────────
     section("Integrating centroid results into analysis report")
