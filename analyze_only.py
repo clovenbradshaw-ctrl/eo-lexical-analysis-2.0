@@ -555,12 +555,15 @@ def main():
         completed.append(run_dir)
 
     # ── Combine reports when --all is used ──────────────────────────────────
-    if args.all and len(completed) > 1:
-        section("Combining analysis reports")
+    combined_path = None
+    if args.all:
+        section("Combining analysis reports into single file")
         combined_parts = []
+        found_any = False
         for d in completed:
             report_path = d / "analysis_report.txt"
             if report_path.exists():
+                found_any = True
                 combined_parts.append(f"{'='*74}")
                 combined_parts.append(f"  DATASET: {d.name}")
                 desc = RUN_DATASETS.get(d.name, {}).get("description", "")
@@ -573,10 +576,18 @@ def main():
                 combined_parts.append(f"{'='*74}")
                 combined_parts.append(f"  DATASET: {d.name} — analysis_report.txt not found")
                 combined_parts.append(f"{'='*74}\n")
+                warn(f"No analysis_report.txt found in {d}")
 
-        combined_path = SCRIPT_DIR / "all_analysis_report.txt"
-        combined_path.write_text("\n".join(combined_parts), encoding="utf-8")
-        ok(f"Combined report saved: {combined_path}")
+        if found_any:
+            combined_path = SCRIPT_DIR / "all_analysis_report.txt"
+            try:
+                combined_path.write_text("\n".join(combined_parts), encoding="utf-8")
+                ok(f"Combined report saved: {combined_path}")
+            except Exception as e:
+                err(f"Failed to write combined report: {e}")
+                combined_path = None
+        else:
+            warn("No analysis_report.txt files found in any run directory")
 
     # ── Final summary ─────────────────────────────────────────────────────────
     header("ALL COMPLETE")
@@ -584,8 +595,8 @@ def main():
         desc = RUN_DATASETS.get(d.name, {}).get("description", "")
         print(f"  {green('✓')} {d.name}  {dim(desc)}")
 
-    if args.all and len(completed) > 1:
-        print(f"\n  {green('✓')} Combined report: {SCRIPT_DIR / 'all_analysis_report.txt'}")
+    if combined_path and combined_path.exists():
+        print(f"\n  {green('✓')} Combined report: {combined_path}")
 
     print(f"""
   No API keys were used. No classifications were performed.
