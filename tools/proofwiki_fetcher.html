@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ProofWiki cache fetcher</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font: 14px/1.45 ui-sans-serif, system-ui, sans-serif;
+         max-width: 860px; margin: 2rem auto; padding: 0 1rem; }
+  h1 { font-size: 1.25rem; margin: 0 0 .25rem; }
+  p.sub { color: #888; margin: 0 0 1.25rem; }
+  fieldset { border: 1px solid #8884; border-radius: 6px;
+             padding: .75rem 1rem 1rem; margin-bottom: 1rem; }
+  legend { padding: 0 .4rem; color: #888; font-size: 12px;
+           text-transform: uppercase; letter-spacing: .08em; }
+  label { display: inline-block; min-width: 8.5rem; margin-right: .5rem; }
+  input[type=text], input[type=number] { padding: 3px 6px; width: 8rem;
+                                         font: inherit; }
+  input.wide { width: 20rem; }
+  .row { margin: .35rem 0; }
+  button { padding: .45rem .9rem; font: inherit; border-radius: 4px;
+           border: 1px solid #8884; background: #8881; cursor: pointer; }
+  button:hover:not(:disabled) { background: #8883; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  button.primary { background: #2563eb; color: white; border-color: #2563eb; }
+  button.primary:hover:not(:disabled) { background: #1d4ed8; }
+  .counters { display: grid; grid-template-columns: repeat(4, 1fr);
+              gap: .5rem; margin: 1rem 0; }
+  .counter { background: #8881; border-radius: 6px; padding: .6rem .8rem; }
+  .counter .n { font-size: 1.4rem; font-weight: 600;
+                font-variant-numeric: tabular-nums; }
+  .counter .lbl { font-size: 11px; color: #888;
+                  text-transform: uppercase; letter-spacing: .06em; }
+  #log { font: 12px/1.5 ui-monospace, Menlo, monospace;
+         background: #0001; border-radius: 6px; padding: .6rem .8rem;
+         height: 18rem; overflow: auto; white-space: pre-wrap; }
+  #log .e { color: #c00; }
+  #log .w { color: #b60; }
+  #log .k { color: #2563eb; }
+  .hint { color: #888; font-size: 12px; }
+  code { background: #8881; padding: 1px 4px; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<h1>ProofWiki cache fetcher</h1>
+<p class="sub">Populates <code>data/proofwiki/</code> in the exact layout
+<code>load_proofwiki_proofs</code> expects. Run this tab in a browser where
+you've already cleared the ProofWiki Cloudflare captcha.</p>
+
+<fieldset>
+  <legend>output</legend>
+  <div class="row">
+    <button id="pickDir">Choose output folder…</button>
+    <span id="dirLabel" class="hint">(none — pick a folder; the app will
+      create <code>proofwiki/</code> and <code>proofwiki/pages/</code>
+      inside it)</span>
+  </div>
+  <div class="hint">Requires Chrome, Edge, or another Chromium-based
+    browser (File System Access API). Point it at your repo's
+    <code>data/</code> directory.</div>
+</fieldset>
+
+<fieldset>
+  <legend>fetch parameters</legend>
+  <div class="row">
+    <label>Categories:</label>
+    <input id="cats" type="text" class="wide" value="Proven Results,Theorems">
+    <span class="hint">comma-separated; first one that returns pages wins</span>
+  </div>
+  <div class="row">
+    <label>Max titles:</label>
+    <input id="maxTitles" type="number" value="2000" min="1">
+  </div>
+  <div class="row">
+    <label>Rate limit (ms):</label>
+    <input id="rateMs" type="number" value="800" min="0">
+    <span class="hint">delay between page fetches</span>
+  </div>
+  <div class="row">
+    <label>API base:</label>
+    <input id="api" type="text" class="wide"
+           value="https://proofwiki.org/w/api.php">
+  </div>
+</fieldset>
+
+<div class="row">
+  <button id="fetchTitles">1. Fetch titles</button>
+  <button id="fetchPages" class="primary">2. Fetch pages</button>
+  <button id="stop" disabled>Stop</button>
+  <span id="phase" class="hint"></span>
+</div>
+
+<div class="counters">
+  <div class="counter"><div class="n" id="cTitles">0</div>
+    <div class="lbl">titles</div></div>
+  <div class="counter"><div class="n" id="cCached">0</div>
+    <div class="lbl">pages on disk</div></div>
+  <div class="counter"><div class="n" id="cFetched">0</div>
+    <div class="lbl">pages fetched</div></div>
+  <div class="counter"><div class="n" id="cErrors">0</div>
+    <div class="lbl">errors</div></div>
+</div>
+
+<div id="log"></div>
+
+<script>
+'use strict';
+
+// ─── DOM refs ───────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const logEl = $('log');
+const counters = { titles: $('cTitles'), cached: $('cCached'),
+                   fetched: $('cFetched'), errors: $('cErrors') };
+
+function log(msg, cls) {
+  const line = document.createElement('div');
+  if (cls) line.className = cls;
+  const t = new Date().toTimeString().slice(0, 8);
+  line.textContent = `[${t}] ${msg}`;
+  logEl.appendChild(line);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+function setCounter(k, n) { counters[k].textContent = n.toLocaleString(); }
+function bumpCounter(k, d = 1) {
+  const cur = parseInt(counters[k].textContent.replace(/,/g, ''), 10) || 0;
+  setCounter(k, cur + d);
+}
+
+// ─── State ──────────────────────────────────────────────────────────────
+let rootHandle = null;        // user-chosen "data" directory
+let pwDirHandle = null;       // data/proofwiki/
+let pagesDirHandle = null;    // data/proofwiki/pages/
+let titles = [];              // list of page titles (strings)
+let stopRequested = false;
+let running = false;
+
+// ─── File System Access helpers ─────────────────────────────────────────
+async function pickOutputDir() {
+  if (!window.showDirectoryPicker) {
+    alert('File System Access API not available in this browser. ' +
+          'Use Chrome, Edge, or another Chromium-based browser.');
+    return;
+  }
+  try {
+    rootHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+  } catch (e) { return; }  // user cancelled
+  pwDirHandle = await rootHandle.getDirectoryHandle('proofwiki',
+                                                    { create: true });
+  pagesDirHandle = await pwDirHandle.getDirectoryHandle('pages',
+                                                        { create: true });
+  $('dirLabel').textContent = `→ ${rootHandle.name}/proofwiki/`;
+  log(`Output: ${rootHandle.name}/proofwiki/`, 'k');
+
+  // Count what's already on disk so we start from a truthful baseline.
+  let cached = 0;
+  for await (const [name] of pagesDirHandle.entries()) {
+    if (name.endsWith('.json')) cached++;
+  }
+  setCounter('cached', cached);
+
+  // If titles_raw.json already exists, load it so "fetch pages" can run
+  // without re-fetching titles.
+  try {
+    const fh = await pwDirHandle.getFileHandle('titles_raw.json');
+    const txt = await (await fh.getFile()).text();
+    titles = extractTitles(JSON.parse(txt));
+    setCounter('titles', titles.length);
+    log(`Loaded ${titles.length} titles from existing titles_raw.json`, 'k');
+  } catch (e) { /* not present — fine */ }
+}
+
+async function writeFile(dirHandle, name, text) {
+  const fh = await dirHandle.getFileHandle(name, { create: true });
+  const w = await fh.createWritable();
+  await w.write(text);
+  await w.close();
+}
+
+async function fileExists(dirHandle, name) {
+  try { await dirHandle.getFileHandle(name); return true; }
+  catch (e) { return false; }
+}
+
+// ─── Title extraction (mirrors _pw_titles_from_obj in app2.py) ──────────
+function extractTitles(obj) {
+  if (typeof obj === 'string') return [obj];
+  if (Array.isArray(obj)) {
+    if (obj.every(x => typeof x === 'string')) return obj.filter(Boolean);
+    return obj.flatMap(extractTitles);
+  }
+  if (obj && typeof obj === 'object') {
+    if (Array.isArray(obj.titles)) {
+      return obj.titles.filter(t => typeof t === 'string');
+    }
+    const members = obj.query && obj.query.categorymembers;
+    if (Array.isArray(members)) {
+      return members.filter(m => m && m.ns === 0 && typeof m.title === 'string')
+                    .map(m => m.title);
+    }
+  }
+  return [];
+}
+
+// ─── SHA-1 (matches _pw_title_hash: sha1(utf-8(title)).hexdigest()) ─────
+async function sha1Hex(text) {
+  const buf = new TextEncoder().encode(text);
+  const hash = await crypto.subtle.digest('SHA-1', buf);
+  return Array.from(new Uint8Array(hash))
+              .map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// ─── HTTP ───────────────────────────────────────────────────────────────
+// origin=* is MediaWiki's "anonymous CORS" opt-in. Without it, cross-origin
+// fetches from this page will be blocked.
+function apiUrl(params) {
+  const base = $('api').value.trim();
+  const qs = new URLSearchParams({ ...params, format: 'json', origin: '*' });
+  return `${base}?${qs}`;
+}
+
+async function fetchJson(params) {
+  const res = await fetch(apiUrl(params), {
+    method: 'GET',
+    credentials: 'omit',  // origin=* requires anonymous
+    headers: { 'Accept': 'application/json' },
+  });
+  if (res.status === 403) {
+    throw new Error('HTTP 403 — Cloudflare captcha. Open '
+      + 'https://proofwiki.org/wiki/Main_Page in this browser, complete '
+      + 'the challenge, then try again.');
+  }
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ─── Phase 1: titles ────────────────────────────────────────────────────
+async function fetchTitles() {
+  if (!pwDirHandle) { alert('Pick an output folder first.'); return; }
+  if (running) return;
+  running = true; stopRequested = false;
+  setButtons(true);
+  $('phase').textContent = 'fetching titles…';
+
+  const cats = $('cats').value.split(',').map(s => s.trim()).filter(Boolean);
+  const maxTitles = parseInt($('maxTitles').value, 10) || 2000;
+  const rateMs = parseInt($('rateMs').value, 10) || 0;
+  const responses = [];
+  const seen = new Set();
+  titles = [];
+
+  try {
+    for (const cat of cats) {
+      log(`Listing Category:${cat}`, 'k');
+      let cmcontinue = null, pageCount = 0;
+      while (titles.length < maxTitles) {
+        if (stopRequested) throw new Error('stopped');
+        const params = {
+          action: 'query',
+          list: 'categorymembers',
+          cmtitle: `Category:${cat}`,
+          cmlimit: 500,
+          cmnamespace: 0,
+        };
+        if (cmcontinue) params.cmcontinue = cmcontinue;
+        const payload = await fetchJson(params);
+        responses.push(payload);
+        pageCount++;
+        const members = (payload.query && payload.query.categorymembers) || [];
+        for (const m of members) {
+          if (m.ns === 0 && m.title && !seen.has(m.title)) {
+            seen.add(m.title);
+            titles.push(m.title);
+          }
+        }
+        setCounter('titles', titles.length);
+        log(`  batch ${pageCount}: +${members.length} members `
+            + `(total ${titles.length})`);
+        const cont = payload.continue || {};
+        cmcontinue = cont.cmcontinue;
+        if (!cmcontinue) break;
+        if (rateMs > 0) await sleep(rateMs);
+      }
+      if (titles.length > 0) break;  // category produced pages; don't try fallbacks
+    }
+
+    if (titles.length === 0) {
+      log('No titles retrieved.', 'w');
+    } else {
+      await writeFile(pwDirHandle, 'titles_raw.json',
+                      JSON.stringify(responses));
+      log(`Wrote titles_raw.json (${titles.length} unique titles, `
+          + `${responses.length} API responses).`, 'k');
+    }
+  } catch (e) {
+    if (e.message !== 'stopped') {
+      log(e.message, 'e'); bumpCounter('errors');
+    } else {
+      log('Stopped.', 'w');
+    }
+  } finally {
+    running = false;
+    setButtons(false);
+    $('phase').textContent = '';
+  }
+}
+
+// ─── Phase 2: pages ─────────────────────────────────────────────────────
+async function fetchPages() {
+  if (!pwDirHandle) { alert('Pick an output folder first.'); return; }
+  if (titles.length === 0) {
+    alert('No titles loaded. Run "Fetch titles" first, or drop a '
+        + 'titles_raw.json into the proofwiki/ folder and re-pick the folder.');
+    return;
+  }
+  if (running) return;
+  running = true; stopRequested = false;
+  setButtons(true);
+  $('phase').textContent = 'fetching pages…';
+
+  const rateMs = parseInt($('rateMs').value, 10) || 0;
+  let fetched = 0, skipped = 0, errors = 0;
+  const total = titles.length;
+
+  try {
+    for (let i = 0; i < total; i++) {
+      if (stopRequested) throw new Error('stopped');
+      const title = titles[i];
+      const hash = await sha1Hex(title);
+      const fname = `${hash}.json`;
+
+      if (await fileExists(pagesDirHandle, fname)) {
+        skipped++;
+        if (i % 50 === 0) {
+          log(`  [${i + 1}/${total}] ${skipped} skipped · `
+              + `${fetched} fetched · ${errors} errors`);
+        }
+        continue;
+      }
+
+      try {
+        const payload = await fetchJson({
+          action: 'parse', page: title, prop: 'wikitext', redirects: 1,
+        });
+        await writeFile(pagesDirHandle, fname, JSON.stringify(payload));
+        fetched++;
+        bumpCounter('fetched');
+        bumpCounter('cached');
+      } catch (e) {
+        errors++;
+        bumpCounter('errors');
+        log(`  ${title}: ${e.message}`, 'e');
+        if (/403/.test(e.message)) {
+          log('Stopping because of 403. What you have is already on disk; '
+              + 're-pick the folder and hit Fetch pages again to resume.', 'w');
+          throw new Error('stopped');
+        }
+      }
+
+      if (i % 25 === 0 && i > 0) {
+        log(`  [${i + 1}/${total}] ${skipped} skipped · `
+            + `${fetched} fetched · ${errors} errors`);
+      }
+      if (rateMs > 0) await sleep(rateMs);
+    }
+    log(`Done. ${fetched} new pages, ${skipped} already cached, `
+        + `${errors} errors.`, 'k');
+  } catch (e) {
+    if (e.message !== 'stopped') {
+      log(e.message, 'e'); bumpCounter('errors');
+    } else {
+      log('Stopped.', 'w');
+    }
+  } finally {
+    running = false;
+    setButtons(false);
+    $('phase').textContent = '';
+  }
+}
+
+// ─── UI wiring ──────────────────────────────────────────────────────────
+function setButtons(isRunning) {
+  $('fetchTitles').disabled = isRunning;
+  $('fetchPages').disabled = isRunning;
+  $('pickDir').disabled = isRunning;
+  $('stop').disabled = !isRunning;
+}
+
+$('pickDir').addEventListener('click', pickOutputDir);
+$('fetchTitles').addEventListener('click', fetchTitles);
+$('fetchPages').addEventListener('click', fetchPages);
+$('stop').addEventListener('click', () => {
+  stopRequested = true;
+  log('Stop requested — finishing current request…', 'w');
+});
+
+log('Ready. Pick the data/ folder in your repo to begin.', 'k');
+</script>
+</body>
+</html>
