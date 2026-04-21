@@ -1295,6 +1295,218 @@ _PROOFWIKI_UA = "eo-lexical-analysis/1.0 (research; contact via repo)"
 # comes first; fallbacks cover naming variations.
 _PROOFWIKI_CATEGORIES = ["Proven Results", "Theorems"]
 
+# On-disk cache layout (all paths relative to data_dir/proofwiki/):
+#   titles.json                  — cached category listing (list of page titles)
+#   pages/<sha1>.json            — per-page {title, wikitext} blob, fetched once
+#   proofwiki_candidates.jsonl   — all extracted sentences, appended as we go
+#   proofwiki_clauses.jsonl      — final sampled corpus (what the loader returns)
+#
+# Each layer is reused independently, so a partial run that hit a captcha
+# mid-fetch still persists its progress and the next run resumes without
+# re-hitting the API for pages we already have.
+
+
+def _pw_title_hash(title: str) -> str:
+    return hashlib.sha1(title.encode("utf-8")).hexdigest()
+
+
+def _pw_fetch_json(session, params, rate_sleep: float, max_retries: int = 4):
+    """GET the MediaWiki API with exponential backoff on transient errors.
+
+    Returns (payload_dict, status_code). payload_dict is None on failure.
+    403 is treated as terminal (Cloudflare captcha — retrying won't help).
+    """
+    delay = rate_sleep
+    for attempt in range(max_retries):
+        try:
+            r = session.get(_PROOFWIKI_API, params=params, timeout=30)
+        except Exception:
+            time.sleep(delay)
+            delay *= 2
+            continue
+        if r.status_code == 200:
+            try:
+                return r.json(), 200
+            except Exception:
+                return None, 200
+        if r.status_code == 403:
+            return None, 403  # captcha / blocked — no point retrying
+        if r.status_code in (429, 500, 502, 503, 504):
+            time.sleep(delay)
+            delay *= 2
+            continue
+        return None, r.status_code
+    return None, 0
+
+
+def _pw_titles_from_obj(obj) -> List[str]:
+    """Extract titles from several possible on-disk shapes.
+
+    Accepted:
+      ["Title A", "Title B", ...]
+      {"titles": ["Title A", ...]}
+      {"query": {"categorymembers": [{"title": ...}, ...]}}   (raw MW API)
+      [<any of the above>, ...]                               (concat'd dumps)
+    """
+    if isinstance(obj, str):
+        return [obj]
+    if isinstance(obj, list):
+        out: List[str] = []
+        # Heuristic: list of strings, or list of response blobs.
+        if obj and all(isinstance(x, str) for x in obj):
+            return [x for x in obj if x]
+        for item in obj:
+            out.extend(_pw_titles_from_obj(item))
+        return out
+    if isinstance(obj, dict):
+        if isinstance(obj.get("titles"), list):
+            return [t for t in obj["titles"] if isinstance(t, str)]
+        members = (obj.get("query") or {}).get("categorymembers")
+        if isinstance(members, list):
+            return [m["title"] for m in members
+                    if isinstance(m, dict)
+                    and m.get("ns") == 0
+                    and isinstance(m.get("title"), str)]
+    return []
+
+
+def _pw_load_titles_cache(cache_dir: Path) -> List[str]:
+    """Load titles from any seed file the user has placed in cache_dir.
+
+    Searches, in order:
+      titles.json           — canonical location (written by this loader)
+      titles_raw.json       — raw MW API dumps (single or list-of-responses)
+      titles/*.json         — a folder of raw MW API dumps, concatenated
+    Duplicates are preserved here; the caller dedupes.
+    """
+    # 1. Canonical cache
+    canonical = cache_dir / "titles.json"
+    if canonical.exists():
+        try:
+            return _pw_titles_from_obj(
+                json.loads(canonical.read_text(encoding="utf-8"))
+            )
+        except Exception:
+            pass
+
+    # 2. User-pasted raw API dump(s)
+    raw = cache_dir / "titles_raw.json"
+    if raw.exists():
+        try:
+            return _pw_titles_from_obj(
+                json.loads(raw.read_text(encoding="utf-8"))
+            )
+        except Exception:
+            pass
+
+    # 3. A directory of dumps (one file per API response)
+    raw_dir = cache_dir / "titles"
+    if raw_dir.is_dir():
+        out: List[str] = []
+        for p in sorted(raw_dir.glob("*.json")):
+            try:
+                out.extend(_pw_titles_from_obj(
+                    json.loads(p.read_text(encoding="utf-8"))
+                ))
+            except Exception:
+                continue
+        return out
+
+    return []
+
+
+def _pw_save_titles_cache(path: Path, titles: List[str]) -> None:
+    path.write_text(
+        json.dumps({"titles": titles, "saved_at": int(time.time())},
+                   ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+
+def _pw_wikitext_from_obj(obj) -> Optional[str]:
+    """Extract wikitext from several possible on-disk shapes.
+
+    Accepted:
+      {"wikitext": "..."}                              (canonical)
+      {"parse": {"wikitext": {"*": "..."}}}            (raw MW API)
+      raw string                                        (just the wikitext)
+    """
+    if isinstance(obj, str):
+        return obj or None
+    if isinstance(obj, dict):
+        if isinstance(obj.get("wikitext"), str):
+            return obj["wikitext"] or None
+        parse = obj.get("parse")
+        if isinstance(parse, dict):
+            wt = parse.get("wikitext")
+            if isinstance(wt, dict):
+                return wt.get("*") or None
+            if isinstance(wt, str):
+                return wt or None
+    return None
+
+
+def _pw_load_page_cache(pages_dir: Path, title: str) -> Optional[str]:
+    p = pages_dir / f"{_pw_title_hash(title)}.json"
+    if not p.exists():
+        return None
+    try:
+        obj = json.loads(p.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    return _pw_wikitext_from_obj(obj)
+
+
+def _pw_save_page_cache(pages_dir: Path, title: str, wikitext: str) -> None:
+    p = pages_dir / f"{_pw_title_hash(title)}.json"
+    p.write_text(
+        json.dumps({"title": title,
+                    "wikitext": wikitext,
+                    "fetched_at": int(time.time())},
+                   ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+
+def _pw_load_candidates(path: Path) -> List[dict]:
+    if not path.exists():
+        return []
+    out = []
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                out.append(json.loads(line))
+            except Exception:
+                pass
+    return out
+
+
+def _pw_sample_and_write(candidates: List[dict],
+                         cache_file: Path,
+                         max_clauses: int) -> List[dict]:
+    seen = set()
+    deduped = []
+    for c in candidates:
+        clause = c.get("clause")
+        if not clause:
+            continue
+        key = clause[:80].lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(c)
+    if not deduped:
+        return []
+    sample_size = min(max_clauses, len(deduped))
+    clauses = random.sample(deduped, sample_size)
+    with open(cache_file, "w", encoding="utf-8") as f:
+        for c in clauses:
+            f.write(json.dumps(c, ensure_ascii=False) + "\n")
+    return clauses
+
 
 def load_proofwiki_proofs(
     data_dir: Path,
@@ -1303,17 +1515,38 @@ def load_proofwiki_proofs(
     rate_sleep: float = 1.0,
 ) -> List[dict]:
     """
-    Fetch proof-body sentences from ProofWiki via the MediaWiki API.
+    Fetch proof-body sentences from ProofWiki, with a persistent local cache.
 
-    Walks Category:Proven Results (with fallbacks), fetches each page's
-    wikitext, extracts the "Proof" section(s), strips markup, and splits
-    into clause-sized sentences tagged register="math_proof_step".
-    Respects a configurable per-request sleep to stay polite.
+    ProofWiki sits behind a Cloudflare captcha that often returns 403 to
+    automated clients. To stay resilient, this loader maintains three
+    independent cache layers under data_dir/proofwiki/:
+
+      1. titles.json                — cached category listing
+      2. pages/<sha1>.json          — per-page wikitext (one file per title)
+      3. proofwiki_candidates.jsonl — all extracted sentences, appended live
+      4. proofwiki_clauses.jsonl    — final sampled corpus (short-circuit)
+
+    On every run the loader prefers cached data at the deepest layer
+    available and only calls the API for what's missing. That means:
+      • A completed run is replayable offline from proofwiki_clauses.jsonl.
+      • A partial run is resumable — re-running picks up mid-category and
+        skips pages already in pages/.
+      • A fully blocked environment can still succeed if the caller seeds
+        any of the three underlying caches manually (e.g. via a browser
+        session that does clear the captcha).
     """
     import requests
 
     cache_dir = data_dir / "proofwiki"
-    cache_file = cache_dir / "proofwiki_clauses.jsonl"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    pages_dir = cache_dir / "pages"
+    pages_dir.mkdir(parents=True, exist_ok=True)
+
+    cache_file       = cache_dir / "proofwiki_clauses.jsonl"
+    candidates_file  = cache_dir / "proofwiki_candidates.jsonl"
+    titles_file      = cache_dir / "titles.json"  # canonical write target
+
+    # ── Layer 1: final sampled corpus ─────────────────────────────────────
     if cache_file.exists():
         clauses = []
         with open(cache_file, encoding="utf-8") as f:
@@ -1326,43 +1559,58 @@ def load_proofwiki_proofs(
             info(f"ProofWiki: loaded {len(clauses)} clauses from cache")
             return clauses
 
-    cache_dir.mkdir(parents=True, exist_ok=True)
+    # ── Layer 2: previously extracted candidates ──────────────────────────
+    # Skip the API entirely if we already have enough material on disk.
+    existing_candidates = _pw_load_candidates(candidates_file)
+    if existing_candidates:
+        info(f"ProofWiki: {len(existing_candidates)} cached candidates on disk")
+
     session = requests.Session()
     session.headers.update({"User-Agent": _PROOFWIKI_UA})
 
-    # ── 1. Collect page titles from the proven-results category ──────────
-    titles: list[str] = []
-    for cat in _PROOFWIKI_CATEGORIES:
-        info(f"Listing pages in Category:{cat}")
-        cmcontinue = None
-        while len(titles) < max_pages:
-            params = {
-                "action": "query",
-                "list": "categorymembers",
-                "cmtitle": f"Category:{cat}",
-                "cmlimit": 500,
-                "cmnamespace": 0,
-                "format": "json",
-            }
-            if cmcontinue:
-                params["cmcontinue"] = cmcontinue
-            try:
-                r = session.get(_PROOFWIKI_API, params=params, timeout=30)
-                r.raise_for_status()
-                payload = r.json()
-            except Exception as e:
-                warn(f"ProofWiki list error for {cat}: {e}")
-                break
-            members = payload.get("query", {}).get("categorymembers", [])
-            titles.extend(m["title"] for m in members
-                          if m.get("ns") == 0 and m.get("title"))
-            cont = payload.get("continue") or {}
-            cmcontinue = cont.get("cmcontinue")
-            if not cmcontinue:
-                break
-            time.sleep(rate_sleep)
+    # ── Layer 3: category titles ──────────────────────────────────────────
+    titles = _pw_load_titles_cache(cache_dir)
+    if titles:
+        info(f"ProofWiki: reusing cached title list ({len(titles)} titles)")
+    else:
+        for cat in _PROOFWIKI_CATEGORIES:
+            info(f"Listing pages in Category:{cat}")
+            cmcontinue = None
+            blocked = False
+            while len(titles) < max_pages:
+                params = {
+                    "action": "query",
+                    "list": "categorymembers",
+                    "cmtitle": f"Category:{cat}",
+                    "cmlimit": 500,
+                    "cmnamespace": 0,
+                    "format": "json",
+                }
+                if cmcontinue:
+                    params["cmcontinue"] = cmcontinue
+                payload, status = _pw_fetch_json(session, params, rate_sleep)
+                if payload is None:
+                    if status == 403:
+                        warn(f"ProofWiki list blocked for {cat} (HTTP 403 — "
+                             "likely Cloudflare captcha)")
+                        blocked = True
+                    else:
+                        warn(f"ProofWiki list error for {cat}: HTTP {status}")
+                    break
+                members = payload.get("query", {}).get("categorymembers", [])
+                titles.extend(m["title"] for m in members
+                              if m.get("ns") == 0 and m.get("title"))
+                cont = payload.get("continue") or {}
+                cmcontinue = cont.get("cmcontinue")
+                if not cmcontinue:
+                    break
+                time.sleep(rate_sleep)
+            if titles:
+                break  # category returned pages; don't try the fallbacks
+            if blocked:
+                break  # fallback will almost certainly be blocked too
         if titles:
-            break  # category returned pages; don't try the fallbacks
+            _pw_save_titles_cache(titles_file, titles)
 
     # Deduplicate and cap
     seen_t = set()
@@ -1376,78 +1624,96 @@ def load_proofwiki_proofs(
             break
 
     if not unique_titles:
+        # No titles — but we might still have candidates from a prior run.
+        if existing_candidates:
+            warn("ProofWiki: title list unavailable; using cached candidates")
+            clauses = _pw_sample_and_write(existing_candidates,
+                                           cache_file, max_clauses)
+            if clauses:
+                ok(f"ProofWiki: {len(clauses)} clauses from cached "
+                   f"candidates (no API access)")
+                return clauses
         warn("ProofWiki: no page titles retrieved — category API unreachable")
         return []
 
-    ok(f"ProofWiki: {len(unique_titles)} pages to fetch")
+    # Count what's already on disk so we don't redundantly announce work.
+    cached_count = sum(1 for t in unique_titles
+                       if (pages_dir / f"{_pw_title_hash(t)}.json").exists())
+    ok(f"ProofWiki: {len(unique_titles)} pages to process "
+       f"({cached_count} already cached)")
 
     # ── 2. Fetch wikitext per page and extract proof sentences ───────────
-    all_candidates = []
+    # Rebuild the candidate index from disk, then append any new candidates
+    # as we go. Writing line-by-line means a mid-run block still persists
+    # partial progress.
+    all_candidates = list(existing_candidates)
+    seen_ids = {c.get("id") for c in all_candidates if c.get("id")}
     pages_with_proof = 0
-    for i, title in enumerate(unique_titles, 1):
-        if i % 25 == 0 or i == len(unique_titles):
-            info(f"  [{i}/{len(unique_titles)}] "
-                 f"{pages_with_proof} pages contributed · "
-                 f"{len(all_candidates)} sentence candidates")
-        params = {
-            "action": "parse",
-            "page": title,
-            "prop": "wikitext",
-            "format": "json",
-            "redirects": 1,
-        }
-        try:
-            r = session.get(_PROOFWIKI_API, params=params, timeout=30)
-            if r.status_code != 200:
+
+    cand_fp = open(candidates_file, "a", encoding="utf-8")
+    try:
+        for i, title in enumerate(unique_titles, 1):
+            if i % 25 == 0 or i == len(unique_titles):
+                info(f"  [{i}/{len(unique_titles)}] "
+                     f"{pages_with_proof} pages contributed · "
+                     f"{len(all_candidates)} sentence candidates")
+
+            wikitext = _pw_load_page_cache(pages_dir, title)
+            if wikitext is None:
+                params = {
+                    "action": "parse",
+                    "page": title,
+                    "prop": "wikitext",
+                    "format": "json",
+                    "redirects": 1,
+                }
+                payload, status = _pw_fetch_json(session, params, rate_sleep)
+                if payload is None:
+                    if status == 403:
+                        warn("ProofWiki: page fetch blocked (HTTP 403 — "
+                             "likely Cloudflare captcha); stopping early "
+                             "and using what's cached so far")
+                        break
+                    time.sleep(rate_sleep)
+                    continue
+                wikitext = _pw_wikitext_from_obj(payload)
+                if wikitext:
+                    _pw_save_page_cache(pages_dir, title, wikitext)
                 time.sleep(rate_sleep)
+
+            if not wikitext:
                 continue
-            payload = r.json()
-        except Exception:
-            time.sleep(rate_sleep)
-            continue
-        wikitext = (payload.get("parse", {})
-                             .get("wikitext", {})
-                             .get("*", ""))
-        if not wikitext:
-            time.sleep(rate_sleep)
-            continue
-        sentences = _extract_proofwiki_sentences(wikitext)
-        if sentences:
-            pages_with_proof += 1
-        for sent in sentences:
-            all_candidates.append({
-                "clause":   sent,
-                "language": "en",
-                "source":   "proofwiki",
-                "register": "math_proof_step",
-                "id":       hashlib.md5(
-                    f"pw:{title}:{sent[:50]}".encode()
-                ).hexdigest()[:16],
-            })
-        time.sleep(rate_sleep)
+
+            sentences = _extract_proofwiki_sentences(wikitext)
+            if sentences:
+                pages_with_proof += 1
+            for sent in sentences:
+                cand = {
+                    "clause":   sent,
+                    "language": "en",
+                    "source":   "proofwiki",
+                    "register": "math_proof_step",
+                    "id":       hashlib.md5(
+                        f"pw:{title}:{sent[:50]}".encode()
+                    ).hexdigest()[:16],
+                }
+                if cand["id"] in seen_ids:
+                    continue
+                seen_ids.add(cand["id"])
+                all_candidates.append(cand)
+                cand_fp.write(json.dumps(cand, ensure_ascii=False) + "\n")
+            cand_fp.flush()
+    finally:
+        cand_fp.close()
 
     if not all_candidates:
         warn("ProofWiki: no sentences extracted from any page")
         return []
 
-    seen = set()
-    deduped = []
-    for c in all_candidates:
-        key = c["clause"][:80].lower()
-        if key in seen:
-            continue
-        seen.add(key)
-        deduped.append(c)
-
-    sample_size = min(max_clauses, len(deduped))
-    clauses = random.sample(deduped, sample_size) if deduped else []
-    ok(f"ProofWiki: {sample_size} clauses from {pages_with_proof}/"
+    clauses = _pw_sample_and_write(all_candidates, cache_file, max_clauses)
+    ok(f"ProofWiki: {len(clauses)} clauses from {pages_with_proof}/"
        f"{len(unique_titles)} pages "
-       f"({len(deduped)} unique candidates)")
-
-    with open(cache_file, "w", encoding="utf-8") as f:
-        for c in clauses:
-            f.write(json.dumps(c, ensure_ascii=False) + "\n")
+       f"({len(all_candidates)} unique candidates)")
     return clauses
 
 
