@@ -1191,7 +1191,7 @@ def load_arxiv_quantum(data_dir: Path, max_clauses: int = 2000) -> List[dict]:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Math proof-step corpus (Exp 2: cross-register generalization test)
+# Math proof-body corpus (Exp 2: cross-register generalization test)
 # ─────────────────────────────────────────────────────────────────────────────
 # Proof steps ("Suppose x > 0.", "By the induction hypothesis ...", "It follows
 # that ...") are clause-sized inferential moves. If EO's three-axis structure
@@ -1199,52 +1199,121 @@ def load_arxiv_quantum(data_dir: Path, max_clauses: int = 2000) -> List[dict]:
 # across register within language. If not, the signal is specific to the
 # clausal semantics of natural-language prose.
 #
-# Primary source: arXiv math abstracts filtered for proof-step-shaped
-# sentences. Abstracts are summaries, not full proof bodies, so this is a
-# first-pass proxy; load_proof_steps_jsonl below lets users substitute a
-# proper proof-body dump (e.g. NaturalProofs, ProofWiki export).
+# Source: ProofWiki (https://proofwiki.org) — a collaborative library of
+# theorems and proofs. Fetched via its standard MediaWiki API. We pull pages
+# from the main proven-results category, extract text inside "== Proof ==" /
+# "=== Proof N ===" sections, strip wiki markup and math, and split into
+# sentences. load_proof_steps_jsonl accepts any user-supplied JSONL instead
+# (e.g. NaturalProofs export) if ProofWiki is unavailable or a different
+# corpus is preferred.
 
-_PROOF_STEP_START_RE = re.compile(
-    r"^\s*(Suppose|Assume|Let\s|Define\s|Consider\s|Take\s|Fix\s|"
-    r"Therefore|Hence|Thus|So\s|Since|Given\s|Observe|Note\s+that|Recall|"
-    r"By\s|Applying|Using|Because|Moreover|Furthermore|Conversely|"
-    r"It\s+follows|It\s+suffices|It\s+is\s+clear|Clearly|Indeed|"
-    r"We\s+(show|prove|obtain|deduce|conclude|claim|have|get|find|note|"
-    r"shall|may|can|write|denote|define))",
+_PROOF_HEADER_RE = re.compile(
+    r"^\s*=+\s*Proof\b[^=\n]*=+\s*$", re.IGNORECASE | re.MULTILINE
+)
+_ANY_HEADER_RE = re.compile(r"^\s*=+[^=\n]+=+\s*$", re.MULTILINE)
+_MATH_TAG_RE = re.compile(r"<math\b[^>]*>.*?</math>", re.DOTALL | re.IGNORECASE)
+_REF_TAG_RE = re.compile(r"<ref\b[^>]*>.*?</ref>", re.DOTALL | re.IGNORECASE)
+_DOLLAR_MATH_RE = re.compile(r"\$+[^$\n]+?\$+")
+_TEX_MACRO_RE = re.compile(r"\\[A-Za-z]+(?:\{[^{}]*\})*")
+_SELF_CLOSING_TAG_RE = re.compile(r"<[a-zA-Z][^>]*/\s*>")
+_HTML_TAG_RE = re.compile(r"</?[a-zA-Z][^>]*>")
+_TEMPLATE_RE = re.compile(r"\{\{[^{}]*\}\}")
+_FILE_LINK_RE = re.compile(
+    r"\[\[(File|Image|Category):[^\]]*(?:\[\[[^\]]*\]\][^\]]*)*\]\]",
     re.IGNORECASE,
 )
-_PROOF_STEP_CONTAINS_RE = re.compile(
-    r"\b(follows\s+that|implies\s+that|shows\s+that|proves\s+that|"
-    r"we\s+obtain|we\s+deduce|we\s+conclude|we\s+have|we\s+show|we\s+prove|"
-    r"we\s+claim|there\s+exists|for\s+all|for\s+every|for\s+any|"
-    r"is\s+equivalent\s+to|if\s+and\s+only\s+if|is\s+a\s+consequence|"
-    r"by\s+induction|by\s+assumption|by\s+hypothesis|by\s+definition)\b",
-    re.IGNORECASE,
-)
+_PIPED_LINK_RE = re.compile(r"\[\[([^\]|]+)\|([^\]]+)\]\]")
+_PLAIN_LINK_RE = re.compile(r"\[\[([^\]]+)\]\]")
+_EXT_LINK_LABELED_RE = re.compile(r"\[https?://\S+\s+([^\]]+)\]")
+_EXT_LINK_BARE_RE = re.compile(r"\[https?://\S+\]")
+_BOLD_RE = re.compile(r"'''([^']+)'''")
+_ITALIC_RE = re.compile(r"''([^']+)''")
+_WS_RE = re.compile(r"\s+")
 
 
-def _is_proof_step(sentence: str) -> bool:
-    return bool(_PROOF_STEP_START_RE.match(sentence) or
-                _PROOF_STEP_CONTAINS_RE.search(sentence))
+def _strip_wikitext(text: str) -> str:
+    """Reduce MediaWiki markup to plain prose suitable for sentence splitting."""
+    text = _MATH_TAG_RE.sub(" MATH ", text)
+    text = _DOLLAR_MATH_RE.sub(" MATH ", text)
+    text = _TEX_MACRO_RE.sub(" ", text)
+    text = _REF_TAG_RE.sub("", text)
+    text = _SELF_CLOSING_TAG_RE.sub("", text)
+    # Strip nested templates iteratively — {{A|{{B}}}} collapses in two passes
+    prev = None
+    while prev != text:
+        prev = text
+        text = _TEMPLATE_RE.sub("", text)
+    text = _FILE_LINK_RE.sub("", text)
+    text = _PIPED_LINK_RE.sub(r"\2", text)
+    text = _PLAIN_LINK_RE.sub(r"\1", text)
+    text = _EXT_LINK_LABELED_RE.sub(r"\1", text)
+    text = _EXT_LINK_BARE_RE.sub("", text)
+    text = _HTML_TAG_RE.sub("", text)
+    text = _BOLD_RE.sub(r"\1", text)
+    text = _ITALIC_RE.sub(r"\1", text)
+    text = _WS_RE.sub(" ", text)
+    return text.strip()
 
 
-def load_arxiv_math(data_dir: Path, max_clauses: int = 2000) -> List[dict]:
+def _extract_proofwiki_sentences(wikitext: str):
     """
-    Fetch proof-step-shaped sentences from arXiv math paper abstracts.
+    Return clause-sized sentences from every "== Proof ==" (or "=== Proof N ===")
+    section on a page. Filters out math-dominant sentences and fragments.
+    """
+    headers = list(_PROOF_HEADER_RE.finditer(wikitext))
+    if not headers:
+        return []
+    sents = []
+    for h in headers:
+        start = h.end()
+        rest = wikitext[start:]
+        # Find the next header of equal-or-shallower depth. Simple approach:
+        # cut at the next "==" (top-level) header after this proof section.
+        next_h = _ANY_HEADER_RE.search(rest)
+        end = start + (next_h.start() if next_h else len(rest))
+        section = wikitext[start:end]
+        prose = _strip_wikitext(section)
+        for raw in re.split(r"(?<=[.!?])\s+", prose):
+            s = raw.strip()
+            n = len(s.split())
+            if n < 6 or n > 45:
+                continue
+            if s.count("MATH") > 2:
+                continue
+            alpha = sum(c.isalpha() for c in s)
+            if alpha < max(1, int(0.55 * len(s))):
+                continue
+            if s.endswith("?") or s.endswith("!"):
+                continue
+            sents.append(s)
+    return sents
 
-    Targets categories where abstracts tend to include inferential moves
-    (logic, number theory, combinatorics, category theory, algebraic
-    geometry, CS logic). Filters sentences by inferential-move lexical
-    patterns. Register tag: "math_proof_step".
 
-    Same caching / rate-limit pattern as load_arxiv_quantum.
+_PROOFWIKI_API = "https://proofwiki.org/w/api.php"
+_PROOFWIKI_UA = "eo-lexical-analysis/1.0 (research; contact via repo)"
+# Categories tried in order. ProofWiki's canonical proven-results category
+# comes first; fallbacks cover naming variations.
+_PROOFWIKI_CATEGORIES = ["Proven Results", "Theorems"]
+
+
+def load_proofwiki_proofs(
+    data_dir: Path,
+    max_clauses: int = 2000,
+    max_pages: int = 600,
+    rate_sleep: float = 1.0,
+) -> List[dict]:
+    """
+    Fetch proof-body sentences from ProofWiki via the MediaWiki API.
+
+    Walks Category:Proven Results (with fallbacks), fetches each page's
+    wikitext, extracts the "Proof" section(s), strips markup, and splits
+    into clause-sized sentences tagged register="math_proof_step".
+    Respects a configurable per-request sleep to stay polite.
     """
     import requests
-    import xml.etree.ElementTree as ET
 
-    cache_dir = data_dir / "arxiv_math"
-    cache_file = cache_dir / "arxiv_math_clauses.jsonl"
-
+    cache_dir = data_dir / "proofwiki"
+    cache_file = cache_dir / "proofwiki_clauses.jsonl"
     if cache_file.exists():
         clauses = []
         with open(cache_file, encoding="utf-8") as f:
@@ -1254,84 +1323,127 @@ def load_arxiv_math(data_dir: Path, max_clauses: int = 2000) -> List[dict]:
                 except Exception:
                     pass
         if clauses:
-            info(f"arXiv math: loaded {len(clauses)} clauses from cache")
+            info(f"ProofWiki: loaded {len(clauses)} clauses from cache")
             return clauses
 
     cache_dir.mkdir(parents=True, exist_ok=True)
-    all_candidates = []
+    session = requests.Session()
+    session.headers.update({"User-Agent": _PROOFWIKI_UA})
 
-    ARXIV_API = "http://export.arxiv.org/api/query"
-    QUERIES = [
-        "cat:math.LO AND (theorem OR proof OR lemma OR corollary)",
-        "cat:math.NT AND (theorem OR prime OR conjecture OR proof)",
-        "cat:math.CO AND (theorem OR proof OR bijection OR identity)",
-        "cat:math.CT AND (functor OR adjoint OR natural transformation)",
-        "cat:math.AG AND (variety OR scheme OR morphism OR theorem)",
-        "cat:math.AP AND (estimate OR inequality OR existence OR uniqueness)",
-        "cat:math.ST AND (theorem OR estimator OR convergence)",
-        "cs.LO AND (proof OR soundness OR completeness OR decidable)",
-    ]
-    NS = {"atom": "http://www.w3.org/2005/Atom"}
-
-    for query in QUERIES:
-        try:
+    # ── 1. Collect page titles from the proven-results category ──────────
+    titles: list[str] = []
+    for cat in _PROOFWIKI_CATEGORIES:
+        info(f"Listing pages in Category:{cat}")
+        cmcontinue = None
+        while len(titles) < max_pages:
             params = {
-                "search_query": query,
-                "start": 0,
-                "max_results": 200,
-                "sortBy": "relevance",
-                "sortOrder": "descending",
+                "action": "query",
+                "list": "categorymembers",
+                "cmtitle": f"Category:{cat}",
+                "cmlimit": 500,
+                "cmnamespace": 0,
+                "format": "json",
             }
-            resp = requests.get(ARXIV_API, params=params, timeout=30)
-            if resp.status_code != 200:
-                continue
+            if cmcontinue:
+                params["cmcontinue"] = cmcontinue
+            try:
+                r = session.get(_PROOFWIKI_API, params=params, timeout=30)
+                r.raise_for_status()
+                payload = r.json()
+            except Exception as e:
+                warn(f"ProofWiki list error for {cat}: {e}")
+                break
+            members = payload.get("query", {}).get("categorymembers", [])
+            titles.extend(m["title"] for m in members
+                          if m.get("ns") == 0 and m.get("title"))
+            cont = payload.get("continue") or {}
+            cmcontinue = cont.get("cmcontinue")
+            if not cmcontinue:
+                break
+            time.sleep(rate_sleep)
+        if titles:
+            break  # category returned pages; don't try the fallbacks
 
-            root = ET.fromstring(resp.content)
-            for entry in root.findall("atom:entry", NS):
-                summary_el = entry.find("atom:summary", NS)
-                if summary_el is None or not summary_el.text:
-                    continue
-                abstract = re.sub(r"\s+", " ", summary_el.text.strip())
-
-                for sent in re.split(r"(?<=[.!?])\s+", abstract):
-                    sent = sent.strip()
-                    n_words = len(sent.split())
-                    if n_words < 8 or n_words > 35:
-                        continue
-                    if sent.endswith("?") or sent.endswith("!"):
-                        continue
-                    # Drop sentences that are mostly math markup
-                    if sent.count("$") > 2 or sent.count("\\") > 3:
-                        continue
-                    if not _is_proof_step(sent):
-                        continue
-                    all_candidates.append({
-                        "clause":   sent,
-                        "language": "en",
-                        "source":   "arxiv_math",
-                        "register": "math_proof_step",
-                        "id":       hashlib.md5(f"arxiv_math:{sent[:60]}".encode()).hexdigest()[:16],
-                    })
-            time.sleep(3)  # arXiv rate limit
-        except Exception as e:
-            warn(f"arXiv math query failed: {e}")
+    # Deduplicate and cap
+    seen_t = set()
+    unique_titles = []
+    for t in titles:
+        if t in seen_t:
             continue
+        seen_t.add(t)
+        unique_titles.append(t)
+        if len(unique_titles) >= max_pages:
+            break
+
+    if not unique_titles:
+        warn("ProofWiki: no page titles retrieved — category API unreachable")
+        return []
+
+    ok(f"ProofWiki: {len(unique_titles)} pages to fetch")
+
+    # ── 2. Fetch wikitext per page and extract proof sentences ───────────
+    all_candidates = []
+    pages_with_proof = 0
+    for i, title in enumerate(unique_titles, 1):
+        if i % 25 == 0 or i == len(unique_titles):
+            info(f"  [{i}/{len(unique_titles)}] "
+                 f"{pages_with_proof} pages contributed · "
+                 f"{len(all_candidates)} sentence candidates")
+        params = {
+            "action": "parse",
+            "page": title,
+            "prop": "wikitext",
+            "format": "json",
+            "redirects": 1,
+        }
+        try:
+            r = session.get(_PROOFWIKI_API, params=params, timeout=30)
+            if r.status_code != 200:
+                time.sleep(rate_sleep)
+                continue
+            payload = r.json()
+        except Exception:
+            time.sleep(rate_sleep)
+            continue
+        wikitext = (payload.get("parse", {})
+                             .get("wikitext", {})
+                             .get("*", ""))
+        if not wikitext:
+            time.sleep(rate_sleep)
+            continue
+        sentences = _extract_proofwiki_sentences(wikitext)
+        if sentences:
+            pages_with_proof += 1
+        for sent in sentences:
+            all_candidates.append({
+                "clause":   sent,
+                "language": "en",
+                "source":   "proofwiki",
+                "register": "math_proof_step",
+                "id":       hashlib.md5(
+                    f"pw:{title}:{sent[:50]}".encode()
+                ).hexdigest()[:16],
+            })
+        time.sleep(rate_sleep)
 
     if not all_candidates:
-        warn("arXiv math: no data retrieved")
+        warn("ProofWiki: no sentences extracted from any page")
         return []
 
     seen = set()
     deduped = []
     for c in all_candidates:
-        key = c["clause"][:60].lower()
-        if key not in seen:
-            seen.add(key)
-            deduped.append(c)
+        key = c["clause"][:80].lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(c)
 
     sample_size = min(max_clauses, len(deduped))
-    clauses = random.sample(deduped, sample_size)
-    ok(f"arXiv math: {sample_size} clauses (from {len(deduped)} candidates)")
+    clauses = random.sample(deduped, sample_size) if deduped else []
+    ok(f"ProofWiki: {sample_size} clauses from {pages_with_proof}/"
+       f"{len(unique_titles)} pages "
+       f"({len(deduped)} unique candidates)")
 
     with open(cache_file, "w", encoding="utf-8") as f:
         for c in clauses:
@@ -1751,8 +1863,9 @@ def load_corpus(
             proofs = load_proof_steps_jsonl(Path(proofs_jsonl),
                                             max_clauses=max_per_lang * 2)
         else:
-            section("arXiv Math Abstracts (proof-step-shaped sentences)")
-            proofs = load_arxiv_math(data_dir, max_clauses=max_per_lang * 2)
+            section("ProofWiki proof bodies")
+            proofs = load_proofwiki_proofs(data_dir,
+                                           max_clauses=max_per_lang * 2)
         all_clauses.extend(proofs)
 
     # ── Summary by source ─────────────────────────────────────────────────
@@ -7665,7 +7778,7 @@ def main():
             active_sources.append(
                 f"Math proof steps ({settings['proofs_jsonl']})"
                 if settings.get("proofs_jsonl")
-                else "arXiv math abstracts (proof-step filter)"
+                else "ProofWiki proof bodies"
             )
         src_list = "\n    · ".join(active_sources)
         print(f"""
