@@ -1290,10 +1290,46 @@ def _extract_proofwiki_sentences(wikitext: str):
 
 
 _PROOFWIKI_API = "https://proofwiki.org/w/api.php"
-_PROOFWIKI_UA = "eo-lexical-analysis/1.0 (research; contact via repo)"
+# Browser-like UA reduces Cloudflare false positives for the requests fallback.
+# For true Cloudflare interstitial challenges, cloudscraper handles the JS
+# challenge transparently.
+_PROOFWIKI_UA = (
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/120.0 Safari/537.36 "
+    "eo-lexical-analysis/1.0 (research)"
+)
 # Categories tried in order. ProofWiki's canonical proven-results category
 # comes first; fallbacks cover naming variations.
 _PROOFWIKI_CATEGORIES = ["Proven Results", "Theorems"]
+
+
+def _make_proofwiki_session():
+    """
+    Build an HTTP session that can get past ProofWiki's Cloudflare edge.
+
+    Prefers cloudscraper (handles CF JS interstitials transparently) if
+    installed; falls back to requests with a browser-like UA. Returns
+    (session, is_cloudscraper) so callers can report which mode is active.
+    """
+    try:
+        import cloudscraper
+        s = cloudscraper.create_scraper()
+        s.headers.update({
+            "User-Agent": _PROOFWIKI_UA,
+            "Accept": "application/json",
+            "Accept-Language": "en-US,en;q=0.9",
+        })
+        return s, True
+    except ImportError:
+        pass
+    import requests
+    s = requests.Session()
+    s.headers.update({
+        "User-Agent": _PROOFWIKI_UA,
+        "Accept": "application/json",
+        "Accept-Language": "en-US,en;q=0.9",
+    })
+    return s, False
 
 
 def load_proofwiki_proofs(
@@ -1309,9 +1345,12 @@ def load_proofwiki_proofs(
     wikitext, extracts the "Proof" section(s), strips markup, and splits
     into clause-sized sentences tagged register="math_proof_step".
     Respects a configurable per-request sleep to stay polite.
-    """
-    import requests
 
+    ProofWiki is behind Cloudflare, which rejects plain python-requests UAs
+    with 403. This function uses cloudscraper if installed; otherwise falls
+    back to requests with a browser-like UA. A 403 response triggers an
+    explicit install hint.
+    """
     cache_dir = data_dir / "proofwiki"
     cache_file = cache_dir / "proofwiki_clauses.jsonl"
     if cache_file.exists():
@@ -1327,8 +1366,8 @@ def load_proofwiki_proofs(
             return clauses
 
     cache_dir.mkdir(parents=True, exist_ok=True)
-    session = requests.Session()
-    session.headers.update({"User-Agent": _PROOFWIKI_UA})
+    session, is_cs = _make_proofwiki_session()
+    info(f"ProofWiki: HTTP mode = {'cloudscraper' if is_cs else 'requests (browser UA)'}")
 
     # ── 1. Collect page titles from the proven-results category ──────────
     titles: list[str] = []
@@ -1348,8 +1387,17 @@ def load_proofwiki_proofs(
                 params["cmcontinue"] = cmcontinue
             try:
                 r = session.get(_PROOFWIKI_API, params=params, timeout=30)
+                if r.status_code == 403 and not is_cs:
+                    err("ProofWiki returned 403 (Cloudflare challenge).")
+                    info("Install cloudscraper to bypass the JS challenge:")
+                    info("    pip install cloudscraper")
+                    info("Or fetch proof pages yourself and pass "
+                         "--proofs-jsonl path/to/proofs.jsonl")
+                    return []
                 r.raise_for_status()
                 payload = r.json()
+            except SystemExit:
+                raise
             except Exception as e:
                 warn(f"ProofWiki list error for {cat}: {e}")
                 break
@@ -1377,6 +1425,8 @@ def load_proofwiki_proofs(
 
     if not unique_titles:
         warn("ProofWiki: no page titles retrieved — category API unreachable")
+        if not is_cs:
+            info("If this is a Cloudflare issue, try: pip install cloudscraper")
         return []
 
     ok(f"ProofWiki: {len(unique_titles)} pages to fetch")
