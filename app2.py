@@ -1190,6 +1190,319 @@ def load_arxiv_quantum(data_dir: Path, max_clauses: int = 2000) -> List[dict]:
     return clauses
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Math proof-body corpus (Exp 2: cross-register generalization test)
+# ─────────────────────────────────────────────────────────────────────────────
+# Proof steps ("Suppose x > 0.", "By the induction hypothesis ...", "It follows
+# that ...") are clause-sized inferential moves. If EO's three-axis structure
+# produces comparable face/27-cell z-scores on this corpus, EO generalizes
+# across register within language. If not, the signal is specific to the
+# clausal semantics of natural-language prose.
+#
+# Source: ProofWiki (https://proofwiki.org) — a collaborative library of
+# theorems and proofs. Fetched via its standard MediaWiki API. We pull pages
+# from the main proven-results category, extract text inside "== Proof ==" /
+# "=== Proof N ===" sections, strip wiki markup and math, and split into
+# sentences. load_proof_steps_jsonl accepts any user-supplied JSONL instead
+# (e.g. NaturalProofs export) if ProofWiki is unavailable or a different
+# corpus is preferred.
+
+_PROOF_HEADER_RE = re.compile(
+    r"^\s*=+\s*Proof\b[^=\n]*=+\s*$", re.IGNORECASE | re.MULTILINE
+)
+_ANY_HEADER_RE = re.compile(r"^\s*=+[^=\n]+=+\s*$", re.MULTILINE)
+_MATH_TAG_RE = re.compile(r"<math\b[^>]*>.*?</math>", re.DOTALL | re.IGNORECASE)
+_REF_TAG_RE = re.compile(r"<ref\b[^>]*>.*?</ref>", re.DOTALL | re.IGNORECASE)
+_DOLLAR_MATH_RE = re.compile(r"\$+[^$\n]+?\$+")
+_TEX_MACRO_RE = re.compile(r"\\[A-Za-z]+(?:\{[^{}]*\})*")
+_SELF_CLOSING_TAG_RE = re.compile(r"<[a-zA-Z][^>]*/\s*>")
+_HTML_TAG_RE = re.compile(r"</?[a-zA-Z][^>]*>")
+_TEMPLATE_RE = re.compile(r"\{\{[^{}]*\}\}")
+_FILE_LINK_RE = re.compile(
+    r"\[\[(File|Image|Category):[^\]]*(?:\[\[[^\]]*\]\][^\]]*)*\]\]",
+    re.IGNORECASE,
+)
+_PIPED_LINK_RE = re.compile(r"\[\[([^\]|]+)\|([^\]]+)\]\]")
+_PLAIN_LINK_RE = re.compile(r"\[\[([^\]]+)\]\]")
+_EXT_LINK_LABELED_RE = re.compile(r"\[https?://\S+\s+([^\]]+)\]")
+_EXT_LINK_BARE_RE = re.compile(r"\[https?://\S+\]")
+_BOLD_RE = re.compile(r"'''([^']+)'''")
+_ITALIC_RE = re.compile(r"''([^']+)''")
+_WS_RE = re.compile(r"\s+")
+
+
+def _strip_wikitext(text: str) -> str:
+    """Reduce MediaWiki markup to plain prose suitable for sentence splitting."""
+    text = _MATH_TAG_RE.sub(" MATH ", text)
+    text = _DOLLAR_MATH_RE.sub(" MATH ", text)
+    text = _TEX_MACRO_RE.sub(" ", text)
+    text = _REF_TAG_RE.sub("", text)
+    text = _SELF_CLOSING_TAG_RE.sub("", text)
+    # Strip nested templates iteratively — {{A|{{B}}}} collapses in two passes
+    prev = None
+    while prev != text:
+        prev = text
+        text = _TEMPLATE_RE.sub("", text)
+    text = _FILE_LINK_RE.sub("", text)
+    text = _PIPED_LINK_RE.sub(r"\2", text)
+    text = _PLAIN_LINK_RE.sub(r"\1", text)
+    text = _EXT_LINK_LABELED_RE.sub(r"\1", text)
+    text = _EXT_LINK_BARE_RE.sub("", text)
+    text = _HTML_TAG_RE.sub("", text)
+    text = _BOLD_RE.sub(r"\1", text)
+    text = _ITALIC_RE.sub(r"\1", text)
+    text = _WS_RE.sub(" ", text)
+    return text.strip()
+
+
+def _extract_proofwiki_sentences(wikitext: str):
+    """
+    Return clause-sized sentences from every "== Proof ==" (or "=== Proof N ===")
+    section on a page. Filters out math-dominant sentences and fragments.
+    """
+    headers = list(_PROOF_HEADER_RE.finditer(wikitext))
+    if not headers:
+        return []
+    sents = []
+    for h in headers:
+        start = h.end()
+        rest = wikitext[start:]
+        # Find the next header of equal-or-shallower depth. Simple approach:
+        # cut at the next "==" (top-level) header after this proof section.
+        next_h = _ANY_HEADER_RE.search(rest)
+        end = start + (next_h.start() if next_h else len(rest))
+        section = wikitext[start:end]
+        prose = _strip_wikitext(section)
+        for raw in re.split(r"(?<=[.!?])\s+", prose):
+            s = raw.strip()
+            n = len(s.split())
+            if n < 6 or n > 45:
+                continue
+            if s.count("MATH") > 2:
+                continue
+            alpha = sum(c.isalpha() for c in s)
+            if alpha < max(1, int(0.55 * len(s))):
+                continue
+            if s.endswith("?") or s.endswith("!"):
+                continue
+            sents.append(s)
+    return sents
+
+
+_PROOFWIKI_API = "https://proofwiki.org/w/api.php"
+_PROOFWIKI_UA = "eo-lexical-analysis/1.0 (research; contact via repo)"
+# Categories tried in order. ProofWiki's canonical proven-results category
+# comes first; fallbacks cover naming variations.
+_PROOFWIKI_CATEGORIES = ["Proven Results", "Theorems"]
+
+
+def load_proofwiki_proofs(
+    data_dir: Path,
+    max_clauses: int = 2000,
+    max_pages: int = 600,
+    rate_sleep: float = 1.0,
+) -> List[dict]:
+    """
+    Fetch proof-body sentences from ProofWiki via the MediaWiki API.
+
+    Walks Category:Proven Results (with fallbacks), fetches each page's
+    wikitext, extracts the "Proof" section(s), strips markup, and splits
+    into clause-sized sentences tagged register="math_proof_step".
+    Respects a configurable per-request sleep to stay polite.
+    """
+    import requests
+
+    cache_dir = data_dir / "proofwiki"
+    cache_file = cache_dir / "proofwiki_clauses.jsonl"
+    if cache_file.exists():
+        clauses = []
+        with open(cache_file, encoding="utf-8") as f:
+            for line in f:
+                try:
+                    clauses.append(json.loads(line))
+                except Exception:
+                    pass
+        if clauses:
+            info(f"ProofWiki: loaded {len(clauses)} clauses from cache")
+            return clauses
+
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    session = requests.Session()
+    session.headers.update({"User-Agent": _PROOFWIKI_UA})
+
+    # ── 1. Collect page titles from the proven-results category ──────────
+    titles: list[str] = []
+    for cat in _PROOFWIKI_CATEGORIES:
+        info(f"Listing pages in Category:{cat}")
+        cmcontinue = None
+        while len(titles) < max_pages:
+            params = {
+                "action": "query",
+                "list": "categorymembers",
+                "cmtitle": f"Category:{cat}",
+                "cmlimit": 500,
+                "cmnamespace": 0,
+                "format": "json",
+            }
+            if cmcontinue:
+                params["cmcontinue"] = cmcontinue
+            try:
+                r = session.get(_PROOFWIKI_API, params=params, timeout=30)
+                r.raise_for_status()
+                payload = r.json()
+            except Exception as e:
+                warn(f"ProofWiki list error for {cat}: {e}")
+                break
+            members = payload.get("query", {}).get("categorymembers", [])
+            titles.extend(m["title"] for m in members
+                          if m.get("ns") == 0 and m.get("title"))
+            cont = payload.get("continue") or {}
+            cmcontinue = cont.get("cmcontinue")
+            if not cmcontinue:
+                break
+            time.sleep(rate_sleep)
+        if titles:
+            break  # category returned pages; don't try the fallbacks
+
+    # Deduplicate and cap
+    seen_t = set()
+    unique_titles = []
+    for t in titles:
+        if t in seen_t:
+            continue
+        seen_t.add(t)
+        unique_titles.append(t)
+        if len(unique_titles) >= max_pages:
+            break
+
+    if not unique_titles:
+        warn("ProofWiki: no page titles retrieved — category API unreachable")
+        return []
+
+    ok(f"ProofWiki: {len(unique_titles)} pages to fetch")
+
+    # ── 2. Fetch wikitext per page and extract proof sentences ───────────
+    all_candidates = []
+    pages_with_proof = 0
+    for i, title in enumerate(unique_titles, 1):
+        if i % 25 == 0 or i == len(unique_titles):
+            info(f"  [{i}/{len(unique_titles)}] "
+                 f"{pages_with_proof} pages contributed · "
+                 f"{len(all_candidates)} sentence candidates")
+        params = {
+            "action": "parse",
+            "page": title,
+            "prop": "wikitext",
+            "format": "json",
+            "redirects": 1,
+        }
+        try:
+            r = session.get(_PROOFWIKI_API, params=params, timeout=30)
+            if r.status_code != 200:
+                time.sleep(rate_sleep)
+                continue
+            payload = r.json()
+        except Exception:
+            time.sleep(rate_sleep)
+            continue
+        wikitext = (payload.get("parse", {})
+                             .get("wikitext", {})
+                             .get("*", ""))
+        if not wikitext:
+            time.sleep(rate_sleep)
+            continue
+        sentences = _extract_proofwiki_sentences(wikitext)
+        if sentences:
+            pages_with_proof += 1
+        for sent in sentences:
+            all_candidates.append({
+                "clause":   sent,
+                "language": "en",
+                "source":   "proofwiki",
+                "register": "math_proof_step",
+                "id":       hashlib.md5(
+                    f"pw:{title}:{sent[:50]}".encode()
+                ).hexdigest()[:16],
+            })
+        time.sleep(rate_sleep)
+
+    if not all_candidates:
+        warn("ProofWiki: no sentences extracted from any page")
+        return []
+
+    seen = set()
+    deduped = []
+    for c in all_candidates:
+        key = c["clause"][:80].lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(c)
+
+    sample_size = min(max_clauses, len(deduped))
+    clauses = random.sample(deduped, sample_size) if deduped else []
+    ok(f"ProofWiki: {sample_size} clauses from {pages_with_proof}/"
+       f"{len(unique_titles)} pages "
+       f"({len(deduped)} unique candidates)")
+
+    with open(cache_file, "w", encoding="utf-8") as f:
+        for c in clauses:
+            f.write(json.dumps(c, ensure_ascii=False) + "\n")
+    return clauses
+
+
+def load_proof_steps_jsonl(path: Path, max_clauses: int = 2000) -> List[dict]:
+    """
+    Load proof steps from a user-supplied JSONL file.
+
+    Use this to substitute a proper proof-body corpus (NaturalProofs,
+    ProofWiki export, textbook scrape) for arXiv math abstracts. Each line
+    must be JSON with at least a "clause" or "text" field; "id", "source",
+    and "register" fields are optional and will be synthesized if missing.
+    Random-sampled down to max_clauses.
+    """
+    path = Path(path)
+    if not path.exists():
+        warn(f"Proof steps file not found: {path}")
+        return []
+
+    candidates = []
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                obj = json.loads(line)
+            except Exception:
+                continue
+            text = obj.get("clause") or obj.get("text") or obj.get("sentence")
+            if not text:
+                continue
+            text = re.sub(r"\s+", " ", text.strip())
+            n_words = len(text.split())
+            if n_words < 8 or n_words > 60:
+                continue
+            candidates.append({
+                "clause":   text,
+                "language": obj.get("language", "en"),
+                "source":   obj.get("source", "proof_steps_file"),
+                "register": obj.get("register", "math_proof_step"),
+                "id":       obj.get("id") or hashlib.md5(
+                    f"proofs:{text[:60]}".encode()
+                ).hexdigest()[:16],
+            })
+
+    if not candidates:
+        warn(f"Proof steps file {path} produced 0 usable clauses")
+        return []
+
+    sample_size = min(max_clauses, len(candidates))
+    clauses = random.sample(candidates, sample_size)
+    ok(f"Proof steps: {sample_size} clauses from {path.name}")
+    return clauses
+
+
 def load_bible_wisdom(data_dir: Path, max_per_lang: int = 500) -> List[dict]:
     """
     Load Wisdom literature from Bible API, chapter by chapter.
@@ -1461,6 +1774,8 @@ def load_corpus(
     use_arxiv_qp: bool = False,
     use_bible_wisdom: bool = False,
     use_philosophy: bool = False,
+    use_proofs: bool = False,
+    proofs_jsonl: Optional[str] = None,
 ) -> List[dict]:
     """
     Master corpus loader. Downloads and extracts clauses from all sources.
@@ -1540,6 +1855,18 @@ def load_corpus(
         section("Philosophy Texts")
         phil = load_philosophy_corpus(data_dir, max_per_lang)
         all_clauses.extend(phil)
+
+    # ── Math proof steps (Exp 2: cross-register generalization) ──────────
+    if use_proofs:
+        if proofs_jsonl:
+            section(f"Proof steps from {proofs_jsonl}")
+            proofs = load_proof_steps_jsonl(Path(proofs_jsonl),
+                                            max_clauses=max_per_lang * 2)
+        else:
+            section("ProofWiki proof bodies")
+            proofs = load_proofwiki_proofs(data_dir,
+                                           max_clauses=max_per_lang * 2)
+        all_clauses.extend(proofs)
 
     # ── Summary by source ─────────────────────────────────────────────────
     source_counts = Counter(c.get("source", "unknown") for c in all_clauses)
@@ -7230,6 +7557,8 @@ def setup_wizard(args):
         "use_arxiv_qp":       True,
         "use_bible_wisdom":   True,
         "use_philosophy":     True,
+        "use_proofs":         False,  # Exp 2 opt-in via --use-proofs / --proofs-only
+        "proofs_jsonl":       None,
         "max_per_lang": max_per_lang,
         "anthropic_key": anthropic_key,
         "openai_key":    openai_key,
@@ -7264,6 +7593,7 @@ def setup_wizard(args):
     if settings.get("use_arxiv_qp"): sources.append("arXiv-QP")
     if settings.get("use_bible_wisdom"): sources.append("Bible-Wisdom")
     if settings.get("use_philosophy"): sources.append("Philosophy")
+    if settings.get("use_proofs"): sources.append("Proofs")
     src_str = ', '.join(sources) if sources else 'none'
 
     header("READY TO RUN")
@@ -7320,6 +7650,15 @@ def main():
                         help="Skip Bible Wisdom literature")
     parser.add_argument("--no-philosophy", action="store_true",
                         help="Skip philosophy texts")
+    parser.add_argument("--use-proofs", action="store_true",
+                        help="Include math proof steps (Exp 2 corpus, off by default)")
+    parser.add_argument("--proofs-jsonl", type=str, default=None,
+                        help="Path to a local proof-steps JSONL; overrides "
+                             "arXiv-math fetching when --use-proofs is set")
+    parser.add_argument("--proofs-only", action="store_true",
+                        help="Exp 2 convenience flag: run with only proof "
+                             "steps (disables UD, FLORES, arXiv-QP, Bible, "
+                             "philosophy)")
     parser.add_argument("--models",    type=str, default=None,
                         help="Comma-separated models to use: claude,gpt4,gemini (default: all available)")
     parser.add_argument("--force-analysis", action="store_true",
@@ -7368,9 +7707,20 @@ def main():
             "use_arxiv_qp":       not getattr(args, "no_arxiv_qp", False),
             "use_bible_wisdom":   not getattr(args, "no_bible_wisdom", False),
             "use_philosophy":     not getattr(args, "no_philosophy", False),
+            "use_proofs":         bool(getattr(args, "use_proofs", False) or
+                                       getattr(args, "proofs_only", False) or
+                                       getattr(args, "proofs_jsonl", None)),
+            "proofs_jsonl":       getattr(args, "proofs_jsonl", None),
             "max_per_lang":  args.max_per_lang or 500,
             "sample_n":      args.sample,
         }
+        if getattr(args, "proofs_only", False):
+            settings["use_ud"] = False
+            settings["use_flores"] = False
+            settings["use_arxiv_qp"] = False
+            settings["use_bible_wisdom"] = False
+            settings["use_philosophy"] = False
+            settings["use_proofs"] = True
         ok(f"Resuming from {run_dir}")
         if args.models:
             settings["models"] = [m.strip() for m in args.models.split(",")]
@@ -7390,6 +7740,20 @@ def main():
             settings["use_bible_wisdom"] = False
         if getattr(args, "no_philosophy", False):
             settings["use_philosophy"] = False
+        if getattr(args, "use_proofs", False):
+            settings["use_proofs"] = True
+        if getattr(args, "proofs_jsonl", None):
+            settings["use_proofs"] = True
+            settings["proofs_jsonl"] = args.proofs_jsonl
+        if getattr(args, "proofs_only", False):
+            settings["use_ud"] = False
+            settings["use_flores"] = False
+            settings["use_arxiv_qp"] = False
+            settings["use_bible_wisdom"] = False
+            settings["use_philosophy"] = False
+            settings["use_proofs"] = True
+            if getattr(args, "proofs_jsonl", None):
+                settings["proofs_jsonl"] = args.proofs_jsonl
 
     run_dir  = settings["run_dir"]
     data_dir = settings["data_dir"]
@@ -7410,6 +7774,12 @@ def main():
         if settings.get("use_philosophy"): active_sources.append("Philosophy texts")
         if settings.get("use_mitra"): active_sources.append("MITRA Buddhist parallel corpus")
         if settings.get("use_suttacentral"): active_sources.append("SuttaCentral Pāli Canon")
+        if settings.get("use_proofs"):
+            active_sources.append(
+                f"Math proof steps ({settings['proofs_jsonl']})"
+                if settings.get("proofs_jsonl")
+                else "ProofWiki proof bodies"
+            )
         src_list = "\n    · ".join(active_sources)
         print(f"""
   Downloading and caching all corpus data locally in data/.
@@ -7436,6 +7806,8 @@ def main():
                 use_arxiv_qp=settings.get("use_arxiv_qp", False),
                 use_bible_wisdom=settings.get("use_bible_wisdom", False),
                 use_philosophy=settings.get("use_philosophy", False),
+                use_proofs=settings.get("use_proofs", False),
+                proofs_jsonl=settings.get("proofs_jsonl"),
             )
             with open(corpus_file, "w", encoding="utf-8") as f:
                 for c in clauses:
