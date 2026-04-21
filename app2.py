@@ -1190,6 +1190,207 @@ def load_arxiv_quantum(data_dir: Path, max_clauses: int = 2000) -> List[dict]:
     return clauses
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Math proof-step corpus (Exp 2: cross-register generalization test)
+# ─────────────────────────────────────────────────────────────────────────────
+# Proof steps ("Suppose x > 0.", "By the induction hypothesis ...", "It follows
+# that ...") are clause-sized inferential moves. If EO's three-axis structure
+# produces comparable face/27-cell z-scores on this corpus, EO generalizes
+# across register within language. If not, the signal is specific to the
+# clausal semantics of natural-language prose.
+#
+# Primary source: arXiv math abstracts filtered for proof-step-shaped
+# sentences. Abstracts are summaries, not full proof bodies, so this is a
+# first-pass proxy; load_proof_steps_jsonl below lets users substitute a
+# proper proof-body dump (e.g. NaturalProofs, ProofWiki export).
+
+_PROOF_STEP_START_RE = re.compile(
+    r"^\s*(Suppose|Assume|Let\s|Define\s|Consider\s|Take\s|Fix\s|"
+    r"Therefore|Hence|Thus|So\s|Since|Given\s|Observe|Note\s+that|Recall|"
+    r"By\s|Applying|Using|Because|Moreover|Furthermore|Conversely|"
+    r"It\s+follows|It\s+suffices|It\s+is\s+clear|Clearly|Indeed|"
+    r"We\s+(show|prove|obtain|deduce|conclude|claim|have|get|find|note|"
+    r"shall|may|can|write|denote|define))",
+    re.IGNORECASE,
+)
+_PROOF_STEP_CONTAINS_RE = re.compile(
+    r"\b(follows\s+that|implies\s+that|shows\s+that|proves\s+that|"
+    r"we\s+obtain|we\s+deduce|we\s+conclude|we\s+have|we\s+show|we\s+prove|"
+    r"we\s+claim|there\s+exists|for\s+all|for\s+every|for\s+any|"
+    r"is\s+equivalent\s+to|if\s+and\s+only\s+if|is\s+a\s+consequence|"
+    r"by\s+induction|by\s+assumption|by\s+hypothesis|by\s+definition)\b",
+    re.IGNORECASE,
+)
+
+
+def _is_proof_step(sentence: str) -> bool:
+    return bool(_PROOF_STEP_START_RE.match(sentence) or
+                _PROOF_STEP_CONTAINS_RE.search(sentence))
+
+
+def load_arxiv_math(data_dir: Path, max_clauses: int = 2000) -> List[dict]:
+    """
+    Fetch proof-step-shaped sentences from arXiv math paper abstracts.
+
+    Targets categories where abstracts tend to include inferential moves
+    (logic, number theory, combinatorics, category theory, algebraic
+    geometry, CS logic). Filters sentences by inferential-move lexical
+    patterns. Register tag: "math_proof_step".
+
+    Same caching / rate-limit pattern as load_arxiv_quantum.
+    """
+    import requests
+    import xml.etree.ElementTree as ET
+
+    cache_dir = data_dir / "arxiv_math"
+    cache_file = cache_dir / "arxiv_math_clauses.jsonl"
+
+    if cache_file.exists():
+        clauses = []
+        with open(cache_file, encoding="utf-8") as f:
+            for line in f:
+                try:
+                    clauses.append(json.loads(line))
+                except Exception:
+                    pass
+        if clauses:
+            info(f"arXiv math: loaded {len(clauses)} clauses from cache")
+            return clauses
+
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    all_candidates = []
+
+    ARXIV_API = "http://export.arxiv.org/api/query"
+    QUERIES = [
+        "cat:math.LO AND (theorem OR proof OR lemma OR corollary)",
+        "cat:math.NT AND (theorem OR prime OR conjecture OR proof)",
+        "cat:math.CO AND (theorem OR proof OR bijection OR identity)",
+        "cat:math.CT AND (functor OR adjoint OR natural transformation)",
+        "cat:math.AG AND (variety OR scheme OR morphism OR theorem)",
+        "cat:math.AP AND (estimate OR inequality OR existence OR uniqueness)",
+        "cat:math.ST AND (theorem OR estimator OR convergence)",
+        "cs.LO AND (proof OR soundness OR completeness OR decidable)",
+    ]
+    NS = {"atom": "http://www.w3.org/2005/Atom"}
+
+    for query in QUERIES:
+        try:
+            params = {
+                "search_query": query,
+                "start": 0,
+                "max_results": 200,
+                "sortBy": "relevance",
+                "sortOrder": "descending",
+            }
+            resp = requests.get(ARXIV_API, params=params, timeout=30)
+            if resp.status_code != 200:
+                continue
+
+            root = ET.fromstring(resp.content)
+            for entry in root.findall("atom:entry", NS):
+                summary_el = entry.find("atom:summary", NS)
+                if summary_el is None or not summary_el.text:
+                    continue
+                abstract = re.sub(r"\s+", " ", summary_el.text.strip())
+
+                for sent in re.split(r"(?<=[.!?])\s+", abstract):
+                    sent = sent.strip()
+                    n_words = len(sent.split())
+                    if n_words < 8 or n_words > 35:
+                        continue
+                    if sent.endswith("?") or sent.endswith("!"):
+                        continue
+                    # Drop sentences that are mostly math markup
+                    if sent.count("$") > 2 or sent.count("\\") > 3:
+                        continue
+                    if not _is_proof_step(sent):
+                        continue
+                    all_candidates.append({
+                        "clause":   sent,
+                        "language": "en",
+                        "source":   "arxiv_math",
+                        "register": "math_proof_step",
+                        "id":       hashlib.md5(f"arxiv_math:{sent[:60]}".encode()).hexdigest()[:16],
+                    })
+            time.sleep(3)  # arXiv rate limit
+        except Exception as e:
+            warn(f"arXiv math query failed: {e}")
+            continue
+
+    if not all_candidates:
+        warn("arXiv math: no data retrieved")
+        return []
+
+    seen = set()
+    deduped = []
+    for c in all_candidates:
+        key = c["clause"][:60].lower()
+        if key not in seen:
+            seen.add(key)
+            deduped.append(c)
+
+    sample_size = min(max_clauses, len(deduped))
+    clauses = random.sample(deduped, sample_size)
+    ok(f"arXiv math: {sample_size} clauses (from {len(deduped)} candidates)")
+
+    with open(cache_file, "w", encoding="utf-8") as f:
+        for c in clauses:
+            f.write(json.dumps(c, ensure_ascii=False) + "\n")
+    return clauses
+
+
+def load_proof_steps_jsonl(path: Path, max_clauses: int = 2000) -> List[dict]:
+    """
+    Load proof steps from a user-supplied JSONL file.
+
+    Use this to substitute a proper proof-body corpus (NaturalProofs,
+    ProofWiki export, textbook scrape) for arXiv math abstracts. Each line
+    must be JSON with at least a "clause" or "text" field; "id", "source",
+    and "register" fields are optional and will be synthesized if missing.
+    Random-sampled down to max_clauses.
+    """
+    path = Path(path)
+    if not path.exists():
+        warn(f"Proof steps file not found: {path}")
+        return []
+
+    candidates = []
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                obj = json.loads(line)
+            except Exception:
+                continue
+            text = obj.get("clause") or obj.get("text") or obj.get("sentence")
+            if not text:
+                continue
+            text = re.sub(r"\s+", " ", text.strip())
+            n_words = len(text.split())
+            if n_words < 8 or n_words > 60:
+                continue
+            candidates.append({
+                "clause":   text,
+                "language": obj.get("language", "en"),
+                "source":   obj.get("source", "proof_steps_file"),
+                "register": obj.get("register", "math_proof_step"),
+                "id":       obj.get("id") or hashlib.md5(
+                    f"proofs:{text[:60]}".encode()
+                ).hexdigest()[:16],
+            })
+
+    if not candidates:
+        warn(f"Proof steps file {path} produced 0 usable clauses")
+        return []
+
+    sample_size = min(max_clauses, len(candidates))
+    clauses = random.sample(candidates, sample_size)
+    ok(f"Proof steps: {sample_size} clauses from {path.name}")
+    return clauses
+
+
 def load_bible_wisdom(data_dir: Path, max_per_lang: int = 500) -> List[dict]:
     """
     Load Wisdom literature from Bible API, chapter by chapter.
@@ -1461,6 +1662,8 @@ def load_corpus(
     use_arxiv_qp: bool = False,
     use_bible_wisdom: bool = False,
     use_philosophy: bool = False,
+    use_proofs: bool = False,
+    proofs_jsonl: Optional[str] = None,
 ) -> List[dict]:
     """
     Master corpus loader. Downloads and extracts clauses from all sources.
@@ -1540,6 +1743,17 @@ def load_corpus(
         section("Philosophy Texts")
         phil = load_philosophy_corpus(data_dir, max_per_lang)
         all_clauses.extend(phil)
+
+    # ── Math proof steps (Exp 2: cross-register generalization) ──────────
+    if use_proofs:
+        if proofs_jsonl:
+            section(f"Proof steps from {proofs_jsonl}")
+            proofs = load_proof_steps_jsonl(Path(proofs_jsonl),
+                                            max_clauses=max_per_lang * 2)
+        else:
+            section("arXiv Math Abstracts (proof-step-shaped sentences)")
+            proofs = load_arxiv_math(data_dir, max_clauses=max_per_lang * 2)
+        all_clauses.extend(proofs)
 
     # ── Summary by source ─────────────────────────────────────────────────
     source_counts = Counter(c.get("source", "unknown") for c in all_clauses)
@@ -7230,6 +7444,8 @@ def setup_wizard(args):
         "use_arxiv_qp":       True,
         "use_bible_wisdom":   True,
         "use_philosophy":     True,
+        "use_proofs":         False,  # Exp 2 opt-in via --use-proofs / --proofs-only
+        "proofs_jsonl":       None,
         "max_per_lang": max_per_lang,
         "anthropic_key": anthropic_key,
         "openai_key":    openai_key,
@@ -7264,6 +7480,7 @@ def setup_wizard(args):
     if settings.get("use_arxiv_qp"): sources.append("arXiv-QP")
     if settings.get("use_bible_wisdom"): sources.append("Bible-Wisdom")
     if settings.get("use_philosophy"): sources.append("Philosophy")
+    if settings.get("use_proofs"): sources.append("Proofs")
     src_str = ', '.join(sources) if sources else 'none'
 
     header("READY TO RUN")
@@ -7320,6 +7537,15 @@ def main():
                         help="Skip Bible Wisdom literature")
     parser.add_argument("--no-philosophy", action="store_true",
                         help="Skip philosophy texts")
+    parser.add_argument("--use-proofs", action="store_true",
+                        help="Include math proof steps (Exp 2 corpus, off by default)")
+    parser.add_argument("--proofs-jsonl", type=str, default=None,
+                        help="Path to a local proof-steps JSONL; overrides "
+                             "arXiv-math fetching when --use-proofs is set")
+    parser.add_argument("--proofs-only", action="store_true",
+                        help="Exp 2 convenience flag: run with only proof "
+                             "steps (disables UD, FLORES, arXiv-QP, Bible, "
+                             "philosophy)")
     parser.add_argument("--models",    type=str, default=None,
                         help="Comma-separated models to use: claude,gpt4,gemini (default: all available)")
     parser.add_argument("--force-analysis", action="store_true",
@@ -7368,9 +7594,20 @@ def main():
             "use_arxiv_qp":       not getattr(args, "no_arxiv_qp", False),
             "use_bible_wisdom":   not getattr(args, "no_bible_wisdom", False),
             "use_philosophy":     not getattr(args, "no_philosophy", False),
+            "use_proofs":         bool(getattr(args, "use_proofs", False) or
+                                       getattr(args, "proofs_only", False) or
+                                       getattr(args, "proofs_jsonl", None)),
+            "proofs_jsonl":       getattr(args, "proofs_jsonl", None),
             "max_per_lang":  args.max_per_lang or 500,
             "sample_n":      args.sample,
         }
+        if getattr(args, "proofs_only", False):
+            settings["use_ud"] = False
+            settings["use_flores"] = False
+            settings["use_arxiv_qp"] = False
+            settings["use_bible_wisdom"] = False
+            settings["use_philosophy"] = False
+            settings["use_proofs"] = True
         ok(f"Resuming from {run_dir}")
         if args.models:
             settings["models"] = [m.strip() for m in args.models.split(",")]
@@ -7390,6 +7627,20 @@ def main():
             settings["use_bible_wisdom"] = False
         if getattr(args, "no_philosophy", False):
             settings["use_philosophy"] = False
+        if getattr(args, "use_proofs", False):
+            settings["use_proofs"] = True
+        if getattr(args, "proofs_jsonl", None):
+            settings["use_proofs"] = True
+            settings["proofs_jsonl"] = args.proofs_jsonl
+        if getattr(args, "proofs_only", False):
+            settings["use_ud"] = False
+            settings["use_flores"] = False
+            settings["use_arxiv_qp"] = False
+            settings["use_bible_wisdom"] = False
+            settings["use_philosophy"] = False
+            settings["use_proofs"] = True
+            if getattr(args, "proofs_jsonl", None):
+                settings["proofs_jsonl"] = args.proofs_jsonl
 
     run_dir  = settings["run_dir"]
     data_dir = settings["data_dir"]
@@ -7410,6 +7661,12 @@ def main():
         if settings.get("use_philosophy"): active_sources.append("Philosophy texts")
         if settings.get("use_mitra"): active_sources.append("MITRA Buddhist parallel corpus")
         if settings.get("use_suttacentral"): active_sources.append("SuttaCentral Pāli Canon")
+        if settings.get("use_proofs"):
+            active_sources.append(
+                f"Math proof steps ({settings['proofs_jsonl']})"
+                if settings.get("proofs_jsonl")
+                else "arXiv math abstracts (proof-step filter)"
+            )
         src_list = "\n    · ".join(active_sources)
         print(f"""
   Downloading and caching all corpus data locally in data/.
@@ -7436,6 +7693,8 @@ def main():
                 use_arxiv_qp=settings.get("use_arxiv_qp", False),
                 use_bible_wisdom=settings.get("use_bible_wisdom", False),
                 use_philosophy=settings.get("use_philosophy", False),
+                use_proofs=settings.get("use_proofs", False),
+                proofs_jsonl=settings.get("proofs_jsonl"),
             )
             with open(corpus_file, "w", encoding="utf-8") as f:
                 for c in clauses:
