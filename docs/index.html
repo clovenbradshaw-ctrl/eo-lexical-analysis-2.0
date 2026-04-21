@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ProofWiki cache fetcher</title>
 <style>
   :root { color-scheme: light dark; }
@@ -39,26 +40,26 @@
   #log .k { color: #2563eb; }
   .hint { color: #888; font-size: 12px; }
   code { background: #8881; padding: 1px 4px; border-radius: 3px; }
+  progress { width: 100%; height: 6px; }
 </style>
 </head>
 <body>
 
 <h1>ProofWiki cache fetcher</h1>
-<p class="sub">Populates <code>data/proofwiki/</code> in the exact layout
-<code>load_proofwiki_proofs</code> expects. Run this tab in a browser where
-you've already cleared the ProofWiki Cloudflare captcha.</p>
+<p class="sub">Populates a ZIP with the exact layout
+<code>load_proofwiki_proofs</code> expects. Runs entirely in this page —
+no filesystem picker needed — so it works inside a Google Sites embed.
+Use a browser where you've already cleared the ProofWiki Cloudflare
+captcha. Extract the downloaded ZIP into your repo's
+<code>data/</code> directory.</p>
 
 <fieldset>
-  <legend>output</legend>
+  <legend>resume (optional)</legend>
   <div class="row">
-    <button id="pickDir">Choose output folder…</button>
-    <span id="dirLabel" class="hint">(none — pick a folder; the app will
-      create <code>proofwiki/</code> and <code>proofwiki/pages/</code>
-      inside it)</span>
+    <input id="resumeZip" type="file" accept=".zip,application/zip">
+    <span class="hint">drop a previous <code>proofwiki-cache.zip</code> here
+      to skip titles and pages you already have</span>
   </div>
-  <div class="hint">Requires Chrome, Edge, or another Chromium-based
-    browser (File System Access API). Point it at your repo's
-    <code>data/</code> directory.</div>
 </fieldset>
 
 <fieldset>
@@ -87,15 +88,18 @@ you've already cleared the ProofWiki Cloudflare captcha.</p>
 <div class="row">
   <button id="fetchTitles">1. Fetch titles</button>
   <button id="fetchPages" class="primary">2. Fetch pages</button>
+  <button id="download" disabled>3. Download ZIP</button>
   <button id="stop" disabled>Stop</button>
   <span id="phase" class="hint"></span>
 </div>
+
+<progress id="prog" value="0" max="1"></progress>
 
 <div class="counters">
   <div class="counter"><div class="n" id="cTitles">0</div>
     <div class="lbl">titles</div></div>
   <div class="counter"><div class="n" id="cCached">0</div>
-    <div class="lbl">pages on disk</div></div>
+    <div class="lbl">pages in memory</div></div>
   <div class="counter"><div class="n" id="cFetched">0</div>
     <div class="lbl">pages fetched</div></div>
   <div class="counter"><div class="n" id="cErrors">0</div>
@@ -104,6 +108,7 @@ you've already cleared the ProofWiki Cloudflare captcha.</p>
 
 <div id="log"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
 'use strict';
 
@@ -128,59 +133,13 @@ function bumpCounter(k, d = 1) {
 }
 
 // ─── State ──────────────────────────────────────────────────────────────
-let rootHandle = null;        // user-chosen "data" directory
-let pwDirHandle = null;       // data/proofwiki/
-let pagesDirHandle = null;    // data/proofwiki/pages/
-let titles = [];              // list of page titles (strings)
+// Keeps raw API payloads in memory so the final ZIP byte-for-byte matches
+// what app2.py would have written to disk.
+let titleResponses = [];           // raw category-query responses
+let titles = [];                   // unique, in listing order
+const pageCache = new Map();       // sha1(title) → raw parse response
 let stopRequested = false;
 let running = false;
-
-// ─── File System Access helpers ─────────────────────────────────────────
-async function pickOutputDir() {
-  if (!window.showDirectoryPicker) {
-    alert('File System Access API not available in this browser. ' +
-          'Use Chrome, Edge, or another Chromium-based browser.');
-    return;
-  }
-  try {
-    rootHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-  } catch (e) { return; }  // user cancelled
-  pwDirHandle = await rootHandle.getDirectoryHandle('proofwiki',
-                                                    { create: true });
-  pagesDirHandle = await pwDirHandle.getDirectoryHandle('pages',
-                                                        { create: true });
-  $('dirLabel').textContent = `→ ${rootHandle.name}/proofwiki/`;
-  log(`Output: ${rootHandle.name}/proofwiki/`, 'k');
-
-  // Count what's already on disk so we start from a truthful baseline.
-  let cached = 0;
-  for await (const [name] of pagesDirHandle.entries()) {
-    if (name.endsWith('.json')) cached++;
-  }
-  setCounter('cached', cached);
-
-  // If titles_raw.json already exists, load it so "fetch pages" can run
-  // without re-fetching titles.
-  try {
-    const fh = await pwDirHandle.getFileHandle('titles_raw.json');
-    const txt = await (await fh.getFile()).text();
-    titles = extractTitles(JSON.parse(txt));
-    setCounter('titles', titles.length);
-    log(`Loaded ${titles.length} titles from existing titles_raw.json`, 'k');
-  } catch (e) { /* not present — fine */ }
-}
-
-async function writeFile(dirHandle, name, text) {
-  const fh = await dirHandle.getFileHandle(name, { create: true });
-  const w = await fh.createWritable();
-  await w.write(text);
-  await w.close();
-}
-
-async function fileExists(dirHandle, name) {
-  try { await dirHandle.getFileHandle(name); return true; }
-  catch (e) { return false; }
-}
 
 // ─── Title extraction (mirrors _pw_titles_from_obj in app2.py) ──────────
 function extractTitles(obj) {
@@ -212,7 +171,7 @@ async function sha1Hex(text) {
 
 // ─── HTTP ───────────────────────────────────────────────────────────────
 // origin=* is MediaWiki's "anonymous CORS" opt-in. Without it, cross-origin
-// fetches from this page will be blocked.
+// fetches from this page are blocked by the browser.
 function apiUrl(params) {
   const base = $('api').value.trim();
   const qs = new URLSearchParams({ ...params, format: 'json', origin: '*' });
@@ -236,9 +195,50 @@ async function fetchJson(params) {
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+// ─── Resume from uploaded ZIP ───────────────────────────────────────────
+async function loadFromZip(file) {
+  if (typeof JSZip === 'undefined') {
+    alert('JSZip failed to load. Check that this page can reach '
+        + 'cdn.jsdelivr.net; some Google Sites themes block external scripts.');
+    return;
+  }
+  let zip;
+  try { zip = await JSZip.loadAsync(file); }
+  catch (e) { log('Not a valid ZIP: ' + e.message, 'e'); return; }
+
+  // titles_raw.json lives at either the root or inside proofwiki/
+  const titlesEntry = zip.file(/(^|\/)titles_raw\.json$/i)[0];
+  if (titlesEntry) {
+    try {
+      const text = await titlesEntry.async('string');
+      const parsed = JSON.parse(text);
+      titleResponses = Array.isArray(parsed) ? parsed : [parsed];
+      titles = Array.from(new Set(extractTitles(titleResponses)));
+      setCounter('titles', titles.length);
+      log(`Loaded ${titles.length} titles from ${titlesEntry.name}`, 'k');
+    } catch (e) { log('titles_raw.json parse error: ' + e.message, 'e'); }
+  }
+
+  // pages/<sha1>.json — filename IS the key.
+  const pageEntries = zip.file(/(^|\/)pages\/[0-9a-f]{40}\.json$/i);
+  let loaded = 0;
+  for (const entry of pageEntries) {
+    const hash = entry.name.match(/([0-9a-f]{40})\.json$/i)[1].toLowerCase();
+    try {
+      const text = await entry.async('string');
+      pageCache.set(hash, JSON.parse(text));
+      loaded++;
+    } catch (e) { /* skip bad entry */ }
+  }
+  if (loaded > 0) {
+    setCounter('cached', pageCache.size);
+    log(`Loaded ${loaded} cached pages from ZIP`, 'k');
+  }
+  updateDownloadButton();
+}
+
 // ─── Phase 1: titles ────────────────────────────────────────────────────
 async function fetchTitles() {
-  if (!pwDirHandle) { alert('Pick an output folder first.'); return; }
   if (running) return;
   running = true; stopRequested = false;
   setButtons(true);
@@ -248,14 +248,14 @@ async function fetchTitles() {
   const maxTitles = parseInt($('maxTitles').value, 10) || 2000;
   const rateMs = parseInt($('rateMs').value, 10) || 0;
   const responses = [];
-  const seen = new Set();
-  titles = [];
+  const seen = new Set(titles);  // keep whatever we loaded from resume
+  const collected = titles.slice();
 
   try {
     for (const cat of cats) {
       log(`Listing Category:${cat}`, 'k');
-      let cmcontinue = null, pageCount = 0;
-      while (titles.length < maxTitles) {
+      let cmcontinue = null, batch = 0;
+      while (collected.length < maxTitles) {
         if (stopRequested) throw new Error('stopped');
         const params = {
           action: 'query',
@@ -267,58 +267,59 @@ async function fetchTitles() {
         if (cmcontinue) params.cmcontinue = cmcontinue;
         const payload = await fetchJson(params);
         responses.push(payload);
-        pageCount++;
+        batch++;
         const members = (payload.query && payload.query.categorymembers) || [];
         for (const m of members) {
           if (m.ns === 0 && m.title && !seen.has(m.title)) {
             seen.add(m.title);
-            titles.push(m.title);
+            collected.push(m.title);
           }
         }
-        setCounter('titles', titles.length);
-        log(`  batch ${pageCount}: +${members.length} members `
-            + `(total ${titles.length})`);
+        setCounter('titles', collected.length);
+        log(`  batch ${batch}: +${members.length} members `
+            + `(total ${collected.length})`);
         const cont = payload.continue || {};
         cmcontinue = cont.cmcontinue;
         if (!cmcontinue) break;
         if (rateMs > 0) await sleep(rateMs);
       }
-      if (titles.length > 0) break;  // category produced pages; don't try fallbacks
+      if (collected.length > 0) break;  // don't try fallbacks once we have pages
     }
 
-    if (titles.length === 0) {
+    if (collected.length === 0) {
       log('No titles retrieved.', 'w');
     } else {
-      await writeFile(pwDirHandle, 'titles_raw.json',
-                      JSON.stringify(responses));
-      log(`Wrote titles_raw.json (${titles.length} unique titles, `
-          + `${responses.length} API responses).`, 'k');
+      // Merge new responses with any previously-resumed ones.
+      titleResponses = titleResponses.concat(responses);
+      titles = collected;
+      log(`Collected ${titles.length} unique titles across `
+          + `${titleResponses.length} API responses.`, 'k');
     }
   } catch (e) {
-    if (e.message !== 'stopped') {
-      log(e.message, 'e'); bumpCounter('errors');
-    } else {
-      log('Stopped.', 'w');
-    }
+    if (e.message !== 'stopped') { log(e.message, 'e'); bumpCounter('errors'); }
+    else { log('Stopped.', 'w'); }
   } finally {
     running = false;
     setButtons(false);
     $('phase').textContent = '';
+    updateDownloadButton();
   }
 }
 
 // ─── Phase 2: pages ─────────────────────────────────────────────────────
 async function fetchPages() {
-  if (!pwDirHandle) { alert('Pick an output folder first.'); return; }
   if (titles.length === 0) {
-    alert('No titles loaded. Run "Fetch titles" first, or drop a '
-        + 'titles_raw.json into the proofwiki/ folder and re-pick the folder.');
+    alert('No titles loaded. Run "Fetch titles" first, or drop a previous '
+        + 'proofwiki-cache.zip into the resume field.');
     return;
   }
   if (running) return;
   running = true; stopRequested = false;
   setButtons(true);
   $('phase').textContent = 'fetching pages…';
+  const prog = $('prog');
+  prog.max = titles.length;
+  prog.value = 0;
 
   const rateMs = parseInt($('rateMs').value, 10) || 0;
   let fetched = 0, skipped = 0, errors = 0;
@@ -329,9 +330,9 @@ async function fetchPages() {
       if (stopRequested) throw new Error('stopped');
       const title = titles[i];
       const hash = await sha1Hex(title);
-      const fname = `${hash}.json`;
+      prog.value = i + 1;
 
-      if (await fileExists(pagesDirHandle, fname)) {
+      if (pageCache.has(hash)) {
         skipped++;
         if (i % 50 === 0) {
           log(`  [${i + 1}/${total}] ${skipped} skipped · `
@@ -344,7 +345,7 @@ async function fetchPages() {
         const payload = await fetchJson({
           action: 'parse', page: title, prop: 'wikitext', redirects: 1,
         });
-        await writeFile(pagesDirHandle, fname, JSON.stringify(payload));
+        pageCache.set(hash, payload);
         fetched++;
         bumpCounter('fetched');
         bumpCounter('cached');
@@ -353,8 +354,8 @@ async function fetchPages() {
         bumpCounter('errors');
         log(`  ${title}: ${e.message}`, 'e');
         if (/403/.test(e.message)) {
-          log('Stopping because of 403. What you have is already on disk; '
-              + 're-pick the folder and hit Fetch pages again to resume.', 'w');
+          log('Stopping because of 403. Download what you have and resume '
+              + 'later, or clear the captcha in another tab first.', 'w');
           throw new Error('stopped');
         }
       }
@@ -368,11 +369,57 @@ async function fetchPages() {
     log(`Done. ${fetched} new pages, ${skipped} already cached, `
         + `${errors} errors.`, 'k');
   } catch (e) {
-    if (e.message !== 'stopped') {
-      log(e.message, 'e'); bumpCounter('errors');
-    } else {
-      log('Stopped.', 'w');
+    if (e.message !== 'stopped') { log(e.message, 'e'); bumpCounter('errors'); }
+    else { log('Stopped.', 'w'); }
+  } finally {
+    running = false;
+    setButtons(false);
+    $('phase').textContent = '';
+    updateDownloadButton();
+  }
+}
+
+// ─── Phase 3: download ──────────────────────────────────────────────────
+async function downloadZip() {
+  if (typeof JSZip === 'undefined') {
+    alert('JSZip failed to load from CDN.');
+    return;
+  }
+  if (running) return;
+  running = true; setButtons(true);
+  $('phase').textContent = 'building ZIP…';
+
+  try {
+    const zip = new JSZip();
+    // Top-level directory mirrors data/proofwiki/ so the user can unzip
+    // straight into data/ and the Python loader finds everything.
+    const root = zip.folder('proofwiki');
+    if (titleResponses.length) {
+      root.file('titles_raw.json', JSON.stringify(titleResponses));
     }
+    const pages = root.folder('pages');
+    for (const [hash, resp] of pageCache) {
+      pages.file(`${hash}.json`, JSON.stringify(resp));
+    }
+
+    const prog = $('prog');
+    prog.max = 100; prog.value = 0;
+    const blob = await zip.generateAsync(
+      { type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } },
+      meta => { prog.value = meta.percent; }
+    );
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'proofwiki-cache.zip';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    log(`Downloaded proofwiki-cache.zip (${(blob.size / 1024).toFixed(1)} kB)`, 'k');
+  } catch (e) {
+    log('ZIP build failed: ' + e.message, 'e');
   } finally {
     running = false;
     setButtons(false);
@@ -384,19 +431,30 @@ async function fetchPages() {
 function setButtons(isRunning) {
   $('fetchTitles').disabled = isRunning;
   $('fetchPages').disabled = isRunning;
-  $('pickDir').disabled = isRunning;
+  $('resumeZip').disabled = isRunning;
   $('stop').disabled = !isRunning;
+  updateDownloadButton();
+  if (isRunning) $('download').disabled = true;
 }
 
-$('pickDir').addEventListener('click', pickOutputDir);
+function updateDownloadButton() {
+  $('download').disabled = running
+    || (titleResponses.length === 0 && pageCache.size === 0);
+}
+
+$('resumeZip').addEventListener('change', e => {
+  const f = e.target.files && e.target.files[0];
+  if (f) loadFromZip(f);
+});
 $('fetchTitles').addEventListener('click', fetchTitles);
 $('fetchPages').addEventListener('click', fetchPages);
+$('download').addEventListener('click', downloadZip);
 $('stop').addEventListener('click', () => {
   stopRequested = true;
   log('Stop requested — finishing current request…', 'w');
 });
 
-log('Ready. Pick the data/ folder in your repo to begin.', 'k');
+log('Ready. Run "Fetch titles" to begin, or upload a previous ZIP to resume.', 'k');
 </script>
 </body>
 </html>
