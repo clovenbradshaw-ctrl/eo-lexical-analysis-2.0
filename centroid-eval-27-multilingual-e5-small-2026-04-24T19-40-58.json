@@ -1,0 +1,262 @@
+{
+  "model": "Xenova/multilingual-e5-small",
+  "modelName": "multilingual-e5-small",
+  "modelDim": 384,
+  "holdoutFrac": 0.2,
+  "topN": 100,
+  "batchSize": 16,
+  "totalClauses": 2612,
+  "embedTime": 4516.659299999952,
+  "timestamp": "2026-04-24T19:13:19.649Z",
+  "result": {
+    "classCount": 27,
+    "chance": 0.037037037037037035,
+    "n": 521,
+    "top1": 0.39731285988483683,
+    "top3": 0.6449136276391555,
+    "top5": 0.7677543186180422,
+    "meanMarginCorrect": 0.007293540887658917,
+    "meanMarginWrong": 0.0030763676762011584,
+    "perCell": {
+      "CON(Binding, Link)": {
+        "n": 20,
+        "top1": 0.65,
+        "top3": 0.7,
+        "meanMargin": 0.00765138061796865
+      },
+      "SUP(Binding, Lens)": {
+        "n": 20,
+        "top1": 0.85,
+        "top3": 0.9,
+        "meanMargin": 0.006704542793843265
+      },
+      "SEG(Clearing, Field)": {
+        "n": 20,
+        "top1": 0.3,
+        "top3": 0.55,
+        "meanMargin": 0.003321934669899934
+      },
+      "ALT(Dissecting, Lens)": {
+        "n": 20,
+        "top1": 0.6,
+        "top3": 0.75,
+        "meanMargin": 0.005466921291627708
+      },
+      "SEG(Dissecting, Link)": {
+        "n": 20,
+        "top1": 0.4,
+        "top3": 0.6,
+        "meanMargin": 0.0061671361897448875
+      },
+      "SIG(Binding, Entity)": {
+        "n": 20,
+        "top1": 0.65,
+        "top3": 0.85,
+        "meanMargin": 0.004657379269410145
+      },
+      "NUL(Dissecting, Entity)": {
+        "n": 20,
+        "top1": 0.1,
+        "top3": 0.45,
+        "meanMargin": 0.003005298438726339
+      },
+      "SYN(Making, Link)": {
+        "n": 20,
+        "top1": 0.55,
+        "top3": 0.65,
+        "meanMargin": 0.00753670819001247
+      },
+      "INS(Making, Entity)": {
+        "n": 20,
+        "top1": 0.7,
+        "top3": 0.8,
+        "meanMargin": 0.011969218075126343
+      },
+      "INS(Cultivating, Void)": {
+        "n": 20,
+        "top1": 0.3,
+        "top3": 0.55,
+        "meanMargin": 0.0050394072183053305
+      },
+      "ALT(Unraveling, Paradigm)": {
+        "n": 20,
+        "top1": 0.4,
+        "top3": 0.7,
+        "meanMargin": 0.002819018736789425
+      },
+      "REC(Composing, Paradigm)": {
+        "n": 20,
+        "top1": 0.15,
+        "top3": 0.55,
+        "meanMargin": 0.0014581600680705687
+      },
+      "REC(Making, Lens)": {
+        "n": 20,
+        "top1": 0.5,
+        "top3": 0.8,
+        "meanMargin": 0.005211864869171079
+      },
+      "CON(Tracing, Network)": {
+        "n": 20,
+        "top1": 0.45,
+        "top3": 0.9,
+        "meanMargin": 0.002456525392722464
+      },
+      "SUP(Tracing, Paradigm)": {
+        "n": 20,
+        "top1": 0.45,
+        "top3": 0.9,
+        "meanMargin": 0.0053244773175105675
+      },
+      "SUP(Tending, Atmosphere)": {
+        "n": 20,
+        "top1": 0.45,
+        "top3": 0.8,
+        "meanMargin": 0.006657094969642757
+      },
+      "INS(Composing, Kind)": {
+        "n": 20,
+        "top1": 0.3,
+        "top3": 0.7,
+        "meanMargin": 0.003568826928254748
+      },
+      "ALT(Clearing, Atmosphere)": {
+        "n": 20,
+        "top1": 0.2,
+        "top3": 0.5,
+        "meanMargin": 0.002780306210603184
+      },
+      "SIG(Tending, Void)": {
+        "n": 20,
+        "top1": 0.1,
+        "top3": 0.5,
+        "meanMargin": 0.0032327166747200486
+      },
+      "CON(Tending, Field)": {
+        "n": 20,
+        "top1": 0.45,
+        "top3": 0.6,
+        "meanMargin": 0.002942623428815405
+      },
+      "SYN(Composing, Network)": {
+        "n": 20,
+        "top1": 0.65,
+        "top3": 0.8,
+        "meanMargin": 0.005660682881667212
+      },
+      "SEG(Unraveling, Network)": {
+        "n": 20,
+        "top1": 0.45,
+        "top3": 0.6,
+        "meanMargin": 0.006254501297406967
+      },
+      "NUL(Unraveling, Kind)": {
+        "n": 17,
+        "top1": 0.23529411764705882,
+        "top3": 0.4117647058823529,
+        "meanMargin": 0.0037361487596475553
+      },
+      "SYN(Cultivating, Field)": {
+        "n": 20,
+        "top1": 0.25,
+        "top3": 0.55,
+        "meanMargin": 0.0036763814400932572
+      },
+      "NUL(Clearing, Void)": {
+        "n": 9,
+        "top1": 0.2222222222222222,
+        "top3": 0.4444444444444444,
+        "meanMargin": 0.0019385531115395154
+      },
+      "SIG(Tracing, Kind)": {
+        "n": 15,
+        "top1": 0,
+        "top3": 0.3333333333333333,
+        "meanMargin": 0.0029731238912323803
+      },
+      "REC(Cultivating, Atmosphere)": {
+        "n": 20,
+        "top1": 0.15,
+        "top3": 0.3,
+        "meanMargin": 0.0039460954691777185
+      }
+    },
+    "topConfusions": [
+      {
+        "trueCell": "CON(Tracing, Network)",
+        "predCell": "SEG(Unraveling, Network)",
+        "count": 6
+      },
+      {
+        "trueCell": "REC(Making, Lens)",
+        "predCell": "SIG(Binding, Entity)",
+        "count": 5
+      },
+      {
+        "trueCell": "INS(Composing, Kind)",
+        "predCell": "INS(Cultivating, Void)",
+        "count": 5
+      },
+      {
+        "trueCell": "ALT(Clearing, Atmosphere)",
+        "predCell": "SYN(Making, Link)",
+        "count": 5
+      },
+      {
+        "trueCell": "SIG(Tending, Void)",
+        "predCell": "SIG(Binding, Entity)",
+        "count": 4
+      },
+      {
+        "trueCell": "CON(Binding, Link)",
+        "predCell": "REC(Making, Lens)",
+        "count": 3
+      },
+      {
+        "trueCell": "SEG(Clearing, Field)",
+        "predCell": "CON(Tending, Field)",
+        "count": 3
+      },
+      {
+        "trueCell": "SEG(Dissecting, Link)",
+        "predCell": "SYN(Making, Link)",
+        "count": 3
+      },
+      {
+        "trueCell": "SIG(Binding, Entity)",
+        "predCell": "SUP(Binding, Lens)",
+        "count": 3
+      },
+      {
+        "trueCell": "NUL(Dissecting, Entity)",
+        "predCell": "SUP(Tracing, Paradigm)",
+        "count": 3
+      },
+      {
+        "trueCell": "NUL(Dissecting, Entity)",
+        "predCell": "ALT(Dissecting, Lens)",
+        "count": 3
+      },
+      {
+        "trueCell": "ALT(Unraveling, Paradigm)",
+        "predCell": "ALT(Clearing, Atmosphere)",
+        "count": 3
+      },
+      {
+        "trueCell": "REC(Composing, Paradigm)",
+        "predCell": "REC(Cultivating, Atmosphere)",
+        "count": 3
+      },
+      {
+        "trueCell": "REC(Composing, Paradigm)",
+        "predCell": "SUP(Tracing, Paradigm)",
+        "count": 3
+      },
+      {
+        "trueCell": "SUP(Tracing, Paradigm)",
+        "predCell": "SUP(Tending, Atmosphere)",
+        "count": 3
+      }
+    ]
+  }
+}
