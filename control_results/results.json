@@ -1,0 +1,433 @@
+{
+  "embedder": "conceptnet-numberbatch-en-19.08 (300d, mean of word vectors)",
+  "n_clauses": 213,
+  "vocab_in_corpus": 1264,
+  "vocab_in_numberbatch": 1205,
+  "schemes": {
+    "EO_q1_mode": {
+      "n_classes": 3,
+      "class_sizes": {
+        "DIFFERENTIATING": 37,
+        "GENERATING": 33,
+        "RELATING": 143
+      },
+      "fisher_ratio": 0.0204185726781215,
+      "centroid_zscore": {
+        "obs": 0.7861078977584839,
+        "null_mean": 0.7835220686495304,
+        "null_std": 0.00036279380030643856,
+        "z": 7.127544921576076,
+        "p_one_sided": 0.0
+      },
+      "lda": {
+        "n_components": 2,
+        "explained_variance_ratio": [
+          0.5703482627868652,
+          0.42965167760849
+        ],
+        "total": 0.9999999403953552
+      },
+      "silhouette": -0.0315304733812809
+    },
+    "EO_q2_domain": {
+      "n_classes": 3,
+      "class_sizes": {
+        "EXISTENCE": 29,
+        "SIGNIFICANCE": 92,
+        "STRUCTURE": 92
+      },
+      "fisher_ratio": 0.03669637720037647,
+      "centroid_zscore": {
+        "obs": 0.7899899482727051,
+        "null_mean": 0.7835156300663948,
+        "null_std": 0.0003585562983483195,
+        "z": 18.056629422308472,
+        "p_one_sided": 0.0
+      },
+      "lda": {
+        "n_components": 2,
+        "explained_variance_ratio": [
+          0.6298635601997375,
+          0.3701364994049072
+        ],
+        "total": 1.0000000596046448
+      },
+      "silhouette": 0.016223188489675522
+    },
+    "EO_q3_object": {
+      "n_classes": 3,
+      "class_sizes": {
+        "CONDITION": 9,
+        "ENTITY": 172,
+        "PATTERN": 32
+      },
+      "fisher_ratio": 0.020440119827079446,
+      "centroid_zscore": {
+        "obs": 0.7861133217811584,
+        "null_mean": 0.7835270606577397,
+        "null_std": 0.00037623753390077106,
+        "z": 6.874011469841429,
+        "p_one_sided": 0.0
+      },
+      "lda": {
+        "n_components": 2,
+        "explained_variance_ratio": [
+          0.6105790138244629,
+          0.38942092657089233
+        ],
+        "total": 0.9999999403953552
+      },
+      "silhouette": -0.04779209569096565
+    },
+    "ALT_tense": {
+      "n_classes": 3,
+      "class_sizes": {
+        "future": 22,
+        "past": 100,
+        "present": 91
+      },
+      "fisher_ratio": 0.04063238459677132,
+      "centroid_zscore": {
+        "obs": 0.7906507253646851,
+        "null_mean": 0.7835250879526139,
+        "null_std": 0.00035947583877533667,
+        "z": 19.82229858993254,
+        "p_one_sided": 0.0
+      },
+      "lda": {
+        "n_components": 2,
+        "explained_variance_ratio": [
+          0.6800891160964966,
+          0.31991085410118103
+        ],
+        "total": 0.9999999701976776
+      },
+      "silhouette": -0.030281949788331985
+    },
+    "ALT_sentiment": {
+      "n_classes": 3,
+      "class_sizes": {
+        "negative": 51,
+        "neutral": 68,
+        "positive": 94
+      },
+      "fisher_ratio": 0.018908549969285836,
+      "centroid_zscore": {
+        "obs": 0.7858234643936157,
+        "null_mean": 0.7835293978452682,
+        "null_std": 0.0003733425201538653,
+        "z": 6.1446699063424814,
+        "p_one_sided": 0.0
+      },
+      "lda": {
+        "n_components": 2,
+        "explained_variance_ratio": [
+          0.5594002604484558,
+          0.4405997693538666
+        ],
+        "total": 1.0000000298023224
+      },
+      "silhouette": -0.002431933768093586
+    },
+    "ALT_speech_act": {
+      "n_classes": 3,
+      "class_sizes": {
+        "assertive": 191,
+        "directive": 6,
+        "expressive": 16
+      },
+      "fisher_ratio": 0.018534760333179422,
+      "centroid_zscore": {
+        "obs": 0.7857238054275513,
+        "null_mean": 0.7835144903361797,
+        "null_std": 0.0004054061785269673,
+        "z": 5.449633499417929,
+        "p_one_sided": 0.0
+      },
+      "lda": {
+        "n_components": 2,
+        "explained_variance_ratio": [
+          0.6045335531234741,
+          0.3954664170742035
+        ],
+        "total": 0.9999999701976776
+      },
+      "silhouette": 0.021751971915364265
+    }
+  },
+  "random_3class_baseline": {
+    "z_mean": 0.01826435172934289,
+    "z_std": 0.9249207485783859,
+    "z_max": 1.415406780026665,
+    "trials": 20
+  },
+  "pairwise_principal_angles": {
+    "EO_q1_mode__vs__EO_q2_domain": {
+      "principal_angles_deg": [
+        50.8764762878418,
+        81.7367172241211
+      ],
+      "min_angle_deg": 50.8764762878418,
+      "max_angle_deg": 81.7367172241211,
+      "cos_min": 0.6309943727147482
+    },
+    "EO_q1_mode__vs__EO_q3_object": {
+      "principal_angles_deg": [
+        67.05859375,
+        70.43244171142578
+      ],
+      "min_angle_deg": 67.05859375,
+      "max_angle_deg": 70.43244171142578,
+      "cos_min": 0.38978956649574603
+    },
+    "EO_q1_mode__vs__ALT_tense": {
+      "principal_angles_deg": [
+        58.75390625,
+        67.92660522460938
+      ],
+      "min_angle_deg": 58.75390625,
+      "max_angle_deg": 67.92660522460938,
+      "cos_min": 0.5187149716933602
+    },
+    "EO_q1_mode__vs__ALT_sentiment": {
+      "principal_angles_deg": [
+        67.35100555419922,
+        85.27774810791016
+      ],
+      "min_angle_deg": 67.35100555419922,
+      "max_angle_deg": 85.27774810791016,
+      "cos_min": 0.3850846324069913
+    },
+    "EO_q1_mode__vs__ALT_speech_act": {
+      "principal_angles_deg": [
+        77.02841186523438,
+        82.39624786376953
+      ],
+      "min_angle_deg": 77.02841186523438,
+      "max_angle_deg": 82.39624786376953,
+      "cos_min": 0.22446785549875986
+    },
+    "EO_q2_domain__vs__EO_q3_object": {
+      "principal_angles_deg": [
+        71.07044982910156,
+        79.72777557373047
+      ],
+      "min_angle_deg": 71.07044982910156,
+      "max_angle_deg": 79.72777557373047,
+      "cos_min": 0.3244053165165755
+    },
+    "EO_q2_domain__vs__ALT_tense": {
+      "principal_angles_deg": [
+        66.45425415039062,
+        89.44239807128906
+      ],
+      "min_angle_deg": 66.45425415039062,
+      "max_angle_deg": 89.44239807128906,
+      "cos_min": 0.39948113690911974
+    },
+    "EO_q2_domain__vs__ALT_sentiment": {
+      "principal_angles_deg": [
+        52.34331512451172,
+        85.07797241210938
+      ],
+      "min_angle_deg": 52.34331512451172,
+      "max_angle_deg": 85.07797241210938,
+      "cos_min": 0.6109287071957721
+    },
+    "EO_q2_domain__vs__ALT_speech_act": {
+      "principal_angles_deg": [
+        78.18806457519531,
+        87.00779724121094
+      ],
+      "min_angle_deg": 78.18806457519531,
+      "max_angle_deg": 87.00779724121094,
+      "cos_min": 0.2046999576775794
+    },
+    "EO_q3_object__vs__ALT_tense": {
+      "principal_angles_deg": [
+        66.5439453125,
+        73.28929901123047
+      ],
+      "min_angle_deg": 66.5439453125,
+      "max_angle_deg": 73.28929901123047,
+      "cos_min": 0.39804557543958546
+    },
+    "EO_q3_object__vs__ALT_sentiment": {
+      "principal_angles_deg": [
+        59.44829559326172,
+        77.37197875976562
+      ],
+      "min_angle_deg": 59.44829559326172,
+      "max_angle_deg": 77.37197875976562,
+      "cos_min": 0.5083157008094206
+    },
+    "EO_q3_object__vs__ALT_speech_act": {
+      "principal_angles_deg": [
+        72.23136901855469,
+        88.29816436767578
+      ],
+      "min_angle_deg": 72.23136901855469,
+      "max_angle_deg": 88.29816436767578,
+      "cos_min": 0.30517397532239554
+    },
+    "ALT_tense__vs__ALT_sentiment": {
+      "principal_angles_deg": [
+        64.75763702392578,
+        80.30754089355469
+      ],
+      "min_angle_deg": 64.75763702392578,
+      "max_angle_deg": 80.30754089355469,
+      "cos_min": 0.4264481801894461
+    },
+    "ALT_tense__vs__ALT_speech_act": {
+      "principal_angles_deg": [
+        65.37743377685547,
+        83.68795776367188
+      ],
+      "min_angle_deg": 65.37743377685547,
+      "max_angle_deg": 83.68795776367188,
+      "cos_min": 0.4166388670550526
+    },
+    "ALT_sentiment__vs__ALT_speech_act": {
+      "principal_angles_deg": [
+        61.851524353027344,
+        78.6715316772461
+      ],
+      "min_angle_deg": 61.851524353027344,
+      "max_angle_deg": 78.6715316772461,
+      "cos_min": 0.471758044495856
+    }
+  },
+  "residualization": {
+    "after_remove_alt": {
+      "EO_q1_mode": {
+        "centroid_zscore": {
+          "obs": 0.784793496131897,
+          "null_mean": 0.7822221632003784,
+          "null_std": 0.00036198869643186307,
+          "z": 7.103351449546068,
+          "p_one_sided": 0.0
+        },
+        "fisher_ratio": 0.02039405103866499
+      },
+      "EO_q2_domain": {
+        "centroid_zscore": {
+          "obs": 0.7886505722999573,
+          "null_mean": 0.7822158653140068,
+          "null_std": 0.00035811631364731804,
+          "z": 17.968204018450724,
+          "p_one_sided": 0.0
+        },
+        "fisher_ratio": 0.03664193756584853
+      },
+      "EO_q3_object": {
+        "centroid_zscore": {
+          "obs": 0.784780740737915,
+          "null_mean": 0.7822273807823658,
+          "null_std": 0.00037559579717507053,
+          "z": 6.798159017629066,
+          "p_one_sided": 0.0
+        },
+        "fisher_ratio": 0.020350518955955573
+      },
+      "ALT_tense": {
+        "centroid_zscore": {
+          "obs": 0.788810670375824,
+          "null_mean": 0.7822254535257817,
+          "null_std": 0.00035903654203795296,
+          "z": 18.341355486167227,
+          "p_one_sided": 0.0
+        },
+        "fisher_ratio": 0.03831672246769784
+      },
+      "ALT_sentiment": {
+        "centroid_zscore": {
+          "obs": 0.7841306328773499,
+          "null_mean": 0.7822294587492943,
+          "null_std": 0.00037281940472275036,
+          "z": 5.099450575726852,
+          "p_one_sided": 0.0005
+        },
+        "fisher_ratio": 0.017309291173045464
+      },
+      "ALT_speech_act": {
+        "centroid_zscore": {
+          "obs": 0.7840827107429504,
+          "null_mean": 0.7822150150537491,
+          "null_std": 0.0004052200219153523,
+          "z": 4.609090341521818,
+          "p_one_sided": 0.0005
+        },
+        "fisher_ratio": 0.01710623757673642
+      }
+    },
+    "after_remove_eo": {
+      "EO_q1_mode": {
+        "centroid_zscore": {
+          "obs": 0.7836716175079346,
+          "null_mean": 0.7812776038646698,
+          "null_std": 0.00036316906347209183,
+          "z": 6.592008747597297,
+          "p_one_sided": 0.0
+        },
+        "fisher_ratio": 0.019583378552116885
+      },
+      "EO_q2_domain": {
+        "centroid_zscore": {
+          "obs": 0.7874602675437927,
+          "null_mean": 0.7812710691094399,
+          "null_std": 0.0003590941720808112,
+          "z": 17.23558585896518,
+          "p_one_sided": 0.0
+        },
+        "fisher_ratio": 0.03548806489189557
+      },
+      "EO_q3_object": {
+        "centroid_zscore": {
+          "obs": 0.7836019992828369,
+          "null_mean": 0.7812824388742446,
+          "null_std": 0.0003767412012209053,
+          "z": 6.156906653892033,
+          "p_one_sided": 0.0
+        },
+        "fisher_ratio": 0.019261814581844953
+      },
+      "ALT_tense": {
+        "centroid_zscore": {
+          "obs": 0.788387656211853,
+          "null_mean": 0.781280481249094,
+          "null_std": 0.0003598637125252369,
+          "z": 19.749629416332475,
+          "p_one_sided": 0.0
+        },
+        "fisher_ratio": 0.040587186058169356
+      },
+      "ALT_sentiment": {
+        "centroid_zscore": {
+          "obs": 0.7835696935653687,
+          "null_mean": 0.7812849237322808,
+          "null_std": 0.00037371548002862535,
+          "z": 6.113661208020846,
+          "p_one_sided": 0.0
+        },
+        "fisher_ratio": 0.018883984346118588
+      },
+      "ALT_speech_act": {
+        "centroid_zscore": {
+          "obs": 0.7834829688072205,
+          "null_mean": 0.78126998385787,
+          "null_std": 0.0004060259329619057,
+          "z": 5.450353708215067,
+          "p_one_sided": 0.0
+        },
+        "fisher_ratio": 0.018559683423616365
+      }
+    }
+  },
+  "notes": [
+    "English consensus subset only (n=213).",
+    "EO numbers cannot be compared to the published 3072d figures; the in-sandbox baseline is computed in numberbatch space.",
+    "ALT axis labels are deterministic English heuristics: tense via NLTK POS tags + future modals, sentiment via VADER, speech-act via clause-final punctuation + imperative regex + expressive lexical cues.",
+    "Residualization: 'after_remove_alt' projects each clause vector orthogonal to the LDA subspaces of all three alt axes, then asks whether EO axes still discriminate. 'after_remove_eo' is the symmetric check."
+  ]
+}
