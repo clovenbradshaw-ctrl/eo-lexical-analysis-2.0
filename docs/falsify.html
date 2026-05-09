@@ -1,0 +1,1290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EO 3x3x3 Falsification Panel</title>
+<style>
+  :root { color-scheme: light dark; --acc: #2563eb; }
+  body { font: 14px/1.45 ui-sans-serif, system-ui, sans-serif;
+         max-width: 1080px; margin: 1.5rem auto; padding: 0 1rem; }
+  h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
+  h2 { font-size: 1.1rem; margin-top: 1.5rem; }
+  p.sub { color: #888; margin: 0 0 1.25rem; }
+  fieldset { border: 1px solid #8884; border-radius: 6px;
+             padding: .75rem 1rem 1rem; margin-bottom: 1rem; }
+  legend { padding: 0 .4rem; color: #888; font-size: 12px;
+           text-transform: uppercase; letter-spacing: .08em; }
+  label { display: inline-block; margin-right: .8rem; }
+  input[type=number] { width: 6rem; }
+  button { padding: .55rem 1rem; font: inherit; border-radius: 4px;
+           border: 1px solid #8884; background: #8881; cursor: pointer; }
+  button:hover:not(:disabled) { background: #8883; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  button.primary { background: var(--acc); color: white; border-color: var(--acc); }
+  button.primary:hover:not(:disabled) { background: #1d4ed8; }
+  pre#log { background: #0001; padding: .75rem; border-radius: 4px;
+            font: 12px/1.4 ui-monospace, monospace; max-height: 240px;
+            overflow: auto; white-space: pre-wrap; }
+  table { border-collapse: collapse; font: 12px/1.4 ui-monospace, monospace;
+          margin: .5rem 0 1rem; }
+  th, td { padding: 4px 8px; border: 1px solid #8884; text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  td.good { color: #16a34a; } td.bad { color: #dc2626; }
+  .mute { color: #888; }
+  details { margin: .35rem 0; }
+  details > summary { cursor: pointer; padding: .25rem 0; }
+  .pill { display: inline-block; padding: 1px 6px; border-radius: 999px;
+          font-size: 11px; background: #8882; margin-left: 4px; }
+  .row { margin: .35rem 0; }
+</style>
+</head>
+<body>
+
+<h1>EO 3×3×3 Falsification Panel</h1>
+<p class="sub">
+  Tests whether ANY 3×3×3 partition of the same embeddings reproduces the
+  monotonic distance-by-axis-difference pattern attributed to EO. If random
+  or surface-confound labels also produce monotonicity, the EO signature is
+  an artefact of binning. If only EO and label-from-geometry methods produce
+  it, EO is tracking real semantic structure.
+  <br>
+  <span class="mute">
+    Equivalent to <code>falsify_3x3x3.py</code> but runs entirely in your
+    browser. Defaults to a 1500-clause subsample for speed; raise the cap if
+    you have RAM and patience.
+  </span>
+</p>
+
+<fieldset>
+  <legend>Inputs</legend>
+  <p class="mute" style="margin: 0 0 .6rem; font-size: 12px">
+    Three ways to load data, in priority order:
+    (1) <b>URL params</b> — append <code>?embeddings=URL&amp;classified=URL&amp;raw=URL</code> to this page;
+    (2) <b>Auto-load from same directory</b> — drop this file next to <code>embeddings.npz</code>, <code>classified.jsonl</code>, <code>raw_clauses.jsonl</code> and serve with <code>python -m http.server</code>;
+    (3) <b>Manual upload</b> below.
+    <br>
+    Note: Google Drive links don't work directly (no CORS). Re-host on GitHub Releases, jsDelivr, S3 with CORS, or a same-origin folder.
+  </p>
+  <div class="row">
+    <label style="width: 14rem">embeddings.npz
+      <input type="file" id="f-emb" accept=".npz"></label>
+    <input type="text" id="u-emb" placeholder="…or URL (CORS required)" style="width: 22rem">
+    <span class="mute" id="emb-info"></span>
+  </div>
+  <div class="row">
+    <label style="width: 14rem">classified.jsonl
+      <input type="file" id="f-cls" accept=".jsonl,.ndjson,.txt"></label>
+    <input type="text" id="u-cls" placeholder="…or URL" style="width: 22rem">
+    <span class="mute" id="cls-info"></span>
+  </div>
+  <div class="row">
+    <label style="width: 14rem">raw_clauses.jsonl
+      <input type="file" id="f-raw" accept=".jsonl,.ndjson,.txt"></label>
+    <input type="text" id="u-raw" placeholder="…or URL (optional)" style="width: 22rem">
+    <span class="mute" id="raw-info">(optional — needed only for the surface confound)</span>
+  </div>
+  <div class="row">
+    <button id="auto">Try auto-load from same directory</button>
+    <span class="mute" id="auto-info"></span>
+  </div>
+</fieldset>
+
+<fieldset>
+  <legend>Methods</legend>
+  <label><input type="checkbox" id="m-eo" checked>      eo (the claim)</label>
+  <label><input type="checkbox" id="m-random" checked>  random (floor)</label>
+  <label><input type="checkbox" id="m-surface" checked> surface confound</label>
+  <label><input type="checkbox" id="m-pca-tertile" checked>pca-tertile (geom ceiling)</label>
+  <label><input type="checkbox" id="m-pca-kmeans" checked>pca-kmeans</label>
+  <label><input type="checkbox" id="m-optimized">optimized (slow)</label>
+</fieldset>
+
+<fieldset>
+  <legend>Settings</legend>
+  <label>sample N <input type="number" id="s-n" value="1500" min="200" max="20000"></label>
+  <label>shuffles per z <input type="number" id="s-sh" value="100" min="20" max="500"></label>
+  <label>pairs per bucket <input type="number" id="s-pb" value="2500" min="200" max="20000"></label>
+  <label>cap per group <input type="number" id="s-cap" value="120" min="20" max="500"></label>
+  <label>random seed <input type="number" id="s-seed" value="42"></label>
+</fieldset>
+
+<button class="primary" id="go">Run falsification</button>
+<button id="dl" disabled>Download results JSON</button>
+
+<h2>Log</h2>
+<pre id="log">Pick the three input files and click Run.
+Tip: in browsers without DecompressionStream, save the .npz uncompressed first
+(np.savez instead of np.savez_compressed).</pre>
+
+<h2>Headline</h2>
+<div id="headline"><span class="mute">No results yet.</span></div>
+
+<h2>Per-method detail</h2>
+<div id="detail"></div>
+
+<h2>Cross-walks (EO vs each non-EO method)</h2>
+<div id="cross"></div>
+
+<script>
+"use strict";
+
+// ─────────────────────────────────────────────────────────────────────────
+// utilities
+// ─────────────────────────────────────────────────────────────────────────
+
+const $ = id => document.getElementById(id);
+const log = (...a) => { $("log").textContent += a.join(" ") + "\n"; $("log").scrollTop = 1e9; };
+const clearLog = () => { $("log").textContent = ""; };
+const yieldUI = () => new Promise(r => setTimeout(r, 0));
+
+function mulberry32(seed) {
+  let s = seed >>> 0;
+  return function () {
+    s = (s + 0x6D2B79F5) >>> 0;
+    let t = s;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function rngInt(rng, lo, hi) { return Math.floor(rng() * (hi - lo)) + lo; }
+function shuffleInPlace(arr, rng) {
+  for (let i = arr.length - 1; i > 0; --i) {
+    const j = Math.floor(rng() * (i + 1));
+    const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  }
+}
+function argsort(a) {
+  const idx = new Int32Array(a.length);
+  for (let i = 0; i < a.length; ++i) idx[i] = i;
+  // typed array sort doesn't take comparator that works on values; convert
+  return Array.from(idx).sort((i, j) => a[i] - a[j]);
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// .zip / .npz / .npy parsing
+// ─────────────────────────────────────────────────────────────────────────
+
+// File-or-URL helpers ─ unify File picker and URL input
+async function loadBytes(fileOrUrl, label) {
+  if (!fileOrUrl) return null;
+  if (typeof fileOrUrl === "string") {
+    log(`fetching ${label} from ${fileOrUrl} …`);
+    const r = await fetch(fileOrUrl, { mode: "cors" });
+    if (!r.ok) throw new Error(`${label} fetch ${r.status} ${r.statusText} — likely a CORS-blocked host (e.g. Google Drive). Re-host or upload manually.`);
+    return await r.arrayBuffer();
+  }
+  return await fileOrUrl.arrayBuffer();
+}
+async function loadText(fileOrUrl, label) {
+  if (!fileOrUrl) return null;
+  if (typeof fileOrUrl === "string") {
+    log(`fetching ${label} from ${fileOrUrl} …`);
+    const r = await fetch(fileOrUrl, { mode: "cors" });
+    if (!r.ok) throw new Error(`${label} fetch ${r.status} ${r.statusText}`);
+    return await r.text();
+  }
+  return await fileOrUrl.text();
+}
+
+async function readNpz(fileOrBytes) {
+  const buf = (fileOrBytes instanceof ArrayBuffer)
+    ? fileOrBytes
+    : await fileOrBytes.arrayBuffer();
+  const dv = new DataView(buf);
+  // End Of Central Directory
+  let eocd = -1;
+  const start = Math.max(0, buf.byteLength - 65557);
+  for (let i = buf.byteLength - 22; i >= start; --i) {
+    if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error("not a zip / .npz file");
+  const cdOff = dv.getUint32(eocd + 16, true);
+  const numEntries = dv.getUint16(eocd + 10, true);
+  let p = cdOff;
+  const entries = [];
+  for (let i = 0; i < numEntries; ++i) {
+    if (dv.getUint32(p, true) !== 0x02014b50) throw new Error("bad central dir");
+    const method = dv.getUint16(p + 10, true);
+    const compSize = dv.getUint32(p + 20, true);
+    const nameLen = dv.getUint16(p + 28, true);
+    const extraLen = dv.getUint16(p + 30, true);
+    const commentLen = dv.getUint16(p + 32, true);
+    const localOff = dv.getUint32(p + 42, true);
+    const name = new TextDecoder().decode(new Uint8Array(buf, p + 46, nameLen));
+    entries.push({ name, method, compSize, localOff });
+    p += 46 + nameLen + extraLen + commentLen;
+  }
+  const out = {};
+  for (const e of entries) {
+    const lp = e.localOff;
+    const lnameLen = dv.getUint16(lp + 26, true);
+    const lextraLen = dv.getUint16(lp + 28, true);
+    const dataOff = lp + 30 + lnameLen + lextraLen;
+    const slice = new Uint8Array(buf, dataOff, e.compSize);
+    let raw;
+    if (e.method === 0) {
+      raw = slice;
+    } else if (e.method === 8) {
+      if (typeof DecompressionStream === "undefined") {
+        throw new Error("Browser lacks DecompressionStream — re-save the .npz uncompressed (np.savez instead of np.savez_compressed).");
+      }
+      const ds = new DecompressionStream("deflate-raw");
+      const buffered = await new Response(new Blob([slice]).stream().pipeThrough(ds)).arrayBuffer();
+      raw = new Uint8Array(buffered);
+    } else {
+      throw new Error("unsupported zip method " + e.method);
+    }
+    out[e.name] = raw;
+  }
+  return out;
+}
+
+function parseNpy(u8) {
+  if (u8[0] !== 0x93 || String.fromCharCode(u8[1], u8[2], u8[3], u8[4], u8[5]) !== "NUMPY")
+    throw new Error("bad npy magic");
+  const major = u8[6];
+  let headerLen, headerStart;
+  if (major === 1) {
+    headerLen = u8[8] | (u8[9] << 8);
+    headerStart = 10;
+  } else {
+    headerLen = u8[8] | (u8[9] << 8) | (u8[10] << 16) | (u8[11] << 24);
+    headerStart = 12;
+  }
+  const header = new TextDecoder().decode(u8.slice(headerStart, headerStart + headerLen));
+  const descr = header.match(/'descr':\s*'([^']+)'/)[1];
+  const fortran = /'fortran_order':\s*True/.test(header);
+  const shape = (header.match(/'shape':\s*\(([^)]*)\)/)[1] || "")
+                .split(",").map(s => s.trim()).filter(Boolean).map(Number);
+  const dataOff = u8.byteOffset + headerStart + headerLen;
+  const buf = u8.buffer;
+  let arr;
+  if (descr === "<f4") arr = new Float32Array(buf, dataOff, shape.reduce((a, b) => a * b, 1));
+  else if (descr === "<f8") arr = new Float64Array(buf, dataOff, shape.reduce((a, b) => a * b, 1));
+  else if (descr === "<i8") arr = new BigInt64Array(buf, dataOff, shape.reduce((a, b) => a * b, 1));
+  else if (descr === "<i4") arr = new Int32Array(buf, dataOff, shape.reduce((a, b) => a * b, 1));
+  else if (descr === "|i1" || descr === "<i1") arr = new Int8Array(buf, dataOff, shape.reduce((a, b) => a * b, 1));
+  else if (descr.startsWith("<U")) {
+    const cl = parseInt(descr.slice(2));
+    const total = shape.reduce((a, b) => a * b, 1);
+    const u32 = new Uint32Array(buf, dataOff, total * cl);
+    arr = new Array(total);
+    for (let i = 0; i < total; ++i) {
+      let s = "";
+      for (let c = 0; c < cl; ++c) {
+        const cp = u32[i * cl + c];
+        if (!cp) break;
+        s += String.fromCodePoint(cp);
+      }
+      arr[i] = s;
+    }
+  } else throw new Error("unsupported dtype " + descr);
+  if (fortran && shape.length > 1) throw new Error("fortran order arrays not supported");
+  return { dtype: descr, shape, data: arr };
+}
+
+async function readJsonl(file) {
+  const text = await file.text();
+  const out = [];
+  for (const line of text.split(/\r?\n/)) {
+    const t = line.trim();
+    if (!t) continue;
+    out.push(JSON.parse(t));
+  }
+  return out;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// linear algebra (just enough)
+// ─────────────────────────────────────────────────────────────────────────
+
+// Row-normalise an N×D float32 matrix in-place; returns norms for reuse
+function rowNormalise(X, N, D) {
+  const norms = new Float32Array(N);
+  for (let i = 0; i < N; ++i) {
+    let s = 0;
+    const off = i * D;
+    for (let k = 0; k < D; ++k) s += X[off + k] * X[off + k];
+    const n = Math.sqrt(s) || 1;
+    norms[i] = n;
+    for (let k = 0; k < D; ++k) X[off + k] /= n;
+  }
+  return norms;
+}
+
+// Cosine of two unit vectors stored at given offsets in a flat Float32Array
+function cosOf(X, i, j, D) {
+  const oi = i * D, oj = j * D;
+  let s = 0;
+  for (let k = 0; k < D; ++k) s += X[oi + k] * X[oj + k];
+  return s;
+}
+
+// Project N×D row-major onto K direction vectors (K×D); returns N×K
+function projectOnto(X, N, D, dirs, K) {
+  const out = new Float32Array(N * K);
+  for (let i = 0; i < N; ++i) {
+    const oi = i * D;
+    for (let k = 0; k < K; ++k) {
+      const ok = k * D;
+      let s = 0;
+      for (let d = 0; d < D; ++d) s += X[oi + d] * dirs[ok + d];
+      out[i * K + k] = s;
+    }
+  }
+  return out;
+}
+
+// QR by Gram-Schmidt on an array of K vectors of length D
+function qrOrthonormalise(dirs, K, D) {
+  for (let k = 0; k < K; ++k) {
+    const ok = k * D;
+    for (let j = 0; j < k; ++j) {
+      const oj = j * D;
+      let s = 0;
+      for (let d = 0; d < D; ++d) s += dirs[ok + d] * dirs[oj + d];
+      for (let d = 0; d < D; ++d) dirs[ok + d] -= s * dirs[oj + d];
+    }
+    let n = 0;
+    for (let d = 0; d < D; ++d) n += dirs[ok + d] * dirs[ok + d];
+    n = Math.sqrt(n) || 1;
+    for (let d = 0; d < D; ++d) dirs[ok + d] /= n;
+  }
+}
+
+// Top-K right-singular vectors via subspace iteration on X (N×D, row-major).
+// Centered first. Returns K×D.
+async function topPCs(X, N, D, K = 3, iters = 25, seed = 0) {
+  // center rows in-place — but that modifies caller; do a copy
+  const Xc = new Float32Array(N * D);
+  Xc.set(X);
+  const mean = new Float64Array(D);
+  for (let i = 0; i < N; ++i)
+    for (let d = 0; d < D; ++d) mean[d] += Xc[i * D + d];
+  for (let d = 0; d < D; ++d) mean[d] /= N;
+  for (let i = 0; i < N; ++i)
+    for (let d = 0; d < D; ++d) Xc[i * D + d] -= mean[d];
+
+  const rng = mulberry32(seed);
+  const V = new Float32Array(K * D);
+  for (let k = 0; k < K; ++k)
+    for (let d = 0; d < D; ++d)
+      V[k * D + d] = (rng() * 2 - 1);
+  qrOrthonormalise(V, K, D);
+
+  const tmp = new Float32Array(N * K);
+  const Vnew = new Float32Array(K * D);
+
+  for (let it = 0; it < iters; ++it) {
+    // tmp = Xc V^T   (N x K)
+    for (let i = 0; i < N; ++i) {
+      const oi = i * D;
+      for (let k = 0; k < K; ++k) {
+        const ok = k * D;
+        let s = 0;
+        for (let d = 0; d < D; ++d) s += Xc[oi + d] * V[ok + d];
+        tmp[i * K + k] = s;
+      }
+    }
+    // Vnew = tmp^T Xc   (K x D)
+    Vnew.fill(0);
+    for (let i = 0; i < N; ++i) {
+      const oi = i * D;
+      for (let k = 0; k < K; ++k) {
+        const t = tmp[i * K + k];
+        const ok = k * D;
+        for (let d = 0; d < D; ++d) Vnew[ok + d] += t * Xc[oi + d];
+      }
+    }
+    qrOrthonormalise(Vnew, K, D);
+    V.set(Vnew);
+    if (it % 5 === 4) { log(`  pca subspace iter ${it + 1}/${iters}`); await yieldUI(); }
+  }
+  return V; // K×D
+}
+
+function tertileCut(scores) {
+  const order = argsort(scores);
+  const out = new Int32Array(scores.length);
+  const n = scores.length;
+  const e1 = Math.floor(n / 3), e2 = Math.floor(2 * n / 3);
+  for (let i = 0; i < n; ++i) {
+    const k = i < e1 ? 0 : (i < e2 ? 1 : 2);
+    out[order[i]] = k;
+  }
+  return out;
+}
+
+function kmeans1d(scores, k = 3, iters = 30, seed = 0) {
+  const rng = mulberry32(seed);
+  const n = scores.length;
+  // init centers from quantiles
+  const sorted = Array.from(scores).sort((a, b) => a - b);
+  let centers = [sorted[Math.floor(n / 6)], sorted[Math.floor(n / 2)], sorted[Math.floor(5 * n / 6)]];
+  const labels = new Int32Array(n);
+  for (let it = 0; it < iters; ++it) {
+    let changed = false;
+    for (let i = 0; i < n; ++i) {
+      let best = 0, bd = Math.abs(scores[i] - centers[0]);
+      for (let c = 1; c < k; ++c) {
+        const d = Math.abs(scores[i] - centers[c]);
+        if (d < bd) { bd = d; best = c; }
+      }
+      if (labels[i] !== best) { labels[i] = best; changed = true; }
+    }
+    const sum = new Float64Array(k), cnt = new Int32Array(k);
+    for (let i = 0; i < n; ++i) { sum[labels[i]] += scores[i]; cnt[labels[i]]++; }
+    for (let c = 0; c < k; ++c) if (cnt[c]) centers[c] = sum[c] / cnt[c];
+    if (!changed) break;
+  }
+  // remap so cluster ids ascend with center value
+  const order = [0, 1, 2].sort((a, b) => centers[a] - centers[b]);
+  const remap = new Int32Array(k);
+  for (let i = 0; i < k; ++i) remap[order[i]] = i;
+  for (let i = 0; i < n; ++i) labels[i] = remap[labels[i]];
+  return labels;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// metrics
+// ─────────────────────────────────────────────────────────────────────────
+
+function proportionality(Xn, N, D, q1, q2, q3, perBucket, seed) {
+  const rng = mulberry32(seed);
+  const buckets = [[], [], [], []];
+  let attempts = 0;
+  const maxAttempts = perBucket * 80;
+  while (attempts++ < maxAttempts &&
+         (buckets[0].length < perBucket || buckets[1].length < perBucket ||
+          buckets[2].length < perBucket || buckets[3].length < perBucket)) {
+    const i = rngInt(rng, 0, N), j = rngInt(rng, 0, N);
+    if (i === j) continue;
+    const diff = (q1[i] !== q1[j] ? 1 : 0) + (q2[i] !== q2[j] ? 1 : 0) + (q3[i] !== q3[j] ? 1 : 0);
+    if (buckets[diff].length < perBucket) {
+      const cd = 1 - cosOf(Xn, i, j, D);
+      buckets[diff].push(cd);
+    }
+  }
+  const means = buckets.map(b => b.length ? b.reduce((a, x) => a + x, 0) / b.length : null);
+  const monotone = means.every((m, i) => i === 0 || means[i - 1] === null || m === null || means[i - 1] <= m);
+
+  // bootstrap p-fail
+  const nBoot = 200;
+  let pass = 0;
+  for (let b = 0; b < nBoot; ++b) {
+    const bm = [];
+    for (let k = 0; k < 4; ++k) {
+      const arr = buckets[k];
+      if (!arr.length) continue;
+      let s = 0;
+      for (let n = 0; n < arr.length; ++n) {
+        s += arr[Math.floor(rng() * arr.length)];
+      }
+      bm.push(s / arr.length);
+    }
+    let ok = true;
+    for (let i = 1; i < bm.length; ++i) if (bm[i - 1] > bm[i]) { ok = false; break; }
+    if (ok) pass++;
+  }
+  const pFail = +(1 - pass / nBoot).toFixed(4);
+  const mvalid = means.filter(m => m !== null);
+  return {
+    buckets: means.map((m, i) => ({ mean_distance: m, n_pairs: buckets[i].length })),
+    monotone, monotone_bootstrap_p: pFail,
+    slope: mvalid.length >= 2 ? mvalid[mvalid.length - 1] - mvalid[0] : null,
+  };
+}
+
+function flat27(q1, q2, q3) {
+  const out = new Int32Array(q1.length);
+  for (let i = 0; i < q1.length; ++i) out[i] = q1[i] * 9 + q2[i] * 3 + q3[i];
+  return out;
+}
+
+function uniqueLabels(labels) {
+  const s = new Set();
+  for (let i = 0; i < labels.length; ++i) {
+    const v = labels[i];
+    if (v !== -1) s.add(v);
+  }
+  return [...s].sort((a, b) => a - b);
+}
+
+// Within-vs-between mean cosine separation, with shuffle null
+async function zScore(Xn, N, D, labels, nShuffles, capPerGroup, seed) {
+  const unique = uniqueLabels(labels);
+  if (unique.length < 2) return { z: 0, sep: 0 };
+  const rng = mulberry32(seed + N);
+  const lbl = Int32Array.from(labels);
+  const positions = {};
+  for (const u of unique) positions[u] = [];
+  for (let i = 0; i < N; ++i) if (lbl[i] !== -1) positions[lbl[i]].push(i);
+
+  function sample(arr, k) {
+    if (arr.length <= k) return arr.slice();
+    const out = new Array(k);
+    const used = new Set();
+    let n = 0;
+    while (n < k) {
+      const j = Math.floor(rng() * arr.length);
+      if (!used.has(j)) { used.add(j); out[n++] = arr[j]; }
+    }
+    return out;
+  }
+
+  function separation(arr) {
+    let withinSum = 0, withinN = 0, betweenSum = 0, betweenN = 0;
+    const posByLabel = {};
+    for (const u of unique) posByLabel[u] = [];
+    for (let i = 0; i < N; ++i) if (arr[i] !== -1) posByLabel[arr[i]].push(i);
+    for (const u of unique) {
+      const inside = posByLabel[u];
+      if (inside.length < 2) continue;
+      const ip = sample(inside, capPerGroup);
+      const others = [];
+      for (const v of unique) if (v !== u) for (const p of posByLabel[v]) others.push(p);
+      if (!others.length) continue;
+      const op = sample(others, capPerGroup);
+      // within
+      for (let a = 0; a < ip.length; ++a)
+        for (let b = a + 1; b < ip.length; ++b) {
+          withinSum += cosOf(Xn, ip[a], ip[b], D); withinN++;
+        }
+      // between
+      for (let a = 0; a < ip.length; ++a)
+        for (let b = 0; b < op.length; ++b) {
+          betweenSum += cosOf(Xn, ip[a], op[b], D); betweenN++;
+        }
+    }
+    if (!withinN || !betweenN) return 0;
+    return withinSum / withinN - betweenSum / betweenN;
+  }
+
+  const actual = separation(lbl);
+  const nulls = new Float64Array(nShuffles);
+  for (let s = 0; s < nShuffles; ++s) {
+    const sh = Int32Array.from(lbl);
+    // Fisher-Yates
+    for (let i = sh.length - 1; i > 0; --i) {
+      const j = Math.floor(rng() * (i + 1));
+      const t = sh[i]; sh[i] = sh[j]; sh[j] = t;
+    }
+    nulls[s] = separation(sh);
+    if (s % 25 === 24) { await yieldUI(); }
+  }
+  let mu = 0;
+  for (let s = 0; s < nShuffles; ++s) mu += nulls[s];
+  mu /= nShuffles;
+  let v = 0;
+  for (let s = 0; s < nShuffles; ++s) v += (nulls[s] - mu) ** 2;
+  const sd = Math.sqrt(v / nShuffles) || 1e-9;
+  return { z: (actual - mu) / sd, sep: actual };
+}
+
+// Adjusted Rand Index from contingency
+function ariScore(a, b) {
+  const map = new Map();
+  let na = 0, nb = 0;
+  const aIds = new Map(), bIds = new Map();
+  for (let i = 0; i < a.length; ++i) {
+    if (!aIds.has(a[i])) aIds.set(a[i], na++);
+    if (!bIds.has(b[i])) bIds.set(b[i], nb++);
+    const k = a[i] + ":" + b[i];
+    map.set(k, (map.get(k) || 0) + 1);
+  }
+  const cont = Array.from({ length: na }, () => new Int32Array(nb));
+  const rs = new Int32Array(na), cs = new Int32Array(nb);
+  for (const [k, v] of map.entries()) {
+    const [ka, kb] = k.split(":");
+    const i = aIds.get(isFinite(+ka) ? +ka : ka);
+    const j = bIds.get(isFinite(+kb) ? +kb : kb);
+    cont[i][j] = v;
+    rs[i] += v; cs[j] += v;
+  }
+  const C2 = x => x * (x - 1) / 2;
+  let sumIJ = 0;
+  for (let i = 0; i < na; ++i) for (let j = 0; j < nb; ++j) sumIJ += C2(cont[i][j]);
+  let sumA = 0; for (let i = 0; i < na; ++i) sumA += C2(rs[i]);
+  let sumB = 0; for (let j = 0; j < nb; ++j) sumB += C2(cs[j]);
+  const N = a.length;
+  const expected = sumA * sumB / C2(N);
+  const max = (sumA + sumB) / 2;
+  return (sumIJ - expected) / (max - expected || 1);
+}
+
+function axisAri(q1, q2, q3) {
+  return { q1_vs_q2: ariScore(q1, q2), q1_vs_q3: ariScore(q1, q3), q2_vs_q3: ariScore(q2, q3) };
+}
+
+// Hungarian / Munkres for square cost matrices (minimisation).
+// Adequate for N<=27. Inputs: 2D number array; returns [rowIdx -> colIdx].
+function munkres(cost) {
+  const n = cost.length;
+  const u = new Float64Array(n + 1);
+  const v = new Float64Array(n + 1);
+  const p = new Int32Array(n + 1);
+  const way = new Int32Array(n + 1);
+  for (let i = 1; i <= n; ++i) {
+    p[0] = i;
+    let j0 = 0;
+    const minv = new Float64Array(n + 1).fill(Infinity);
+    const used = new Array(n + 1).fill(false);
+    do {
+      used[j0] = true;
+      const i0 = p[j0];
+      let delta = Infinity, j1 = -1;
+      for (let j = 1; j <= n; ++j) {
+        if (used[j]) continue;
+        const cur = cost[i0 - 1][j - 1] - u[i0] - v[j];
+        if (cur < minv[j]) { minv[j] = cur; way[j] = j0; }
+        if (minv[j] < delta) { delta = minv[j]; j1 = j; }
+      }
+      for (let j = 0; j <= n; ++j) {
+        if (used[j]) { u[p[j]] += delta; v[j] -= delta; }
+        else minv[j] -= delta;
+      }
+      j0 = j1;
+    } while (p[j0] !== 0);
+    do {
+      const j1 = way[j0];
+      p[j0] = p[j1]; j0 = j1;
+    } while (j0);
+  }
+  const ans = new Int32Array(n);
+  for (let j = 1; j <= n; ++j) if (p[j]) ans[p[j] - 1] = j - 1;
+  return Array.from(ans);
+}
+
+function hungarianFlatAri(a, b) {
+  // Return {ari, accuracy} for two label arrays of equal length.
+  const labA = uniqueLabels(a), labB = uniqueLabels(b);
+  const n = Math.max(labA.length, labB.length);
+  const idA = new Map(labA.map((v, i) => [v, i]));
+  const idB = new Map(labB.map((v, i) => [v, i]));
+  const cost = Array.from({ length: n }, () => new Array(n).fill(0));
+  for (let i = 0; i < a.length; ++i) {
+    const ai = idA.get(a[i]); const bj = idB.get(b[i]);
+    if (ai !== undefined && bj !== undefined) cost[ai][bj] -= 1;
+  }
+  // Munkres minimises; we want max overlap so use negated costs (already negative)
+  const assign = munkres(cost);
+  let matched = 0;
+  for (let i = 0; i < labA.length; ++i) if (assign[i] < labB.length) matched += -cost[i][assign[i]];
+  return { ari: ariScore(a, b), accuracy: matched / a.length };
+}
+
+function bestAxisPairing(qA, qB) {
+  const M = [];
+  for (let i = 0; i < 3; ++i) {
+    M.push([]);
+    for (let j = 0; j < 3; ++j) M[i].push(ariScore(qA[i], qB[j]));
+  }
+  // search 6 perms (3!)
+  const perms = [[0,1,2],[0,2,1],[1,0,2],[1,2,0],[2,0,1],[2,1,0]];
+  let best = perms[0], bestSum = -Infinity;
+  for (const p of perms) {
+    let s = 0;
+    for (let i = 0; i < 3; ++i) s += M[i][p[i]];
+    if (s > bestSum) { bestSum = s; best = p; }
+  }
+  return { matrix: M, matching: best.map((j, i) => [i, j, M[i][j]]), max_total_ari: bestSum };
+}
+
+function cornerUniqueness(X, N, D, q1, q2, q3) {
+  const cells = new Map();
+  for (let i = 0; i < N; ++i) {
+    const k = q1[i] * 9 + q2[i] * 3 + q3[i];
+    if (!cells.has(k)) cells.set(k, []);
+    cells.get(k).push(i);
+  }
+  const keys = [...cells.keys()].sort((a, b) => a - b);
+  if (keys.length < 4) return { n_cells: keys.length };
+  const cents = new Float32Array(keys.length * D);
+  const counts = new Int32Array(keys.length);
+  keys.forEach((k, idx) => {
+    const ids = cells.get(k);
+    counts[idx] = ids.length;
+    const off = idx * D;
+    for (const i of ids) {
+      const oi = i * D;
+      for (let d = 0; d < D; ++d) cents[off + d] += X[oi + d];
+    }
+    for (let d = 0; d < D; ++d) cents[off + d] /= ids.length;
+  });
+  // normalise centroids
+  for (let k = 0; k < keys.length; ++k) {
+    const off = k * D;
+    let s = 0;
+    for (let d = 0; d < D; ++d) s += cents[off + d] * cents[off + d];
+    const n = Math.sqrt(s) || 1;
+    for (let d = 0; d < D; ++d) cents[off + d] /= n;
+  }
+  // mean distance to other centroids
+  const meanDist = new Float64Array(keys.length);
+  for (let i = 0; i < keys.length; ++i) {
+    let s = 0, cnt = 0;
+    const oi = i * D;
+    for (let j = 0; j < keys.length; ++j) {
+      if (i === j) continue;
+      const oj = j * D;
+      let dot = 0;
+      for (let d = 0; d < D; ++d) dot += cents[oi + d] * cents[oj + d];
+      s += 1 - dot; cnt++;
+    }
+    meanDist[i] = cnt ? s / cnt : 0;
+  }
+  const order = Array.from({ length: keys.length }, (_, i) => i)
+                  .sort((a, b) => meanDist[b] - meanDist[a]);
+  const rank = new Int32Array(keys.length);
+  order.forEach((i, r) => rank[i] = r + 1);
+
+  function closest(target) {
+    let best = -1, bd = 1e9;
+    for (let idx = 0; idx < keys.length; ++idx) {
+      const k = keys[idx];
+      const a = Math.floor(k / 9), b = Math.floor((k % 9) / 3), c = k % 3;
+      const d = Math.abs(a - target[0]) + Math.abs(b - target[1]) + Math.abs(c - target[2]);
+      if (d < bd) { bd = d; best = idx; }
+    }
+    return best;
+  }
+  const top = closest([2, 2, 2]);
+  const bot = closest([0, 0, 0]);
+  const ctr = closest([1, 1, 1]);
+  function decodeKey(k) { return [Math.floor(k / 9), Math.floor((k % 9) / 3), k % 3]; }
+  return {
+    n_cells: keys.length,
+    top_corner_cell: decodeKey(keys[top]),
+    top_corner_rank: rank[top],
+    most_unique_cell: decodeKey(keys[order[0]]),
+    most_unique_dist: meanDist[order[0]],
+    center_cell: decodeKey(keys[ctr]),
+    center_rank: rank[ctr],
+    bot_corner_cell: decodeKey(keys[bot]),
+    bot_corner_rank: rank[bot],
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// methods
+// ─────────────────────────────────────────────────────────────────────────
+
+function methodRandom(N, seed) {
+  const rng = mulberry32(seed);
+  const q1 = new Int32Array(N), q2 = new Int32Array(N), q3 = new Int32Array(N);
+  for (let i = 0; i < N; ++i) {
+    q1[i] = rngInt(rng, 0, 3);
+    q2[i] = rngInt(rng, 0, 3);
+    q3[i] = rngInt(rng, 0, 3);
+  }
+  return [q1, q2, q3];
+}
+
+const PUNCT_RE = /[^\p{L}\p{N}\s]/gu;
+const WORD_RE = /[\p{L}\p{N}_]+/gu;
+
+function surfaceFeatures(text) {
+  const chars = text.length;
+  const words = (text.match(WORD_RE) || []).map(w => w.toLowerCase());
+  const nWords = Math.max(1, words.length);
+  const unique = new Set(words).size;
+  const punct = (text.match(PUNCT_RE) || []).length;
+  return [chars, unique / nWords, punct / Math.max(1, chars)];
+}
+
+function methodSurface(texts) {
+  const N = texts.length;
+  const a = new Float64Array(N), b = new Float64Array(N), c = new Float64Array(N);
+  for (let i = 0; i < N; ++i) {
+    const [x, y, z] = surfaceFeatures(texts[i] || "");
+    a[i] = x; b[i] = y; c[i] = z;
+  }
+  return [tertileCut(a), tertileCut(b), tertileCut(c)];
+}
+
+function methodPCATertile(proj3, N) {
+  // proj3 is N×3 row-major
+  const a = new Float64Array(N), b = new Float64Array(N), c = new Float64Array(N);
+  for (let i = 0; i < N; ++i) { a[i] = proj3[i * 3]; b[i] = proj3[i * 3 + 1]; c[i] = proj3[i * 3 + 2]; }
+  return [tertileCut(a), tertileCut(b), tertileCut(c)];
+}
+
+function methodPCAKMeans(proj3, N) {
+  const a = new Float64Array(N), b = new Float64Array(N), c = new Float64Array(N);
+  for (let i = 0; i < N; ++i) { a[i] = proj3[i * 3]; b[i] = proj3[i * 3 + 1]; c[i] = proj3[i * 3 + 2]; }
+  return [kmeans1d(a, 3, 30, 1), kmeans1d(b, 3, 30, 2), kmeans1d(c, 3, 30, 3)];
+}
+
+async function methodOptimized(X, N, D, dirsSeed, seed, restarts = 4, inner = 4) {
+  const rng = mulberry32(seed);
+  // Use top-3 PC as warm start
+  const dirs = new Float32Array(dirsSeed);
+
+  // Pre-sample pairs once for stable comparisons
+  const pairBudget = 1200;
+  const pairs = new Int32Array(pairBudget * 2);
+  const Xn = new Float32Array(N * D); Xn.set(X);
+  rowNormalise(Xn, N, D);
+  const cosVal = new Float32Array(pairBudget);
+  for (let p = 0; p < pairBudget; ++p) {
+    let i, j;
+    do { i = rngInt(rng, 0, N); j = rngInt(rng, 0, N); } while (i === j);
+    pairs[p * 2] = i; pairs[p * 2 + 1] = j;
+    cosVal[p] = cosOf(Xn, i, j, D);
+  }
+
+  function score(direc) {
+    const proj = projectOnto(X, N, D, direc, 3);
+    const a = new Float64Array(N), b = new Float64Array(N), c = new Float64Array(N);
+    for (let i = 0; i < N; ++i) { a[i] = proj[i * 3]; b[i] = proj[i * 3 + 1]; c[i] = proj[i * 3 + 2]; }
+    const ca = tertileCut(a), cb = tertileCut(b), cc = tertileCut(c);
+    const sums = [0, 0, 0, 0]; const cnt = [0, 0, 0, 0];
+    for (let p = 0; p < pairBudget; ++p) {
+      const i = pairs[p * 2], j = pairs[p * 2 + 1];
+      const k = (ca[i] !== ca[j] ? 1 : 0) + (cb[i] !== cb[j] ? 1 : 0) + (cc[i] !== cc[j] ? 1 : 0);
+      sums[k] += 1 - cosVal[p]; cnt[k]++;
+    }
+    for (let k = 0; k < 4; ++k) if (cnt[k] < 30) return -Infinity;
+    const m = sums.map((s, k) => s / cnt[k]);
+    const mono = m[0] <= m[1] && m[1] <= m[2] && m[2] <= m[3];
+    return mono ? (m[3] - m[0]) : (m[3] - m[0]) - 1;
+  }
+
+  let best = new Float32Array(dirs);
+  let bestScore = score(best);
+  for (let r = 0; r < restarts; ++r) {
+    const cand = new Float32Array(dirs);
+    if (r > 0) {
+      // perturb
+      for (let k = 0; k < 3 * D; ++k) cand[k] += 0.3 * (rng() * 2 - 1);
+      qrOrthonormalise(cand, 3, D);
+    }
+    let s = score(cand);
+    for (let it = 0; it < inner; ++it) {
+      let improved = false;
+      for (let axis = 0; axis < 3; ++axis) {
+        const tan = new Float32Array(D);
+        for (let d = 0; d < D; ++d) tan[d] = rng() * 2 - 1;
+        // remove component along this axis
+        let dot = 0;
+        const off = axis * D;
+        for (let d = 0; d < D; ++d) dot += tan[d] * cand[off + d];
+        let n2 = 0;
+        for (let d = 0; d < D; ++d) { tan[d] -= dot * cand[off + d]; n2 += tan[d] * tan[d]; }
+        const nn = Math.sqrt(n2) || 1;
+        for (let d = 0; d < D; ++d) tan[d] /= nn;
+        for (const step of [0.4, 0.15, 0.05]) {
+          const trial = new Float32Array(cand);
+          const c = Math.cos(step), si = Math.sin(step);
+          for (let d = 0; d < D; ++d) trial[off + d] = c * cand[off + d] + si * tan[d];
+          qrOrthonormalise(trial, 3, D);
+          const ts = score(trial);
+          if (ts > s + 1e-6) { cand.set(trial); s = ts; improved = true; break; }
+        }
+      }
+      if (!improved) break;
+    }
+    if (s > bestScore) { bestScore = s; best = new Float32Array(cand); }
+    log(`  optimized restart ${r + 1}/${restarts}: score=${bestScore.toFixed(5)}`);
+    await yieldUI();
+  }
+  const proj = projectOnto(X, N, D, best, 3);
+  return methodPCATertile(proj, N);
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// driver
+// ─────────────────────────────────────────────────────────────────────────
+
+const Q1V = ["DIFFERENTIATING", "RELATING", "GENERATING"];
+const Q2V = ["EXISTENCE", "STRUCTURE", "SIGNIFICANCE"];
+const Q3V = ["CONDITION", "PARTICULAR", "PATTERN"];
+
+function eoLabelsFor(ids, classified) {
+  const N = ids.length;
+  const q1 = new Int32Array(N).fill(-1), q2 = new Int32Array(N).fill(-1), q3 = new Int32Array(N).fill(-1);
+  for (let i = 0; i < N; ++i) {
+    const r = classified[ids[i]];
+    if (!r) continue;
+    let chosen = null;
+    if (r.consensus && Q1V.indexOf(r.consensus.q1) >= 0) chosen = r.consensus;
+    else if (r.classifications && r.classifications.claude && Q1V.indexOf(r.classifications.claude.q1) >= 0) chosen = r.classifications.claude;
+    else if (r.classifications && r.classifications.gpt4 && Q1V.indexOf(r.classifications.gpt4.q1) >= 0) chosen = r.classifications.gpt4;
+    if (!chosen) continue;
+    const a = Q1V.indexOf(chosen.q1), b = Q2V.indexOf(chosen.q2), c = Q3V.indexOf(chosen.q3);
+    if (a < 0 || b < 0 || c < 0) continue;
+    q1[i] = a; q2[i] = b; q3[i] = c;
+  }
+  return [q1, q2, q3];
+}
+
+let LAST_RESULT = null;
+
+async function evaluate(name, X, Xn, N, D, [q1, q2, q3], settings) {
+  log(`evaluating ${name} ...`);
+  await yieldUI();
+  const t0 = performance.now();
+  const prop = proportionality(Xn, N, D, q1, q2, q3, settings.perBucket, settings.seed);
+  const z1 = await zScore(Xn, N, D, q1, settings.shuffles, settings.cap, settings.seed);
+  const z2 = await zScore(Xn, N, D, q2, settings.shuffles, settings.cap, settings.seed + 1);
+  const z3 = await zScore(Xn, N, D, q3, settings.shuffles, settings.cap, settings.seed + 2);
+  const z27 = await zScore(Xn, N, D, flat27(q1, q2, q3), settings.shuffles, Math.max(20, Math.floor(settings.cap / 3)), settings.seed + 3);
+  const aris = axisAri(q1, q2, q3);
+  const corner = cornerUniqueness(X, N, D, q1, q2, q3);
+  const ld = (q) => {
+    const m = { 0: 0, 1: 0, 2: 0, "-1": 0 };
+    for (let i = 0; i < q.length; ++i) m[q[i]] = (m[q[i]] || 0) + 1;
+    return m;
+  };
+  const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
+  log(`  ${name} done in ${elapsed}s`);
+  return {
+    method: name,
+    elapsed_s: +elapsed,
+    proportionality: prop,
+    z_scores: { q1: z1.z, q2: z2.z, q3: z3.z, "27cell": z27.z },
+    axis_ari: aris,
+    corner,
+    label_distribution: { q1: ld(q1), q2: ld(q2), q3: ld(q3) },
+  };
+}
+
+function fmt(x, w = 7, sign = false) {
+  if (x === null || x === undefined || Number.isNaN(x)) return " --".padStart(w);
+  if (sign) return (x >= 0 ? "+" : "") + x.toFixed(2);
+  return x.toFixed(4);
+}
+
+function renderHeadline(results) {
+  const rows = results.map(r => {
+    const z = r.z_scores;
+    const slope = r.proportionality.slope;
+    const mono = r.proportionality.monotone;
+    const maxAri = Math.max(...Object.values(r.axis_ari));
+    return `<tr>
+      <td>${r.method}</td>
+      <td class="${slope > 0 ? "good" : "bad"}">${fmt(slope, 7, true)}</td>
+      <td class="${mono ? "good" : "bad"}">${mono ? "yes" : "NO"}</td>
+      <td>${fmt(z.q1, 7, true)}</td>
+      <td>${fmt(z.q2, 7, true)}</td>
+      <td>${fmt(z.q3, 7, true)}</td>
+      <td>${fmt(z["27cell"], 7, true)}</td>
+      <td>${fmt(maxAri, 7, true)}</td>
+      <td>${r.corner.top_corner_rank ?? "—"}/${r.corner.n_cells}</td>
+    </tr>`;
+  }).join("\n");
+  return `<table>
+    <thead><tr>
+      <th>method</th><th>slope</th><th>mono</th>
+      <th>z_q1</th><th>z_q2</th><th>z_q3</th><th>z_27</th>
+      <th>max_ari</th><th>top-corner rank</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function renderDetail(r) {
+  const bk = r.proportionality.buckets;
+  const ld = r.label_distribution;
+  const c = r.corner;
+  const a = r.axis_ari;
+  const z = r.z_scores;
+  return `<details>
+    <summary><b>${r.method}</b><span class="pill">slope ${fmt(r.proportionality.slope, 7, true)}</span>
+      <span class="pill">${r.proportionality.monotone ? "monotone ✓" : "non-monotone ✗"}</span>
+      <span class="pill">z₂₇ ${fmt(z["27cell"], 7, true)}</span></summary>
+    <div style="margin-left: 1rem">
+    <p>distance vs axis-diff:</p>
+    <table>
+      <thead><tr><th>axes diff</th><th>mean cos dist</th><th>n pairs</th></tr></thead>
+      <tbody>${bk.map((b, i) => `<tr><td>${i}</td><td>${fmt(b.mean_distance)}</td><td>${b.n_pairs}</td></tr>`).join("")}</tbody>
+    </table>
+    <p>z-scores: q1 ${fmt(z.q1, 7, true)} &nbsp;&nbsp; q2 ${fmt(z.q2, 7, true)} &nbsp;&nbsp; q3 ${fmt(z.q3, 7, true)} &nbsp;&nbsp; 27cell ${fmt(z["27cell"], 7, true)}</p>
+    <p>axis ARI: q1·q2 ${fmt(a.q1_vs_q2)} &nbsp;&nbsp; q1·q3 ${fmt(a.q1_vs_q3)} &nbsp;&nbsp; q2·q3 ${fmt(a.q2_vs_q3)}</p>
+    <p>corner: n_cells=${c.n_cells} &nbsp; top-corner cell ${JSON.stringify(c.top_corner_cell)} rank ${c.top_corner_rank} of ${c.n_cells} &nbsp;
+      most unique ${JSON.stringify(c.most_unique_cell)} (mean dist ${fmt(c.most_unique_dist)})</p>
+    <p>label counts q1 ${JSON.stringify(ld.q1)} q2 ${JSON.stringify(ld.q2)} q3 ${JSON.stringify(ld.q3)}</p>
+    </div>
+  </details>`;
+}
+
+function renderCross(cw) {
+  const m = cw.axis_pairing.matching;
+  return `<details><summary><b>EO vs ${cw.method}</b>
+    <span class="pill">flat-27 ARI ${fmt(cw.flat_ari)}</span>
+    <span class="pill">accuracy ${fmt(cw.flat_accuracy)}</span>
+    <span class="pill">axis-pair ARI sum ${fmt(cw.axis_pairing.max_total_ari)}</span></summary>
+    <table>
+      <thead><tr><th>EO axis</th><th>match</th><th>ARI</th></tr></thead>
+      <tbody>${m.map(([a, b, v]) => `<tr><td>Q${a + 1}</td><td>${cw.method} axis-${b + 1}</td><td>${fmt(v)}</td></tr>`).join("")}</tbody>
+    </table>
+  </details>`;
+}
+
+async function go() {
+  $("go").disabled = true;
+  $("dl").disabled = true;
+  clearLog();
+  $("headline").innerHTML = '<span class="mute">running…</span>';
+  $("detail").innerHTML = "";
+  $("cross").innerHTML = "";
+
+  try {
+    // Resolve each input from picker, URL field, or URL param (in priority order: picker > URL field > URL param)
+    const params = new URLSearchParams(location.search);
+    const pick = (fileEl, urlEl, paramName) => {
+      if (fileEl.files && fileEl.files[0]) return fileEl.files[0];
+      const u = urlEl.value.trim() || params.get(paramName);
+      return u || null;
+    };
+    const fEmb = pick($("f-emb"), $("u-emb"), "embeddings");
+    const fCls = pick($("f-cls"), $("u-cls"), "classified");
+    const fRaw = pick($("f-raw"), $("u-raw"), "raw");
+    if (!fEmb) throw new Error("Provide embeddings.npz (file or URL)");
+    if (!fCls) throw new Error("Provide classified.jsonl (file or URL)");
+
+    const useEO = $("m-eo").checked;
+    const useRandom = $("m-random").checked;
+    const useSurface = $("m-surface").checked;
+    const usePcaTertile = $("m-pca-tertile").checked;
+    const usePcaKMeans = $("m-pca-kmeans").checked;
+    const useOpt = $("m-optimized").checked;
+    if (useSurface && !fRaw) throw new Error("Surface confound needs raw_clauses.jsonl — uncheck or pick the file.");
+
+    const settings = {
+      cap: +$("s-cap").value | 0,
+      shuffles: +$("s-sh").value | 0,
+      perBucket: +$("s-pb").value | 0,
+      seed: +$("s-seed").value | 0,
+      Ncap: +$("s-n").value | 0,
+    };
+
+    log("reading embeddings.npz...");
+    await yieldUI();
+    const embBytes = await loadBytes(fEmb, "embeddings.npz");
+    const npz = await readNpz(embBytes);
+    const npyFiles = Object.keys(npz);
+    const vecKey = npyFiles.find(k => /vector|embedding/i.test(k)) || npyFiles[0];
+    const idsKey = npyFiles.find(k => /id/i.test(k));
+    const vec = parseNpy(npz[vecKey]);
+    if (vec.shape.length !== 2) throw new Error("expected 2-D embeddings");
+    const Nfull = vec.shape[0], D = vec.shape[1];
+    log(`  embeddings: ${Nfull} x ${D}, dtype ${vec.dtype}`);
+    let allIds = null;
+    if (idsKey) {
+      try { allIds = parseNpy(npz[idsKey]).data; }
+      catch (e) { log("  could not parse ids.npy: " + e.message); }
+    }
+    if (!allIds) allIds = Array.from({ length: Nfull }, (_, i) => String(i));
+
+    log("reading classifications...");
+    const clsText = await loadText(fCls, "classified.jsonl");
+    const classified = {};
+    for (const line of clsText.split(/\r?\n/)) {
+      const t = line.trim();
+      if (!t) continue;
+      const r = JSON.parse(t);
+      classified[r.id] = r;
+    }
+
+    let raw = {};
+    if (fRaw) {
+      log("reading raw clauses...");
+      const rawText = await loadText(fRaw, "raw_clauses.jsonl");
+      for (const line of rawText.split(/\r?\n/)) {
+        const t = line.trim();
+        if (!t) continue;
+        const r = JSON.parse(t);
+        raw[r.id] = r;
+      }
+    }
+
+    // Subsample to settings.Ncap, prefer clauses that have valid EO labels if EO selected
+    const rng = mulberry32(settings.seed);
+    let order = Array.from({ length: Nfull }, (_, i) => i);
+    if (useEO) {
+      const valid = [];
+      const invalid = [];
+      const [q1f, q2f, q3f] = eoLabelsFor(allIds, classified);
+      for (let i = 0; i < Nfull; ++i)
+        (q1f[i] >= 0 ? valid : invalid).push(i);
+      shuffleInPlace(valid, rng);
+      shuffleInPlace(invalid, rng);
+      order = valid.concat(invalid);
+    } else {
+      shuffleInPlace(order, rng);
+    }
+    const N = Math.min(settings.Ncap, order.length);
+    const sel = order.slice(0, N);
+    log(`  using ${N} clauses for the analysis (subsample of ${Nfull})`);
+
+    // Build float32 row-major view for sampled rows
+    const X = new Float32Array(N * D);
+    if (vec.data instanceof Float32Array) {
+      for (let i = 0; i < N; ++i)
+        X.set(vec.data.subarray(sel[i] * D, sel[i] * D + D), i * D);
+    } else {
+      for (let i = 0; i < N; ++i)
+        for (let d = 0; d < D; ++d)
+          X[i * D + d] = +vec.data[sel[i] * D + d];
+    }
+    const ids = sel.map(i => allIds[i]);
+
+    // Normalised copy for cosine ops
+    log("normalising rows for cosine ops...");
+    const Xn = new Float32Array(X); rowNormalise(Xn, N, D);
+
+    // Top 3 PCs (only if any geometry method selected)
+    let proj3 = null, dirs3 = null;
+    if (usePcaTertile || usePcaKMeans || useOpt) {
+      log("computing top-3 PCs by subspace iteration...");
+      dirs3 = await topPCs(X, N, D, 3, 22, settings.seed);
+      proj3 = projectOnto(X, N, D, dirs3, 3);
+    }
+
+    // EO labels for selected rows
+    let eoTrip = null;
+    if (useEO) {
+      const [q1, q2, q3] = eoLabelsFor(ids, classified);
+      const valid = [];
+      for (let i = 0; i < N; ++i) if (q1[i] >= 0) valid.push(i);
+      log(`  ${valid.length} of ${N} have valid EO labels`);
+      if (valid.length < 100) throw new Error("Too few EO-labeled clauses in sample; raise sample-N or uncheck EO.");
+      // restrict everything to the EO-labeled sub-sample
+      const Vsel = new Float32Array(valid.length * D);
+      const Vn = new Float32Array(valid.length * D);
+      for (let i = 0; i < valid.length; ++i) {
+        Vsel.set(X.subarray(valid[i] * D, valid[i] * D + D), i * D);
+        Vn.set(Xn.subarray(valid[i] * D, valid[i] * D + D), i * D);
+      }
+      const validIds = valid.map(i => ids[i]);
+      const cq1 = new Int32Array(valid.length), cq2 = new Int32Array(valid.length), cq3 = new Int32Array(valid.length);
+      for (let i = 0; i < valid.length; ++i) {
+        cq1[i] = q1[valid[i]]; cq2[i] = q2[valid[i]]; cq3[i] = q3[valid[i]];
+      }
+      eoTrip = [cq1, cq2, cq3];
+      // overwrite globals to operate on this subset
+      window.__SUB__ = { X: Vsel, Xn: Vn, N: valid.length, D, ids: validIds };
+      if (proj3) {
+        const pj = new Float32Array(valid.length * 3);
+        for (let i = 0; i < valid.length; ++i) pj.set(proj3.subarray(valid[i] * 3, valid[i] * 3 + 3), i * 3);
+        proj3 = pj;
+      }
+    } else {
+      window.__SUB__ = { X, Xn, N, D, ids };
+    }
+    const SUB = window.__SUB__;
+
+    const triplets = {};
+    if (useEO) triplets["eo"] = eoTrip;
+    if (useRandom) triplets["random"] = methodRandom(SUB.N, settings.seed);
+    if (useSurface) {
+      const texts = SUB.ids.map(id => (raw[id] && (raw[id].clause || raw[id].text)) || "");
+      triplets["surface"] = methodSurface(texts);
+    }
+    if (usePcaTertile) triplets["pca-tertile"] = methodPCATertile(proj3, SUB.N);
+    if (usePcaKMeans) triplets["pca-kmeans"] = methodPCAKMeans(proj3, SUB.N);
+    if (useOpt) {
+      log("running optimized direction search (slow)...");
+      triplets["optimized"] = await methodOptimized(SUB.X, SUB.N, SUB.D, dirs3, settings.seed);
+    }
+
+    const results = [];
+    for (const m of Object.keys(triplets)) {
+      results.push(await evaluate(m, SUB.X, SUB.Xn, SUB.N, SUB.D, triplets[m], settings));
+      $("headline").innerHTML = renderHeadline(results);
+      $("detail").innerHTML = results.map(renderDetail).join("\n");
+    }
+
+    const cross = [];
+    if ("eo" in triplets) {
+      const eoFlat = flat27(...triplets["eo"]);
+      for (const m of Object.keys(triplets)) {
+        if (m === "eo") continue;
+        const mFlat = flat27(...triplets[m]);
+        const fa = hungarianFlatAri(eoFlat, mFlat);
+        const ap = bestAxisPairing(triplets["eo"], triplets[m]);
+        cross.push({ method: m, flat_ari: fa.ari, flat_accuracy: fa.accuracy, axis_pairing: ap });
+      }
+      $("cross").innerHTML = cross.map(renderCross).join("\n");
+    }
+
+    log("done.");
+    LAST_RESULT = {
+      n_clauses: SUB.N, embedding_dim: SUB.D,
+      methods: results, crosswalks: cross,
+      settings,
+    };
+    $("dl").disabled = false;
+  } catch (e) {
+    log("ERROR: " + e.message);
+    console.error(e);
+    $("headline").innerHTML = '<span class="bad">' + e.message + '</span>';
+  } finally {
+    $("go").disabled = false;
+  }
+}
+
+async function tryAutoLoad() {
+  $("auto-info").textContent = "probing same directory…";
+  // Probe each filename via HEAD; populate the URL fields when found.
+  const probes = [
+    ["embeddings.npz", "u-emb", "auto-info"],
+    ["classified.jsonl", "u-cls", null],
+    ["raw_clauses.jsonl", "u-raw", null],
+  ];
+  const results = [];
+  for (const [name, fieldId, _] of probes) {
+    try {
+      const r = await fetch(name, { method: "HEAD" });
+      if (r.ok) {
+        $(fieldId).value = name;
+        results.push(`${name} ✓`);
+      } else {
+        results.push(`${name} ${r.status}`);
+      }
+    } catch (e) {
+      results.push(`${name} fetch failed`);
+    }
+  }
+  $("auto-info").textContent = results.join("  ·  ");
+}
+$("auto").addEventListener("click", tryAutoLoad);
+
+// On page load, if URL params are present, populate the URL fields.
+(function applyUrlParams() {
+  const p = new URLSearchParams(location.search);
+  for (const [k, fieldId] of [["embeddings", "u-emb"], ["classified", "u-cls"], ["raw", "u-raw"]]) {
+    const v = p.get(k);
+    if (v) $(fieldId).value = v;
+  }
+  // If params include autorun=1, kick off the run after a beat.
+  if (p.get("autorun") === "1") setTimeout(go, 200);
+})();
+
+$("go").addEventListener("click", go);
+$("f-emb").addEventListener("change", e => {
+  const f = e.target.files[0];
+  $("emb-info").textContent = f ? `${f.name} • ${(f.size / 1e6).toFixed(1)} MB` : "";
+});
+$("f-cls").addEventListener("change", e => {
+  const f = e.target.files[0];
+  $("cls-info").textContent = f ? `${f.name} • ${(f.size / 1e6).toFixed(1)} MB` : "";
+});
+$("f-raw").addEventListener("change", e => {
+  const f = e.target.files[0];
+  $("raw-info").textContent = f ? `${f.name} • ${(f.size / 1e6).toFixed(1)} MB` : "(optional)";
+});
+$("dl").addEventListener("click", () => {
+  if (!LAST_RESULT) return;
+  const blob = new Blob([JSON.stringify(LAST_RESULT, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "falsify_results.json";
+  a.click();
+});
+</script>
+</body>
+</html>
