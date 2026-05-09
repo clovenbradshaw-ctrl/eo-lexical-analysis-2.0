@@ -66,6 +66,26 @@
     <br>
     Note: Google Drive links don't work directly (no CORS). Re-host on GitHub Releases, jsDelivr, S3 with CORS, or a same-origin folder.
   </p>
+
+  <div class="row" style="background:#2563eb14;border:1px solid #2563eb55;border-radius:6px;padding:.6rem .8rem;margin-bottom:.8rem">
+    <div style="margin-bottom:.4rem"><b>Quick start with a known run</b></div>
+    <label>run preset
+      <select id="preset" style="font:inherit">
+        <option value="">— choose a run —</option>
+        <option value="run_2026-03-19_144302">run_2026-03-19_144302  (newer, 3,595 clauses)</option>
+        <option value="run_2026-03-15_122636">run_2026-03-15_122636  (older)</option>
+      </select>
+    </label>
+    <button id="dl-emb" disabled>1. Download embeddings.npz from Drive</button>
+    <button id="run-from-preset" disabled class="primary">3. Run on the dropped .npz</button>
+    <div class="mute" id="preset-info" style="margin-top:.4rem;font-size:12px">
+      Pick a preset → click 1 to open Drive in a new tab and save the file → drag the saved
+      <code>embeddings.npz</code> onto the embeddings picker below → click 3 (or the main Run button).
+      <code>classified.jsonl</code> and <code>raw_clauses.jsonl</code> will be fetched automatically from
+      <code>raw.githubusercontent.com</code> — no upload needed.
+    </div>
+  </div>
+
   <div class="row">
     <label style="width: 14rem">embeddings.npz
       <input type="file" id="f-emb" accept=".npz"></label>
@@ -1277,6 +1297,45 @@ $("f-raw").addEventListener("change", e => {
   const f = e.target.files[0];
   $("raw-info").textContent = f ? `${f.name} • ${(f.size / 1e6).toFixed(1)} MB` : "(optional)";
 });
+// Run-preset metadata: known run dirs, the Drive file id of their
+// embeddings.npz, and the GitHub raw URLs for the JSONL files.
+const PRESETS = {
+  "run_2026-03-19_144302": {
+    embDriveId: "1x9RV3ZHWquWlvnjumR2V0QsrRFaDVF95",
+    classifiedUrl: "https://raw.githubusercontent.com/clovenbradshaw-ctrl/eo-lexical-analysis-2.0/main/run_2026-03-19_144302/classified.jsonl",
+    rawUrl:        "https://raw.githubusercontent.com/clovenbradshaw-ctrl/eo-lexical-analysis-2.0/main/run_2026-03-19_144302/raw_clauses.jsonl",
+  },
+  "run_2026-03-15_122636": {
+    embDriveId: "1CP7d5ZNa3p4HR-TKt1dz737yQixE-Zct",
+    classifiedUrl: "https://raw.githubusercontent.com/clovenbradshaw-ctrl/eo-lexical-analysis-2.0/main/run_2026-03-15_122636/classified.jsonl",
+    rawUrl:        "https://raw.githubusercontent.com/clovenbradshaw-ctrl/eo-lexical-analysis-2.0/main/run_2026-03-15_122636/raw_clauses.jsonl",
+  },
+};
+function applyPreset(name) {
+  const p = PRESETS[name];
+  if (!p) {
+    $("dl-emb").disabled = true;
+    $("run-from-preset").disabled = true;
+    $("preset-info").textContent = "Pick a preset → click 1 to open Drive in a new tab → drag the .npz onto the picker → click 3.";
+    return;
+  }
+  $("u-cls").value = p.classifiedUrl;
+  $("u-raw").value = p.rawUrl;
+  $("dl-emb").disabled = false;
+  $("dl-emb").onclick = () => {
+    // Drive direct-download URL. For files >100 MB Drive shows a virus-scan
+    // warning; the user may need to click "Download anyway".
+    const u = `https://drive.google.com/uc?export=download&id=${p.embDriveId}`;
+    window.open(u, "_blank", "noopener");
+  };
+  $("run-from-preset").disabled = false;
+  $("run-from-preset").onclick = () => go();
+  $("preset-info").innerHTML =
+    `Step 1 → opens <code>${p.embDriveId}</code> on Drive. ` +
+    `JSONL URLs auto-filled from <code>raw.githubusercontent.com</code>. ` +
+    `After dropping the .npz, click Run.`;
+}
+$("preset").addEventListener("change", e => applyPreset(e.target.value));
 $("dl").addEventListener("click", () => {
   if (!LAST_RESULT) return;
   const blob = new Blob([JSON.stringify(LAST_RESULT, null, 2)], { type: "application/json" });
