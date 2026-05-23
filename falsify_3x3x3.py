@@ -358,7 +358,7 @@ def proportionality(vectors: np.ndarray,
                     target_per_bucket: int = 5000,
                     n_boot: int = 500,
                     seed: int = 42) -> dict:
-    """Mean cosine distance by axis-diff count. Replicates app2.compute_proportionality."""
+    """Mean cosine distance by axis-diff count. Replicates main.compute_proportionality."""
     n = len(vectors)
     normed = normalise(vectors)
     rng = np.random.default_rng(seed)
@@ -409,7 +409,7 @@ def proportionality(vectors: np.ndarray,
 
 
 def compute_zscore(vectors: np.ndarray, labels: np.ndarray, n_shuffles: int = 200, seed: int = 42) -> Tuple[float, float]:
-    """Replicates app2.compute_zscore. Within-vs-between cosine separation,
+    """Replicates main.compute_zscore. Within-vs-between cosine separation,
     z-scored against shuffled-label baseline."""
     unique = [int(l) for l in np.unique(labels) if l != -1]
     if len(unique) < 2:

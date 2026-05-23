@@ -40,7 +40,7 @@ import numpy as np
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# z-score (mirrors app2.compute_zscore exactly so numbers are comparable)
+# z-score (mirrors main.compute_zscore exactly so numbers are comparable)
 # ─────────────────────────────────────────────────────────────────────────────
 def compute_zscore(vectors: np.ndarray, labels: np.ndarray, n_shuffles: int = 200):
     unique = [l for l in np.unique(labels) if l and l != "?"]

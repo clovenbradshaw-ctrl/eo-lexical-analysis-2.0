@@ -1,0 +1,12 @@
+anthropic
+openai
+numpy
+scipy
+scikit-learn
+pandas
+matplotlib
+tqdm
+conllu
+datasets
+python-dotenv
+requests
