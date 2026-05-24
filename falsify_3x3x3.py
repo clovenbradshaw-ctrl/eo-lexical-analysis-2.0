@@ -128,16 +128,75 @@ def load_raw(run_dir: Path) -> Dict[str, dict]:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# EO labels — best-available consensus, fall back to per-model
+# Labels — best-available consensus, fall back to per-model.
+# Works for any registered question set; existing classified.jsonl files
+# written before the registry (flat shape under classifications/consensus)
+# are still readable for EO via a legacy-shape fallback.
 # ─────────────────────────────────────────────────────────────────────────────
+
+try:
+    import question_sets as _question_sets  # type: ignore
+except Exception:
+    _question_sets = None
 
 Q1_VALS = ["DIFFERENTIATING", "RELATING", "GENERATING"]
 Q2_VALS = ["EXISTENCE", "STRUCTURE", "SIGNIFICANCE"]
 Q3_VALS = ["CONDITION", "PARTICULAR", "PATTERN"]
 
+# Pre-registry EO writes used the raw answer "PARTICULAR" as the Q3 value;
+# the registry value_map emits "ENTITY". Accept both.
+_LEGACY_Q3_ALIAS = {"ENTITY": "PARTICULAR"}
 
-def eo_labels_for_ids(ids: List[str], classified: Dict[str, dict]) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+
+def _axis_lists_for(set_name: str) -> Tuple[List[str], List[str], List[str]]:
+    if _question_sets is None or set_name == "eo":
+        return Q1_VALS, Q2_VALS, Q3_VALS
+    qs = _question_sets.get(set_name)
+    return qs.axis_value_lists["q1"], qs.axis_value_lists["q2"], qs.axis_value_lists["q3"]
+
+
+def _nested_shape(cls: dict) -> bool:
+    """Detect the new shape `classifications = {set_name: {model: {...}}}`
+    vs the legacy flat shape `classifications = {model: {...}}`."""
+    if not cls:
+        return False
+    for v in cls.values():
+        if not isinstance(v, dict):
+            return False
+        if any(k in v for k in ("q1", "q2", "q3", "q1_raw")):
+            return False  # leaf has axis keys -> flat
+    return True
+
+
+def _extract(rec: dict, set_name: str) -> Tuple[Optional[dict], Dict[str, dict]]:
+    consensus = rec.get("consensus")
+    cls = rec.get("classifications", {}) or {}
+    if _nested_shape(cls):
+        nested_cls = cls.get(set_name, {}) or {}
+        nested_cons = None
+        if isinstance(consensus, dict) and isinstance(consensus.get(set_name), dict):
+            nested_cons = consensus[set_name]
+        return nested_cons, nested_cls
+    if set_name == "eo":
+        flat_cons = consensus if isinstance(consensus, dict) and "q1" in consensus else None
+        return flat_cons, cls
+    return None, {}
+
+
+def _canon(value: Optional[str], valid: List[str]) -> Optional[str]:
+    if value is None:
+        return None
+    if value in valid:
+        return value
+    aliased = _LEGACY_Q3_ALIAS.get(value)
+    if aliased and aliased in valid:
+        return aliased
+    return None
+
+
+def labels_for_ids(ids: List[str], classified: Dict[str, dict], set_name: str = "eo") -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Returns (q1, q2, q3, valid_mask) as int arrays in {0,1,2} (or -1 if missing)."""
+    q1_vals, q2_vals, q3_vals = _axis_lists_for(set_name)
     n = len(ids)
     q1 = np.full(n, -1, dtype=np.int32)
     q2 = np.full(n, -1, dtype=np.int32)
@@ -146,26 +205,30 @@ def eo_labels_for_ids(ids: List[str], classified: Dict[str, dict]) -> Tuple[np.n
         rec = classified.get(cid)
         if rec is None:
             continue
-        consensus = rec.get("consensus")
-        cls = rec.get("classifications", {})
-        # Prefer consensus, else claude, else gpt4
+        consensus, cls = _extract(rec, set_name)
         chosen = None
-        if isinstance(consensus, dict) and consensus.get("q1") in Q1_VALS:
+        if isinstance(consensus, dict) and _canon(consensus.get("q1"), q1_vals) is not None:
             chosen = consensus
-        elif "claude" in cls and cls["claude"].get("q1") in Q1_VALS:
+        elif isinstance(cls.get("claude"), dict) and _canon(cls["claude"].get("q1"), q1_vals) is not None:
             chosen = cls["claude"]
-        elif "gpt4" in cls and cls["gpt4"].get("q1") in Q1_VALS:
+        elif isinstance(cls.get("gpt4"), dict) and _canon(cls["gpt4"].get("q1"), q1_vals) is not None:
             chosen = cls["gpt4"]
         if chosen is None:
             continue
-        try:
-            q1[i] = Q1_VALS.index(chosen.get("q1", ""))
-            q2[i] = Q2_VALS.index(chosen.get("q2", ""))
-            q3[i] = Q3_VALS.index(chosen.get("q3", ""))
-        except ValueError:
-            q1[i] = q2[i] = q3[i] = -1
+        c1 = _canon(chosen.get("q1"), q1_vals)
+        c2 = _canon(chosen.get("q2"), q2_vals)
+        c3 = _canon(chosen.get("q3"), q3_vals)
+        if c1 is None or c2 is None or c3 is None:
+            continue
+        q1[i] = q1_vals.index(c1)
+        q2[i] = q2_vals.index(c2)
+        q3[i] = q3_vals.index(c3)
     valid = (q1 >= 0) & (q2 >= 0) & (q3 >= 0)
     return q1, q2, q3, valid
+
+
+def eo_labels_for_ids(ids: List[str], classified: Dict[str, dict]) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    return labels_for_ids(ids, classified, set_name="eo")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -711,6 +774,9 @@ def main():
     ap.add_argument("--out-dir", type=str, default=None, help="Defaults to <run-dir>/falsify/")
     ap.add_argument("--n-shuffles", type=int, default=200)
     ap.add_argument("--self-test", action="store_true", help="Run on synthetic data to smoke-test the pipeline")
+    ap.add_argument("--question-set", type=str, default="eo",
+                    help="Name of the registered question set to use as the 'eo' method "
+                         "(default: eo). See question_sets.py.")
     args = ap.parse_args()
 
     if args.self_test:
@@ -720,18 +786,20 @@ def main():
         ap.error("--run-dir required (or use --self-test)")
 
     run_dir = Path(args.run_dir)
-    out_dir = Path(args.out_dir) if args.out_dir else run_dir / "falsify"
+    set_name = args.question_set
+    default_out = run_dir / "falsify" if set_name == "eo" else run_dir / "falsify" / "by_set" / set_name
+    out_dir = Path(args.out_dir) if args.out_dir else default_out
     out_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"Loading embeddings from {run_dir}/embeddings.npz ...")
     vectors, ids = load_embeddings(run_dir)
     print(f"  {len(vectors)} clauses, dim={vectors.shape[1]}")
 
-    print("Loading classifications ...")
+    print(f"Loading classifications (question set: {set_name}) ...")
     classified = load_classified(run_dir)
-    q1, q2, q3, valid = eo_labels_for_ids(ids, classified)
+    q1, q2, q3, valid = labels_for_ids(ids, classified, set_name=set_name)
     n_valid = int(valid.sum())
-    print(f"  {n_valid} clauses with usable EO labels (best-available consensus->claude->gpt4)")
+    print(f"  {n_valid} clauses with usable labels (best-available consensus->claude->gpt4)")
 
     raw = {}
     raw_path = run_dir / "raw_clauses.jsonl"
@@ -789,6 +857,7 @@ def main():
     (out_dir / "falsify_report.txt").write_text(report)
 
     serialisable = {
+        "question_set": set_name,
         "n_clauses": len(V),
         "embedding_dim": int(V.shape[1]),
         "methods": [
