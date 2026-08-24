@@ -20,6 +20,10 @@ with small interaction residual. This is a strong constraint: it says the
 "cost" of being GENERATING rather than DIFFERENTIATING is the same shift no
 matter which domain and object you pair it with.
 
+It then asks the predictive question: hold one whole cell out, fit on the other
+26, and predict the cell you have never seen. A product can do this from axis
+marginals alone. A tree or an arbitrary arrangement cannot.
+
 The null is the sharp one. Hold the 27 centroids fixed and re-assign them to
 grid positions: every alternative assignment fits the same model with the same
 parameter count, so any advantage EO shows is about the ARRANGEMENT alone.
@@ -106,6 +110,41 @@ def additive_r2(X):
     res = ((X - fit) ** 2).sum()
     ss = [9 * (a ** 2).sum(), 9 * (b ** 2).sum(), 9 * (c ** 2).sum()]
     return 1.0 - res / tot, [s / tot for s in ss]
+
+
+def design_matrix(cells):
+    """One-hot over the three factors: 9 columns, one per axis level."""
+    X = np.zeros((len(cells), 9))
+    for r, (i, j, k) in enumerate(cells):
+        X[r, i] = 1
+        X[r, 3 + j] = 1
+        X[r, 6 + k] = 1
+    return X
+
+
+def loco_r2(flat):
+    """Leave-one-CELL-out. Fit the additive model on 26 cells, predict the 27th.
+
+    This is the predictive criterion: a genuine product structure can place a
+    combination it has never observed, because the axis marginals carry it. A
+    tree or an arbitrary arrangement has nothing to extrapolate from, and lands
+    below R^2 = 0 -- worse than predicting the training mean.
+    """
+    cells = [(i, j, k) for i in range(3) for j in range(3) for k in range(3)]
+    X = design_matrix(cells)
+    sse = sst = 0.0
+    per = []
+    for h in range(27):
+        tr = [r for r in range(27) if r != h]
+        B = np.linalg.pinv(X[tr]) @ flat[tr]
+        pred = X[h] @ B
+        mu = flat[tr].mean(0)
+        e = ((flat[h] - pred) ** 2).sum()
+        t = ((flat[h] - mu) ** 2).sum()
+        sse += e
+        sst += t
+        per.append((h, 1.0 - e / t))
+    return 1.0 - sse / sst, per
 
 
 def climb(flat, perm):
@@ -210,6 +249,21 @@ def main():
     print(f"  mean {nulls.mean():.4f}  sd {nulls.std():.4f}  max {nulls.max():.4f}")
     print(f"  EO z = {z:+.2f}   assignments beating EO: {beat}/{args.nulls}")
 
+    # predictive arm: leave one whole cell out
+    r2_loco, per_cell = loco_r2(flat)
+    lnull = np.empty(min(args.nulls, 2000))
+    idx = np.arange(27)
+    for t in range(len(lnull)):
+        rng.shuffle(idx)
+        lnull[t] = loco_r2(flat[idx])[0]
+    lz = float((r2_loco - lnull.mean()) / lnull.std())
+    print(f"\nPAST   in-sample additive R^2        = {r2_eo:.4f}")
+    print(f"FUTURE leave-one-CELL-out  R^2       = {r2_loco:.4f}"
+          f"   <- predicting a cell never observed")
+    print(f"  null (n={len(lnull)}): mean {lnull.mean():+.4f}  max {lnull.max():+.4f}  "
+          f"EO z = {lz:+.2f}  beating EO: {int((lnull >= r2_loco).sum())}")
+    print(f"  R^2 <= 0 means the model predicts an unseen cell worse than the training mean")
+
     at_eo = climb(flat, np.arange(27))[0]
     best = max(climb(flat, rng.permutation(27))[0] for _ in range(args.restarts))
     print(f"\nsearch over assignments:")
@@ -239,6 +293,14 @@ def main():
         },
         "search": {"restarts": args.restarts, "best": round(float(best), 6),
                    "ascent_from_eo": round(float(at_eo), 6)},
+        "loco": {
+            "r2": round(float(r2_loco), 6),
+            "null_mean": round(float(lnull.mean()), 6),
+            "null_max": round(float(lnull.max()), 6),
+            "z": round(lz, 4),
+            "n_beating_eo": int((lnull >= r2_loco).sum()),
+            "per_cell_r2": [round(float(v), 4) for _, v in per_cell],
+        },
         "principal_angles_deg": angles,
         "arbitrary_directions_monotonicity": arbitrary_demo(args.seed),
     }

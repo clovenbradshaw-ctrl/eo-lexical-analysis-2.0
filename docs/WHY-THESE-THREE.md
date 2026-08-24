@@ -234,3 +234,212 @@ python factorization_test.py --arbitrary     # the monotonicity artifact
 
 Runs on data already committed here; needs no Drive fetch. Arms A–C do need the
 real `embeddings.npz`.
+
+---
+
+# Results — 2026-08-24
+
+Run on the **real** per-clause embeddings, fetched from the Drive pointers this
+repo ships (`embeddings.npz` in each run dir is an 83-byte URL; the actual file
+is 3072-d, 193 MB for the multilingual run):
+
+```
+curl -sSL -o embeddings.npz \
+  "https://drive.usercontent.google.com/download?id=<ID>&export=download&confirm=t"
+```
+
+Primary corpus: `run_2026-03-15_122636`, 9,221 consensus-labelled clauses,
+41 languages. All scores are on **held-out clauses**, averaged over 3 seeds.
+
+## The criterion, operationalised
+
+The standard set for this work: *the proof is its ability to make the past
+understandable and the future more predictable.* Three numbers, in increasing
+order of how hard they are to fake:
+
+| | asks | who wins it cheaply |
+|---|---|---|
+| **PAST** | how much held-out clause variance the 27 groups explain | anything that clusters |
+| **FUTURE** | predict a held-out clause's position from its three labels alone | anything with a product structure |
+| **UNSEEN** | leave one whole cell out; predict it from the other 26 | **only a genuine product** |
+| **ratio** | FUTURE / PAST | — |
+
+## Result 1 — the blind recursive split
+
+Split the embedded clauses into the three most meaningful distinctions
+(KMeans k=3), split each of those three ways, and again: 27 leaves, no EO
+labels anywhere. Fitted on train, applied to held-out test clauses, then
+**re-scored in a second embedding space** (`paraphrase-multilingual-MiniLM-L12-v2`,
+384-d) that the blind schemes were never fitted in.
+
+| scheme | PAST | FUTURE | **UNSEEN** | ratio | | PAST_B | FUTURE_B | **UNSEEN_B** | ratio_B |
+|---|---|---|---|---|---|---|---|---|---|
+| **eo** | +0.010 | +0.009 | **+0.277** | 0.83 | | +0.025 | +0.022 | **+0.509** | **0.87** |
+| tree (recursive KMeans) | **+0.134** | +0.039 | **−0.010** | 0.29 | | +0.072 | +0.023 | **−0.089** | 0.31 |
+| pca-tertile (blind product) | +0.065 | +0.049 | +0.498 | 0.76 | | +0.061 | +0.049 | +0.535 | 0.79 |
+| random | −0.004 | −0.001 | −0.290 | — | | −0.004 | −0.001 | −0.292 | — |
+
+**The recursive tree is not three dimensions.** It wins compression outright
+and cannot predict an unseen cell in either space (−0.010, −0.089; across seeds
+−0.017 / +0.009 / −0.010, i.e. indistinguishable from zero — the additive model
+fitted on 26 of its cells predicts the 27th no better than the training mean).
+The direct diagnostic agrees: the depth-2 split found inside branch 1 is
+near-orthogonal to the ones inside branches 2 and 3 (principal angles 81–90°).
+The second question depends on the answer to the first. That is a hierarchy of
+distinctions, not a coordinate system, and the distinction is now measured
+rather than argued.
+
+**EO is the most product-like scheme measured** (ratio 0.83 → 0.87 on transfer)
+and its structure *improves* under transfer while the tree's halves.
+
+## Result 2 — the language confound, and a correction
+
+An earlier reading of the table above concluded that blind splits beat EO on
+every criterion. That reading was wrong, and the check that overturns it is
+one line:
+
+| scheme | ARI vs language | **AMI vs language** |
+|---|---|---|
+| eo | +0.003 | **0.026** |
+| tree | +0.464 | **0.804** |
+| pca-tertile | +0.171 | **0.404** |
+
+The recursive tree is 80% language identification. Its compression win was
+rediscovering what language the clause was written in — and language alone
+explains 0.193 of the variance in this space, more than any 27-group scheme
+achieves. EO is essentially independent of language (AMI 0.026), which is
+what an axis claiming to be about transformations rather than about surface
+form should be.
+
+So **variance-explained is the wrong yardstick here.** The dominant structure
+in a multilingual text embedding is language and topic; a scheme that cuts
+across both will always look weak on it. EO's ~1–2% is not obviously a defect,
+and the blind schemes' advantage is substantially an artifact.
+
+## Result 3 — the archetype cube (centroid scale)
+
+Product test on the 27 committed archetype centroids (384-d, top-100 exemplars
+per cell, heavily denoised relative to single clauses):
+
+| | additive R² | leave-one-cell-out R² |
+|---|---|---|
+| **EO's own assignment** | **0.7022** | **+0.497** |
+| 20,000 random re-assignments of the same 27 centroids | mean 0.231, max 0.386 | mean −0.301, max −0.094 |
+| greedy search, 200 restarts | 0.7022 — never beats EO | — |
+
+Every random arrangement predicts an unseen cell *worse than the training
+mean*. EO's arrangement is the one that makes these 27 groups additive, it is
+a local maximum, and search cannot improve on it (z = +14.4 / +14.5).
+
+This is a real result about the **arrangement of EO's own cells**. It is a
+different question from whether a rival scheme with different cells could do
+better, and it should not be quoted as if it answered that.
+
+## Result 4 — why three? Not earned by this corpus
+
+Ablation on the same 9,221 clauses (3 seeds). Held-out scoring, so differing
+parameter counts are handled by construction:
+
+| configuration | cells | par | FUTURE | UNSEEN | ΔFUTURE |
+|---|---|---|---|---|---|
+| **EO 3×3×3 (full)** | 27 | 7 | +0.0084 | +0.2748 | — |
+| without Q1 mode | 9 | 5 | +0.0081 | +0.4089 | **−0.0003** |
+| without Q2 domain | 9 | 5 | +0.0069 | +0.3844 | −0.0015 |
+| without Q3 object | 9 | 5 | +0.0065 | +0.1757 | −0.0019 |
+| Q1: DIFFERENTIATING+GENERATING merged | 18 | 6 | +0.0085 | +0.3254 | **+0.0002** |
+| Q3: CONDITION+PATTERN merged | 18 | 6 | +0.0088 | +0.4054 | **+0.0004** |
+| Q2: EXISTENCE+STRUCTURE merged | 18 | 6 | +0.0084 | +0.3243 | +0.0000 |
+| Q2: STRUCTURE+SIGNIFICANCE merged | 18 | 6 | +0.0051 | +0.2054 | −0.0033 |
+| Q3: ENTITY+PATTERN merged | 18 | 6 | +0.0046 | +0.1647 | −0.0038 |
+
+Three of the nine level-collapses are free or better. Merging DIFFERENTIATING
+with GENERATING — the two poles of mode — costs nothing, so Q1 behaves like a
+binary (*RELATING vs not*), not a trichotomy. Dropping Q1 entirely costs 3.5%
+of an already-tiny FUTURE. Only two distinctions are clearly earned:
+**STRUCTURE vs SIGNIFICANCE** and **ENTITY vs PATTERN**.
+
+Blind sweep over (axes × levels) for comparison — the shape the space itself
+prefers:
+
+| | 2 levels | 3 levels | 4 levels |
+|---|---|---|---|
+| 2 axes | +0.026 / −0.177 | +0.035 / +0.203 | +0.041 / +0.300 |
+| 3 axes | +0.037 / +0.277 | **+0.048 / +0.429** | +0.053 / +0.420 |
+| 4 axes | +0.044 / +0.374 | +0.052 / +0.347 | +0.056 / +0.231 |
+| 5 axes | +0.050 / **+0.440** | +0.059 / +0.227 | — |
+
+(FUTURE / UNSEEN.) 3×3 is a local sweet spot for UNSEEN but not the maximum.
+**On corpus evidence alone, 3×3×3 is not earned.**
+
+## What these tests can and cannot establish
+
+Every test above asks whether EO is recoverable from embedding geometry. In
+Chomsky's terms (*Reflections on Language*, "On Cognitive Capacity") that is
+LT(embedding-model, text) — and it is not the object EO claims. His four
+stages are: set the cognitive domain D; determine how the organism O
+characterises data in D **pretheoretically**; determine the cognitive
+structure attained; then determine LT(O,D) relating the two.
+
+EO's three questions are a proposal about **stage 2** — how an observer carves
+a transformation before any theory. Two consequences follow, and they cut in
+opposite directions:
+
+1. **The domain may be mis-set.** D for EO is *transformations*; this corpus
+   supplies *clauses*, many of which are not transformations at all. Chomsky's
+   own note applies: a failure at stage 4 may reveal that "our original
+   delimitation of D was faulty." The weak geometric signal is confounded with
+   a domain-specification error that nothing here has separated out.
+
+2. **Low corpus-recoverability is not by itself a refutation.** If the three
+   questions are observer-side structure, underdetermination by the data is
+   predicted, not surprising.
+
+Point 2 is also the standard way a theory becomes unfalsifiable, so it must
+come with its own discipline. It does: it relocates the test from the corpus
+to the observer, where it is sharp.
+
+## The next test — poverty of the stimulus, bounded
+
+If the 27 is observer-side structure, observers must converge on it **beyond
+what the stimulus supports**:
+
+- `A` = agreement rate between two independent observers
+- `S` = accuracy of the best function of the surface at predicting one
+  observer's assignment
+- `E` = accuracy of the best function of the embedding at the same
+
+`A >> S, E` means the agreement comes from shared structure in the observers,
+and the low geometric R² is *explained* rather than excused. `A ≈ S` means the
+questions elicit vocabulary cues and the 27 has no observer-side reality
+either. Current κ (0.585 / 0.534 / 0.457) is the raw material; `S` and `E`
+have never been computed.
+
+**Stated limit, up front:** Claude and GPT-4 are not independent observers, so
+a high `A` is confounded by shared pretraining. The bounded version measures
+the surface component and bounds the rest. Establishing the observer component
+needs human annotators across languages — a study, not a script.
+
+## Status of the pre-committed thresholds
+
+| # | prediction | status |
+|---|---|---|
+| 1 | additive R² survives lexical ablation | not yet run |
+| 2 | no blind partition beats EO on additive R² | **failed on raw clauses** (pca-tertile +0.498 vs EO +0.277 on UNSEEN) — but see Result 2: partly a language artifact |
+| 3 | depth-2 splits agree across branches | **failed** — 81–90°, the blind structure is a tree |
+| 4 | additivity transfers to a second embedder | **held** — EO improves (0.277 → 0.509) |
+| 5 | additivity transfers to a held-out register | not yet run |
+| 6 | axis independence | **at risk** — unchanged from prior entry |
+
+Prediction 3 failing is informative rather than damaging: it falsifies the
+*blind* structure as a coordinate system, and EO passes the same test.
+Prediction 2 failing is the live problem.
+
+## Reproducing
+
+```bash
+pip install numpy scikit-learn scipy
+python factorization_test.py                     # centroid product + predictive test
+python factorization_test.py --arbitrary         # the monotonicity artifact
+python recursive_split.py --emb <real.npz> --emb-b <second-space.npz>
+python dimensionality.py  --emb <real.npz>
+```
