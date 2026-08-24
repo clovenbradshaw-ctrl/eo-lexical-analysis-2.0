@@ -443,3 +443,130 @@ python factorization_test.py --arbitrary         # the monotonicity artifact
 python recursive_split.py --emb <real.npz> --emb-b <second-space.npz>
 python dimensionality.py  --emb <real.npz>
 ```
+
+---
+
+# The domain error — 2026-08-24, second pass
+
+## What the study actually asked
+
+`app2.py`'s `CLASSIFICATION_PROMPT` opens:
+
+> Answer these three questions about **the transformation this clause describes**.
+
+There is no refusal option. Every clause is forced into one of the 27 cells, and
+nothing anywhere asks whether the clause describes a transformation at all.
+Clause selection (`extract_clauses_from_conllu`) was purely syntactic — at least
+one VERB token, 8–30 tokens, declarative, deduplicated — which admits pure
+statives, properties, attitude reports and directives.
+
+In Chomsky's terms this is a **stage-1 failure**: the cognitive domain D was
+never delimited, it was assumed. Every geometric result in this document was
+computed over a corpus whose membership in EO's own domain was never checked.
+
+## How large the error is
+
+200 English clauses hand-judged against a criterion fixed in advance and applied
+blind to which agreement stratum a clause came from — *does the main predication
+assert a change, as opposed to a static state, property, classification,
+attitude report, or directive?* (`data/transformation-judgments.json`; single
+annotator, disclosed, not a validated gold standard.)
+
+| | n | share |
+|---|---|---|
+| transformation | 65 | **32%** |
+| borderline | 38 | 19% |
+| not a transformation | 97 | **48%** |
+
+So between a third and a half of the corpus is in EO's stated domain. The rest
+was assigned cells anyway.
+
+## Agreement is not a domain signal — the cheap filter fails
+
+The tempting free filter: if a clause is not a transformation, the three
+questions have no determinate answer, so two labellers should converge at
+chance. Measured against the hand judgments, it does not hold.
+
+| stratum (axes on which the two labellers agree) | n | mean transformation score |
+|---|---|---|
+| 0–1 of 3 | 20 | 0.425 |
+| 2 of 3 | 20 | 0.500 |
+| 3 of 3 | 20 | 0.400 |
+
+Spearman r = **−0.015**, p = 0.91; Mann-Whitney 3/3 vs 0–1, p = 0.54. Flat.
+
+This also **corrects an intermediate reading**. EO's geometry does rise with
+labeller agreement (PAST −0.0002 → +0.0021 → +0.0068 at equal n, language AMI
+flat at ~0.02 throughout), and that looked like domain membership. It is not.
+It is ordinary label noise attenuating a signal.
+
+## A filter is buildable, and the corpus still cannot use it
+
+162 clean judgments train a logistic regression on the run's own embeddings:
+**5-fold AUC 0.907, accuracy 0.833**. Applied corpus-wide it calls 28%
+in-domain, against a hand-judged English rate of 32% strict — the cross-lingual
+transfer is at least plausible.
+
+| arm (equal n = 2,710, 10 seeds) | PAST | FUTURE | UNSEEN |
+|---|---|---|---|
+| RANDOM subsample (control) | −0.0001 ±0.0021 | +0.0005 ±0.0019 | −0.0574 ±0.0371 |
+| in-domain | −0.0030 ±0.0017 | −0.0091 ±0.0016 | −0.1909 ±0.0093 |
+| out-of-domain | +0.0011 ±0.0011 | +0.0024 ±0.0009 | −0.0173 ±0.0208 |
+
+Read without the control this says filtering to transformations *hurts* EO. The
+control says otherwise: **at n = 2,710 a matched random subsample also scores
+nothing.** Only 2,710 consensus clauses survive the filter, and that is below
+the sample size at which anything is measurable here. The in-domain arm is also
+worse-conditioned (cell evenness 0.664 vs 0.771, one cell holding a single
+clause), which depresses the additive fit independently of domain.
+
+**The corpus cannot answer the domain question.** Filtering has to happen
+*before* labelling, not after — a re-run of the labelling pass, not a post-hoc
+repair.
+
+## The power curve, which is a finding on its own
+
+EO on random subsamples of the consensus set, 8 seeds:
+
+| n | PAST | FUTURE | UNSEEN |
+|---|---|---|---|
+| 1,000 | −0.0236 ±0.0064 | −0.0151 ±0.0054 | −0.1786 ±0.0301 |
+| 2,000 | −0.0063 ±0.0021 | −0.0036 ±0.0023 | −0.1122 ±0.0412 |
+| 2,710 | −0.0001 ±0.0021 | +0.0003 ±0.0019 | −0.0609 ±0.0363 |
+| 4,000 | +0.0043 ±0.0009 | +0.0043 ±0.0006 | +0.0269 ±0.0208 |
+| 6,000 | +0.0076 ±0.0006 | +0.0067 ±0.0005 | +0.1500 ±0.0172 |
+| **9,221 (all)** | **+0.0100 ±0.0003** | **+0.0082 ±0.0003** | **+0.2656 ±0.0104** |
+
+Two things follow, and the second matters more than the domain question.
+
+**The estimator crosses zero at n ≈ 2,700.** Below that, cell centroids are
+noisier than the grand mean, so predicting a clause from its own cell is worse
+than predicting it from nothing. Negative values at small n are overfitting of
+the centroids, not absence of structure — any subset comparison at that scale is
+uninterpretable.
+
+**EO's scores are still climbing at the full corpus and have not plateaued.**
+The "~1% of variance" figure quoted throughout this document is a **floor set by
+corpus size**, not an estimate of the effect. Whether it saturates at 2%, 5% or
+higher is unknown and is a straightforward thing to find out: label more
+clauses. That is now the single cheapest way to move any of these numbers.
+
+## Revised standing
+
+| claim | status |
+|---|---|
+| monotonicity / per-axis z-scores are evidence | **refuted** — arbitrary directions reproduce them on noise |
+| EO is a product, not a hierarchy | **holds** — survives transfer; the blind tree fails UNSEEN in both spaces |
+| EO's arrangement of its own 27 cells is optimal | **holds** — z = +14.4, unbeaten by 20k rearrangements or by search |
+| 3×3×3 specifically is earned | **not supported** — three of nine level-collapses are free or better |
+| EO beats a blind product | **not supported** — pca-tertile wins, though partly on language |
+| EO explains ~1% of variance | **superseded** — that is a corpus-size floor, not an estimate |
+| the corpus is in EO's domain | **refuted** — 32% strict, 52% inclusive |
+| a domain filter fixes it post hoc | **refuted** — too few in-domain clauses to measure anything |
+
+## Reproducing
+
+```bash
+python domain_filter.py --emb <real.npz>          # filter, apply, compare with control
+python domain_filter.py --emb <real.npz> --power  # the power curve
+```

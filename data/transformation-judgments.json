@@ -1,0 +1,1013 @@
+{
+ "criterion": "Does the clause's MAIN predication assert a CHANGE - something coming to be, ceasing, or altering in state, relation, or interpretation? 1.0 = yes; 0.5 = borderline; 0.0 = no (static state, property, classification, attitude report, or directive). Fixed before any stratum was revealed and applied blind.",
+ "judge": "single annotator (Claude), disclosed - not a validated multi-annotator gold standard",
+ "corpus": "run_2026-03-15_122636, English subset, UD treebanks",
+ "n": 200,
+ "counts": {
+  "yes": 65,
+  "borderline": 38,
+  "no": 97
+ },
+ "judgments": [
+  {
+   "id": "b1a9147c",
+   "clause": "Before you buy ANYTHING in NY, make sure you stop by Jack-s first.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "a6786e5a",
+   "clause": "Please review it and let me know if you have any comments on or before Tuesday afternoon (I will be out of the office Monday).",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "81964a04",
+   "clause": "Peter is looking currently for a job.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "82c58e4c",
+   "clause": "Both Mr. Parenteau and Ms. Doyon, however, were bleeding badly.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "2d90934f",
+   "clause": "Try googling it or type it into youtube you might get lucky.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "94018276",
+   "clause": "Stories of cats living more than 25 years are rare.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "8a045b89",
+   "clause": "\"We believe the action we took addressed a severe concern,'' Robinson said.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "0648a9b6",
+   "clause": "I'm thinking that I may want to attend.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "c1afd685",
+   "clause": "In that, they pretty much succeeded.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "18436525",
+   "clause": "Throughout history, tyrants have known that by denying the right of oppressed peoples to form and nurture families, they can kill the spirit of those peoples.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "64cee969",
+   "clause": "Mailing them to the house iis fine.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "91b453a2",
+   "clause": "The decision was made by ISO upper management with one goal in mind: to keep the lights on.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "50d06ef2",
+   "clause": "However, as you will see, the questions I thought of got kinda long- but I think we need answers for all of them.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "8d26352f",
+   "clause": "I am just middle aged and do not want to die, but thanks to this doctor i have no other alternatives.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "4068ad26",
+   "clause": "Pay extra attention to the appetizers - the next time I go there I'm planning on ordered a few instead of an entree.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "ec3a016e",
+   "clause": "I hope the owners and employees of this store have broken bedroom suites in their homes and furniture sitting in someone's warehouse.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "6edebc2d",
+   "clause": "The Rock revolution happened in the Sixties (6, number of the Beast).",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "30d69ed8",
+   "clause": "In all my travels I\u2019ve never seen anything like it and am often met with an odd look when I explain them to foreigners.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "b65667a9",
+   "clause": "So I am in limbo regarding a bedroom suite.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "bb949cc3",
+   "clause": "i don't even like a&m, i wouldn't bet on them.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "d70d3607",
+   "clause": "If you must go ask lots of questions about your selections since your expectations may as high as mine were.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "9286d5e6",
+   "clause": "C\u00e9cile is a hairdresser and has just moved into the neighbourhood.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "95585fed",
+   "clause": "Well they play the Wii like me :)",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "459b0e58",
+   "clause": "Now my cars gears and brakes have never run so well... ever its like driving a new car.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "ca69413f",
+   "clause": "im not worried about damaging the surface my tank is on because i can prop it up off the surface anyway.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "1430378f",
+   "clause": "Some months later Sutcliffe died from brain haemorrhage because of John Lennon's bruises.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "8c22824f",
+   "clause": "Please indicate below whether or not you plan to attend this meeting and through what medium.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "2b05856f",
+   "clause": "Susan Scott would like authorization to order an Aeron chair for each of her offices - on 47 and 41.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "97bf907e",
+   "clause": "He believes memos and e-mails around the time of Winter's Dec. 8 actions should provide vital clues.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "c7d64612",
+   "clause": "you must be thinking of someone else.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "c24cc7e9",
+   "clause": "Please let me know what type of statement I should make back to the customer.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "8d4a8ddb",
+   "clause": "At least he isn't using this disaster for cheap political point-scoring.\"",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "8433915f",
+   "clause": "I spent $2300 on the bedroom suite, which was complete and excellent condition on the showroom floor.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "e73d0abb",
+   "clause": "I just dont want to freak him out or make him feel uncomfortable.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "61be4061",
+   "clause": "The actual word \"MAD\" has to be on the cover and incorporated into the image.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "b6d6096c",
+   "clause": "From then on, the Beatles began to get involved in false religions and to preach them to the world.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "37ea42d6",
+   "clause": "We affirm freedom of conscience in this matter.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "b4ee727f",
+   "clause": "On August 21st, 2009 I ordered furniture from Hickory Furniture Mart and contracted for HDS to deliver it.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "885d5ac3",
+   "clause": "I go to see her to have my hair cut.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "5ec0a323",
+   "clause": "\"At some point, Patricia tripped or the bear tripped her and was at her back.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "a84dc4dd",
+   "clause": "My cat had a seizure yesterday and was ill.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "af3d8a19",
+   "clause": "As faith leaders, we commit ourselves to public action, visibility, education, and mutual support in the service of the right and freedom to marry.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "af75761a",
+   "clause": "\"The governor believes it was the defining moment, when what was a mounting problem turned into an instant crisis,\" Maviglio said.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "3f8cce3a",
+   "clause": "At its February meeting the CHS Vestry voted unanimously to add their names to the Declaration.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "e4d95613",
+   "clause": "We have GIS ids, and Eid (external id - just like GIS id).",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "05c751a6",
+   "clause": "We can grow in our capacity to be human - to be loving - in a family unit.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "a5c8c1a1",
+   "clause": "I am talking to a number of people regarding opportunities for a new assignment back in Houston office.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "2f75ce54",
+   "clause": "One week after that declaration, ONLY ONE WEEK LATER, Brian Epstein, forger of the Beatle farce, died from an overdose.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "9671a354",
+   "clause": "The marches on the 12th of July are only really attended by protestants in the Ulster but in spite of the are the largest attended paraded in Ireland.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "a826e1ba",
+   "clause": "I have recently been made aware of a help desk analyst job#0000108806 that has become available in your department.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "46490db4",
+   "clause": "They phoned the same day, confirmed it was the gearbox quoted me the job, I gave the go ahead.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "e61e6b32",
+   "clause": "Sorry I guess I didn't read it very well.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "91f40dcf",
+   "clause": "Got some nice \"freshly baked\" fruit squares, a personal favorite of mine.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "962dc05a",
+   "clause": "\"They filed an emergency motion, and we were not about to let California go dark,'' Hoecker said.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "3d5c7561",
+   "clause": "I my self am one but appreciate that the organization is unlikely to make into the 22nd century.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "8ad24e3b",
+   "clause": "According to a couple sources, the world record for the oldest cat was a cat in Devon, England who reportedly live to the age of 36.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "cca7a545",
+   "clause": "It incorporates Mr. Stojic's and Mr. Kelly's initial comments.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "6575c8c4",
+   "clause": "He is very professional in his position as a director and yet he still made time to be compassionate for what we were all going through.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "9a359dde",
+   "clause": "We felt we made it better because it introduced a process for review and refund.\"",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "dad1381f",
+   "clause": "French women are the ones to say yes, the way we say it is not usually as straigthforward as you propose to do.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "68a4e90a",
+   "clause": "Please let us know if you need anything else.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "ddd9ff95",
+   "clause": "I have extensive experience as a technical leader in the design and development of modeling and simulation software products, mostly for the oil and gas pipeline industry.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "68086230",
+   "clause": "I have contacted the relevant people of your interest in the job.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "c3a7f95b",
+   "clause": "I did an internet search to ascertain how long cats can live, however different sources give wildly different lifespans.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "c32d7ddc",
+   "clause": "The ARVN rushed back from holiday leave and counterattacked.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "61f81b84",
+   "clause": "Furthermore, the Vestry voted unanimously to invite the support of members of the CHS congregation for the Declaration.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "70d077bc",
+   "clause": "She also refused to get a manager.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "0e8e56ee",
+   "clause": "Jason and the boys can do about anything you need.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "09d50eca",
+   "clause": "That sounds like a BS excuse from ECS, but it that's what they are saying, let me know and we can figure out a solution.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "5ef67c1f",
+   "clause": "That rejection got to the point that George Harrison kicked Yoko Ono in the Apple studios during the filming of Let it Be.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "12073c5c",
+   "clause": "\"They (ISO management) did what any independent system operator would do.\"",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "e76754a8",
+   "clause": "Seeing the nature and wild life that if you keep quiet you can get up close and personal.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "04289128",
+   "clause": "So, therefore, now he says i am inoperable (even though i am not 100% inoperable), and he is letting me die.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "a0a638e7",
+   "clause": "The bear dwarfed the 6-foot-1 Mr. Parenteau, knocking him to the ground, he said.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "fb7e132c",
+   "clause": "Thank you for your consideration of this issue.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "435d1535",
+   "clause": "This particular chair is designed to help with back problems, which she has.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "0291be27",
+   "clause": "I loved my stay here and if ever back in the area, I will be staying here again.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "1941ae79",
+   "clause": "Phone calls weren't returned when promised and the botched repair took a week longer than promised.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "919e8c64",
+   "clause": "He did not give them the number of troops they requested.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "61a326b4",
+   "clause": "No one will give me a date.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "76e85e5a",
+   "clause": "I wouldn't want any other company in my time of need.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "520eb6a6",
+   "clause": "Chicken saltimboca was excellent and then there's the chocolate mousse that comes straight from heaven.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "d4f2380d",
+   "clause": "Checked in real late, but staff was very kind and helpful.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "e3c361d3",
+   "clause": "Final authority over lifting the cap rested with the federal government.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "1980f2bc",
+   "clause": "Can't catch you this time but 14721 keep me posted on your next trip.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "99418d10",
+   "clause": "Well, they have a variety of sports that they play like basketball, soccer, etc.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "d029b27e",
+   "clause": "\"I am frankly revolted by the response of the Bush-Bashers; \"Sorry chaps, but you did have it coming...\"",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "f611c08f",
+   "clause": "So now there are hundreds of al-Qaeda members in Iraq where there had been none before.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "53d0106e",
+   "clause": "Nobody pays someone to keep their horse in shape and rides once a week, then takes all the ribbons at the show because their horse is good.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "861fc48f",
+   "clause": "They will be distributed on a business basis first, then personal use.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "3ce15389",
+   "clause": "It is interesting to notice that he was shot seven times, being seven, as well as three, the holy numbers in Holy Cabalah tradition....",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "5beb4d2c",
+   "clause": "He was warned that they were building up a huge Army and would eventually launch an attack, but he ignored his military advisers.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "4bd31508",
+   "clause": "After a conversation with Ryan Seleznov I herewith like disclose in writing my intentions in respect to Dealbench.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "42953f7d",
+   "clause": "\"I don't know how these events could have taken place without some concerted effort,\" said Dunn.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "41d9a60b",
+   "clause": "Both my grandparents passed away 4 months apart and Mike was very understanding.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "cda185a0",
+   "clause": "you should work that out before applying.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "b0904f3f",
+   "clause": "We have not received access to this information which has resulted so far in additional electric cost of $200,987.33 for the period of July through September.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "ce58e938",
+   "clause": "I left my number, or tried to anyway.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "6efbeb69",
+   "clause": "We would like to thank our emergency plumbers who visted our shop in Morningside Road today.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "ebaa1e16",
+   "clause": "Relief agencies are trying to help hundreds of thousands of displaced people while authorities have vowed to restore security in New Orleans following a breakdown of law and order.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "be3f9032",
+   "clause": "He also never even said he was sorry.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "28303908",
+   "clause": "I had a surgery date of July 17, 2008.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "f1d27d11",
+   "clause": "<This man has clearly never visited the US.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "83871518",
+   "clause": "I agree with what the concern is below.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "916005fb",
+   "clause": "I believe you got a copy of the John Sommer letter to producers dated Jan 6 that MKM's spies intercepted.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "02ca6dec",
+   "clause": "He said the main aim of the subpoenas will be to determine whether collusion occurred to \"fix\" prices, which would violate federal trade laws.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "bb57033e",
+   "clause": "I admit that I should have paid attention to this kind of little things while test drive.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "99d422b9",
+   "clause": "He was going to operate and replace my bicuspid aortic valve due to critical aortic stenosis.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "1c25714e",
+   "clause": "Robinson said the emergency order allowed the ISO to secure refunds should overcharges for electricity be proven to federal officials.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "8436f36e",
+   "clause": "I enjoyed your presentation, and meeting you briefly afterwards, at the SIAM Workshop last Friday.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "67ea205c",
+   "clause": "Is the old Devil attempting to disguise as good in front of people.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "a6e98c6a",
+   "clause": "That being said, I don't know how their delivery service is.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "c073924f",
+   "clause": "We should resurrect Mike Smith's note and get him on the call in the attempt to avoid recreating the wheel on this one.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "5f5e7b87",
+   "clause": "Al-Qaeda in Afghanistan was a group of only a few hundred \"Afghan Arabs\" who pledged personal loyalty to Usamah Bin Laden.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "d4c5d8de",
+   "clause": "I think the first step is a call between yourself, me, Mark Stubley and Mike Indivero.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "a2715ffc",
+   "clause": "If there are any objections you need to get back to me ASAP.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "e76d732a",
+   "clause": "The ISO board called an emergency meeting the next week demanding Winter explain his actions.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "dce3c349",
+   "clause": "The restrictions would drive prices as low as $65 per megawatt - nearly 12 times below the $750 per megawatt limits of seven months earlier.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "110e0229",
+   "clause": "Please, let me know if you interested in introducing Peter to executives in your organization.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "1863de17",
+   "clause": "Through TV and newspapers , I hear constantly about identity fraud using stolen social security information.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "e9acd455",
+   "clause": "Please let me know how your organization can help the Enron employees feel safer about the safeguard of their SS number.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "3b482561",
+   "clause": "In that respect, we need to dial in Rick Johnson and Olgletree to plan and communicate that plan to the execution team.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "d6871c0f",
+   "clause": "All those sunny reports about the progress in Vietnam were correct, the Communists WERE being defeated.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "9630fa43",
+   "clause": "put the heater on the snake he will love it and the the next day you will have dinner",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "fe77284a",
+   "clause": "I think we should try to migrate to one of these.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "a5b8992a",
+   "clause": "Please calendar and print for my files on this meeting.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "b864e123",
+   "clause": "I met him last week at the meeting of the Science and Industry Advance with Mathematics society at the University of Houston.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "b6aa8208",
+   "clause": "Yes, she and her family were delighted to leave the communistic remnants in that country.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "fa75fa30",
+   "clause": "Many people at Enron already have this type of chair, but we rarely, if ever, have a surplus because they are so popular.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "87a75585",
+   "clause": "\"Terry did this by himself,'' said Smutney-Jones, executive director of the Independent Energy Producers.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "01adeba3",
+   "clause": "Satan deceiving mankind once again, as so many other thousands of times through the centuries....",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "0c9a89ff",
+   "clause": "Took a bite, it tasted odd.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "54d7e3d5",
+   "clause": "I expect to send them out to you sometime tomorrow.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "fc2be294",
+   "clause": "Their selection is random, so what they have on a given week might never be available again at the store.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "63ffbae0",
+   "clause": "Attached are my resume and an addendum covering academic & consulting experience.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "12d45736",
+   "clause": "I want to say that Mike did a great job for our family in our time of need.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "504e1970",
+   "clause": "I have the following suggestion for our company.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "1ca3b322",
+   "clause": "i have over 40 corns, kings, and milks and have never had a problem with the UTH system.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "6e60a1f7",
+   "clause": "Some board members pushed to have Winter removed, but there were concerns such action would lead to more chaos, the governor's spokesman Maviglio said.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "0c539d50",
+   "clause": "Everything except the display worked fine before I took it in.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "995d8f63",
+   "clause": "What followed the next day is considered by the governor and Dunn to be the pivotal moment of the energy crisis.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "cc1a7762",
+   "clause": "But Johnson was so obtuse he didn\u2019t understand he had a victory when it was handed to him on a silver platter.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "20d64916",
+   "clause": "Dr. Fortier was one of 15 people to receive the Carnegie Medal on Monday.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "76832eee",
+   "clause": "Please return this e-mail to me with your response by 12:00 p.m., Friday, May 4th",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "85fd1775",
+   "clause": "Most Shiites, however, are still reluctant to take major risks to support the Sunnis of Fallujah, many of whom had supported Saddam and his anti-Shiite pogroms.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "cc066589",
+   "clause": "Rooms very clean and smelled very fresh.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "1d835b20",
+   "clause": "I knew a cat that died in its sleep aged 21.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "6d58ce67",
+   "clause": "We feel called to protest and oppose this injustice.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "62dab8e4",
+   "clause": "Took a laptop in for a video cable to be replaced.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "f15953fe",
+   "clause": "It is interesting to observe that this nation is nicknamed \"the Devil's Island\".",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "16afba15",
+   "clause": "from my experience with my cats 13-18 years depending on the breed.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "3f7337d0",
+   "clause": "Getting out of the narrow confines of the pipeline simulation industry would be a plus.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "37c248bd",
+   "clause": "The menu has the usual but then they step it up another notch.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "59cbc315",
+   "clause": "I am pleased with the service that i get at Luxe.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "0ea14bdd",
+   "clause": "Blooming onion, the only reason to visit this restaurant.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "88fd1ad2",
+   "clause": "Your answer to a question indicated that I have several of the skills you look for.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "5dac1838",
+   "clause": "I will call you in a couple of days to follow up on this email.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "32e7e4e8",
+   "clause": "I apologize, I'm on the road and haven't heard when that will be.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "de49720c",
+   "clause": "I wanted to let you know about this before I respond to her request.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "f66f25b8",
+   "clause": "Mr. Crawford threw several punches at the assailant before he was stabbed in the heart.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "45f75872",
+   "clause": "I will email names and email addresses (or postal addresses) of signers to NCRC4ME in time for their \u201clobby day\u201d in Raleigh on March 15.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "7960e39d",
+   "clause": "Bottom if you are worried about the snake burning itself put something overt it like newspaper...",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "33d2389b",
+   "clause": "Maybe then they will begin to understand poor customer service and terrible sit up service.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "68bd2cf6",
+   "clause": "As I recall, Montavano, Shapiro and I usually make up one team, but I'm willing to switch around a bit.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "b9ab7833",
+   "clause": "When Johnson deployed troops in 1964 he was advised by the military it would take a half-million troops about ten years to pacify South Vietnam.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "962d687a",
+   "clause": "The plain fact is that Bush has a sight more in the way of common humanity than a great many of his detractors.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "53655c53",
+   "clause": "A&E came out, charged $129 fee just to walk in the door.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "d2a1ac3d",
+   "clause": "Contact Cindy Stark to make an appointment.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "32b08a3c",
+   "clause": "Barbara, please organize a call for Mike, Michelle, Mark Stubley and me.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "f61505c2",
+   "clause": "A reminder that the HR Associate Points Meeting will take place as below:",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "b62e7ed6",
+   "clause": "As concerned citizens we affirm the liberty of adults of the same gender to love and marry.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "5c175f9b",
+   "clause": "We recognize that the state may not require religious groups to officiate at, or bless, same-gender marriages.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "1e786b5b",
+   "clause": "They don't do certain things that are really annoying about other offices.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "7c1d0538",
+   "clause": "(He already had the traumas that his previous girlfriend Jane Asher had caused him when she made him aware of his little manliness and effeminate manners).",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "2b4c8b2f",
+   "clause": "Their chauvinisms got to the point that even they themselves hated each other.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "0ea7de75",
+   "clause": "Just said i was inoperable and walked out of the hospital room.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "e4b9f123",
+   "clause": "Additional cost will be incurred for the remainder of this year, that I have not been able to review yet.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "5ec50d55",
+   "clause": "We recommend you to take that curse out of your house throwing away everything related to the Devil's main nine puppets....",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "5886ed07",
+   "clause": "If so, you may want to split and cover.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "0a541b3b",
+   "clause": "What matters is how well trained he is, and how good your bond it.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "d07ec7bc",
+   "clause": "Meanwhile, President George W Bush has said he will lead an inquiry into how the disaster was handled.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "44a673cb",
+   "clause": "Our Rector Barbara and our Deacon Clare also have signed the Declaration.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "213f56b4",
+   "clause": "I don't believe that folks who believe that America is the land of opportunity will change their views from this recent news.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "85fbe1ef",
+   "clause": "Unfortunately Debbie and I will not be able to attend due to previous committments.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "13cd0480",
+   "clause": "My grandfather passed away silently in his sleep, and my grandmother passed away after a short struggle with cancer.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "c86a22c2",
+   "clause": "I have had several close encounters with both foxes and wild deer.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "6a4301f5",
+   "clause": "At the time, generators were refusing to sell power in California because of the price caps.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "a8c4b119",
+   "clause": "The Jewish marriage living to the right of George's house said that he is an arrogant person who does never return a greeting.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "bce718af",
+   "clause": "This is to advise you that we have available, for your business or personal use, Stan's four (4) WNBA Comets tickets.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "90ecbb9a",
+   "clause": "Please consider whether I might fit in your group.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "feb351c2",
+   "clause": "\"Terry said he made that filing in the interest of Californians, but I find that argument has no basis in fact.''",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "404ced89",
+   "clause": "So my advice is that NEVER TRUST THIS DEALER.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "c0cb5e90",
+   "clause": "They're holding \"workshops\" on how it will all work soon.",
+   "is_transformation": 0.5
+  },
+  {
+   "id": "5962ad9a",
+   "clause": "In discussion with Dave, we thought it would be good to put this together in a format of questions and answers.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "43b1dbd4",
+   "clause": "The video cable was replaced and suddenly the motherboard was dead.",
+   "is_transformation": 1.0
+  },
+  {
+   "id": "3318efb4",
+   "clause": "I thought I would have to wait until I went home to NYC.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "e23fe13b",
+   "clause": "maybe it's beacuse you love to work with animals and you just can't be ha[[y if you weren't soing that job",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "81456c98",
+   "clause": "How these guys can get away with being so rude with people is mind blowing.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "7399eb18",
+   "clause": "Electricity: A panel focuses on price hikes and the actions of the ISO president.",
+   "is_transformation": 0.0
+  },
+  {
+   "id": "6b2164b1",
+   "clause": "Likewise, a denial of state civil recognition dishonors the religious convictions of those communities and clergy who officiate at, and bless, same-gender marriages.",
+   "is_transformation": 0.5
+  }
+ ]
+}
