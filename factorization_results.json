@@ -1,0 +1,44 @@
+{
+  "archetypes": "archetypes-27-paraphrase-multilingual-MiniLM-L12-v2-2026-04-24T20-22-54.json",
+  "model": "Xenova/paraphrase-multilingual-MiniLM-L12-v2",
+  "eo_additive_r2": 0.702209,
+  "axis_variance_share": {
+    "q1": 0.231926,
+    "q2": 0.223217,
+    "q3": 0.247066
+  },
+  "interaction_residual": 0.297791,
+  "null": {
+    "n": 20000,
+    "mean": 0.231195,
+    "sd": 0.032756,
+    "max": 0.385571,
+    "z": 14.3796,
+    "n_beating_eo": 0
+  },
+  "search": {
+    "restarts": 60,
+    "best": 0.702209,
+    "ascent_from_eo": 0.702209
+  },
+  "principal_angles_deg": {
+    "q1_vs_q2": [
+      77.67,
+      81.93
+    ],
+    "q1_vs_q3": [
+      81.99,
+      86.05
+    ],
+    "q2_vs_q3": [
+      66.3,
+      84.25
+    ]
+  },
+  "arbitrary_directions_monotonicity": {
+    "0": 0.655650636876223,
+    "1": 0.8402420996794078,
+    "2": 1.001281334914029,
+    "3": 1.1647718031642869
+  }
+}
