@@ -570,3 +570,159 @@ clauses. That is now the single cheapest way to move any of these numbers.
 python domain_filter.py --emb <real.npz>          # filter, apply, compare with control
 python domain_filter.py --emb <real.npz> --power  # the power curve
 ```
+
+---
+
+# The coordinates, and the instrument that finally worked — 2026-08-25
+
+## The method, first, because it rescues everything else
+
+Four subset analyses in this investigation died the same death: apparent
+structure that turned out to be sample size. Per-tier additive R² against tier
+n came back **Spearman +0.917, p = 0.0005** — the tier "gradient" was tier size
+and nothing else. Cells in this corpus hold between **20 and 2,296** clauses.
+
+`unique_exemplars.py` fixes it by selecting equally from every cell, taking the
+clauses most distinctively their own: a leave-one-out margin (cosine to the
+cell's centroid computed without the clause, minus the best cosine to any other
+cell). Only **31.5%** of clauses score positive — most sit closer to some other
+cell than their own.
+
+The trap is that selecting the clauses which best fit the 27-cell structure and
+then measuring that structure is selecting on the dependent variable. So the
+null undergoes the **identical selection** — labels shuffled, margins recomputed
+against the shuffled cells, top-k taken per shuffled cell.
+
+| k/cell | n | EO additive R² | matched null | z |
+|---|---|---|---|---|
+| 10 | 270 | 0.3730 | 0.2349 ±0.0120 | +11.5 |
+| 15 | 405 | 0.4000 | 0.2366 ±0.0087 | +18.8 |
+| **20** | **540** | **0.4271** | **0.2337 ±0.0115** | **+16.8** |
+
+At n = 540 — where a *random* subsample scores nothing at all, the estimator
+crossing zero at n ≈ 2,700 — balanced most-unique selection recovers a 17-sigma
+signal. **This is the only subset method in the investigation that survives its
+own control**, and every subset question that died is re-runnable through it.
+
+## The tier question, answered once the confound is gone
+
+Balanced selection makes every tier exactly 9k clauses by construction.
+
+| tier | additive R² | matched null | z |
+|---|---|---|---|
+| Q2 = EXISTENCE `[NUL SIG INS]` | 0.6214 | 0.4990 ±0.0230 | +5.3 |
+| Q2 = STRUCTURE `[SEG CON SYN]` | 0.6207 | 0.5070 ±0.0288 | +4.0 |
+| Q2 = SIGNIFICANCE `[DEF EVA REC]` | 0.6483 | 0.5030 ±0.0265 | +5.5 |
+
+Spreads: Q1 0.039, Q2 0.028, Q3 0.021 — every one inside a single null sd. Q2
+was 7× the others when confounded; now it is the middle one. **The tiers are
+indistinguishable, and all nine are equally real** (z = +3.0 to +7.3).
+
+The arithmetic / geometric / transcendental split *is* verifiably in the code —
+`gamma ** (t - cell.t)` for presence, `-Math.log2(p)` for information, bare
+`>= 2` order comparisons for the log tier. It is simply not in the lexical
+geometry, and was never a claim about clause embeddings.
+
+## The canonical coordinates fail, on the better instrument
+
+`the-axis-triad-and-its-coordinates` gives every form a three-coordinate
+address — Mode {0,1,2} arithmetic, Domain {−1,+1,√2} geometric, Object
+{2,√2,2^√2} transcendental. `coordinate_geometry.py` verifies the
+reconstruction against all five of the article's own worked examples before
+testing anything.
+
+**Mantel, predicted vs observed 27×27 distances: r = +0.0401, null +0.0015 ±
+0.0868, z = +0.44, beaten by 327 of 500 permutations.** No relationship.
+
+| axis | predicted | observed | max triangle angle |
+|---|---|---|---|
+| Mode ARITHMETIC | 1 : 1.000 : 2.000 | 1 : 0.928 : 0.875 | 67.3° |
+| Domain GEOMETRIC | 1 : 0.207 : 1.207 | 1 : 1.068 : 0.919 | 67.5° |
+| Object TRANSCENDENTAL | 1 : 2.135 : 1.135 | 1 : 1.062 : 0.931 | 66.6° |
+
+The angle column is the deeper finding. **Scalar coordinates place three levels
+on a line** — a degenerate triangle, 180°. Every axis measures ~67°: a
+near-equilateral simplex, which is what categorical variables with no ordering
+give you. *No scalar assignment of any character can describe this*, so the
+step-ratio question is moot before the numbers are chosen. This confirms the
+wiki's own honest line — *"Not met: the coordinate-geometry step-ratio
+predictions"* — with a stronger instrument than the original test had.
+
+Composition law fitted per level-step (LOO, top-6 PC subspace): arithmetic
++0.363, transcendental +0.369, geometric +0.289. Geometric is decisively worst;
+arithmetic and transcendental are indistinguishable.
+
+## Reachability — the claim the coordinates actually make
+
+The coordinates were never metric claims. Gelfond–Schneider encodes
+*reachability*: 2^√2 is unreachable from the algebraics by finite operation, and
+the wiki reads that structurally — *"you cannot arrive at a regularity by any
+finite sequence of operations."* `reachability.py` tests it without using the
+coordinate values at all.
+
+**Extrapolation.** Fit the cube on two levels, reach the third linearly.
+
+| axis | reach top level | matched null | z | interpolate to middle | z |
+|---|---|---|---|---|---|
+| Mode (0 crises) | −1.0541 | −0.7011 | **−3.0** | +0.0133 | **+5.9** |
+| Domain (1 crisis) | −0.8804 | −0.7133 | −1.4 | −0.0359 | +4.3 |
+| Object (2 crises) | −1.2321 | −0.8166 | **−3.1** | +0.0350 | **+6.2** |
+
+The crisis-count ordering **does not hold** — observed Domain > Mode > Object
+against a predicted Mode > Domain > Object. Object is worst as predicted, but
+Mode, predicted to cross *zero* crises, extrapolates worse than Domain.
+
+What does hold is the general shape: **every extrapolation lands below its null,
+every interpolation above it.** The structure supports filling in between
+observations and not reaching past them.
+
+**Hazard.** For a candidate regularity ("every clause containing word W lands in
+cell C") surviving N observations, does observation N+1 refute it?
+
+| N | survived | refuted | hazard | iid null | gap |
+|---|---|---|---|---|---|
+| 1 | 5,575 | 4,265 | 0.765 | 0.861 ±0.004 | −0.096 |
+| 2 | 1,310 | 787 | 0.601 | 0.788 ±0.021 | −0.187 |
+| 3 | 290 | 149 | 0.514 | 0.769 ±0.054 | −0.256 |
+| 4 | 91 | 32 | 0.352 | 0.752 ±0.138 | −0.400 |
+| 5 | 41 | 10 | 0.244 | 0.730 ±0.267 | −0.487 |
+
+Hazard sits below the iid null at every N and the gap widens monotonically:
+**inductive support genuinely accumulates.** But it never approaches zero — a
+regularity holding five straight times still breaks on the sixth one time in
+four — and only 41 candidates survive that far.
+
+**The honest limit, which decides how much either test can carry.**
+Gelfond–Schneider is a claim about *deductive closure*; a corpus supplies
+*inductive support*. No finite sample can show that no finite sample suffices,
+nor that one does. The mapping between the algebraic fact and the epistemic
+claim is an analogy, and counting cannot reach it. What is measurable is whether
+the system *behaves* as if regularities are reachable — and two unrelated tests
+say the same thing: fill in between, never reach past.
+
+## Standing, revised again
+
+| claim | status |
+|---|---|
+| monotonicity / per-axis z-scores are evidence | **refuted** — arbitrary directions reproduce them on noise |
+| EO is a product, not a hierarchy | **holds** — survives transfer; the blind tree fails UNSEEN in both spaces |
+| EO's arrangement of its own cells is optimal | **holds** — z = +14.4, unbeaten by 20k rearrangements or by search |
+| the product structure is real at all | **holds, strengthened** — z = +16.8 on balanced most-unique selection |
+| 3×3×3 specifically is earned | **not supported** — three of nine level-collapses are free or better |
+| axis levels are ordered (layers, a ladder) | **refuted** — every axis is a ~67° simplex, indistinguishable from a shuffled null |
+| the canonical coordinate addresses | **refuted as metric** — Mantel z = +0.44; collinearity precondition fails outright |
+| the tiers carry different maths | **verified in code, absent from the geometry** |
+| the crisis-count reachability ordering | **not supported** — Mode and Domain invert |
+| reachability in general | **consistent, unproven** — interpolation yes, extrapolation no, hazard falls but never to zero |
+
+## Reproducing
+
+```bash
+python unique_exemplars.py     --emb <real.npz>          # the k sweep
+python unique_exemplars.py     --emb <real.npz> --tiers  # per-tier, balanced
+python coordinate_geometry.py  --emb <real.npz>          # address model
+python reachability.py         --emb <real.npz>          # extrapolation + hazard
+```
+
+Real embeddings are Drive pointers in each run dir; fetch with
+`curl -sSL -o embeddings.npz "https://drive.usercontent.google.com/download?id=<ID>&export=download&confirm=t"`.

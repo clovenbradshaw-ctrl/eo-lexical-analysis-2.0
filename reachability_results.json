@@ -1,0 +1,90 @@
+{
+  "reach": {
+    "Mode/GENERATING": {
+      "r2": -1.0541043650206667,
+      "null_mean": -0.7151784096398707,
+      "z": -2.6912034670437515,
+      "kind": "EXTRAPOLATE up"
+    },
+    "Mode/RELATING": {
+      "r2": 0.01329258035092118,
+      "null_mean": -0.18213856807889967,
+      "z": 6.344693228730793,
+      "kind": "INTERPOLATE"
+    },
+    "Mode/DIFFERENTIATING": {
+      "r2": -1.0050823571489755,
+      "null_mean": -0.763440751139928,
+      "z": -1.7677769644591945,
+      "kind": "EXTRAPOLATE down"
+    },
+    "Domain/SIGNIFICANCE": {
+      "r2": -0.8804253663310204,
+      "null_mean": -0.7081259349713359,
+      "z": -1.3617417928680413,
+      "kind": "EXTRAPOLATE up"
+    },
+    "Domain/STRUCTURE": {
+      "r2": -0.03591332194830521,
+      "null_mean": -0.1786304699628514,
+      "z": 5.074394802642774,
+      "kind": "INTERPOLATE"
+    },
+    "Domain/EXISTENCE": {
+      "r2": -1.1094629201395168,
+      "null_mean": -0.7678066470670896,
+      "z": -3.2972243422432093,
+      "kind": "EXTRAPOLATE down"
+    },
+    "Object/PATTERN": {
+      "r2": -1.2320773598914374,
+      "null_mean": -0.8141014536455489,
+      "z": -3.6227036577946925,
+      "kind": "EXTRAPOLATE up"
+    },
+    "Object/ENTITY": {
+      "r2": 0.034965564761264556,
+      "null_mean": -0.17137481015378414,
+      "z": 5.897158992940677,
+      "kind": "INTERPOLATE"
+    },
+    "Object/CONDITION": {
+      "r2": -1.2839074407422282,
+      "null_mean": -0.9227804281357748,
+      "z": -2.83529848259908,
+      "kind": "EXTRAPOLATE down"
+    }
+  },
+  "hazard": {
+    "1": {
+      "survived": 5575,
+      "refuted": 4265,
+      "hazard": 0.7650224215246637,
+      "null": 0.8610582959641256
+    },
+    "2": {
+      "survived": 1310,
+      "refuted": 787,
+      "hazard": 0.600763358778626,
+      "null": 0.7876275908103483
+    },
+    "3": {
+      "survived": 290,
+      "refuted": 149,
+      "hazard": 0.5137931034482759,
+      "null": 0.7694818529674523
+    },
+    "4": {
+      "survived": 91,
+      "refuted": 32,
+      "hazard": 0.3516483516483517,
+      "null": 0.7517715636896718
+    },
+    "5": {
+      "survived": 41,
+      "refuted": 10,
+      "hazard": 0.24390243902439024,
+      "null": 0.7304232804232804
+    }
+  }
+}
