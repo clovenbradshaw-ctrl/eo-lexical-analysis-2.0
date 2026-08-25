@@ -1,0 +1,111 @@
+{
+  "emb": "emb15.npz",
+  "n": 9221,
+  "n_train": 6454,
+  "n_test": 2767,
+  "scores": {
+    "space_a_fit": {
+      "eo": {
+        "cells_filled": 27,
+        "past_cellmean_r2": 0.010240817844539785,
+        "future_additive_r2": 0.008497935061730688,
+        "future_unseen_cell_r2": 0.277326162672378,
+        "product_ratio": 0.8298101958977456
+      },
+      "tree(recursive kmeans)": {
+        "cells_filled": 27,
+        "past_cellmean_r2": 0.13377062920564708,
+        "future_additive_r2": 0.03905259174720421,
+        "future_unseen_cell_r2": -0.00995142599614729,
+        "product_ratio": 0.29193696687460613
+      },
+      "pca-tertile(blind product)": {
+        "cells_filled": 27,
+        "past_cellmean_r2": 0.0647459513760057,
+        "future_additive_r2": 0.049037252968586964,
+        "future_unseen_cell_r2": 0.4975154754819604,
+        "product_ratio": 0.7573794488524538
+      },
+      "random": {
+        "cells_filled": 27,
+        "past_cellmean_r2": -0.004141244860123239,
+        "future_additive_r2": -0.0009318072462924931,
+        "future_unseen_cell_r2": -0.2898466103517423,
+        "product_ratio": NaN
+      }
+    },
+    "space_b_transfer": {
+      "eo": {
+        "cells_filled": 27,
+        "past_cellmean_r2": 0.024780278433147673,
+        "future_additive_r2": 0.02151322154256452,
+        "future_unseen_cell_r2": 0.5089904061546646,
+        "product_ratio": 0.868158991861329
+      },
+      "tree(recursive kmeans)": {
+        "cells_filled": 27,
+        "past_cellmean_r2": 0.07237190378242764,
+        "future_additive_r2": 0.02257062032057544,
+        "future_unseen_cell_r2": -0.08862105797671149,
+        "product_ratio": 0.31186992660065593
+      },
+      "pca-tertile(blind product)": {
+        "cells_filled": 27,
+        "past_cellmean_r2": 0.061390930103736085,
+        "future_additive_r2": 0.0485449853009311,
+        "future_unseen_cell_r2": 0.5347321119464821,
+        "product_ratio": 0.7907517481638021
+      },
+      "random": {
+        "cells_filled": 27,
+        "past_cellmean_r2": -0.0040293421212431735,
+        "future_additive_r2": -0.0008685695937500348,
+        "future_unseen_cell_r2": -0.29184620810375916,
+        "product_ratio": NaN
+      }
+    }
+  },
+  "product_vs_tree_principal_angles_deg": {
+    "branch1_vs_branch2": [
+      80.9,
+      88.1
+    ],
+    "branch1_vs_branch3": [
+      84.4,
+      90.0
+    ],
+    "branch2_vs_branch3": [
+      85.1,
+      89.4
+    ]
+  },
+  "crosswalk_vs_eo": {
+    "tree(recursive kmeans)": {
+      "ari_flat27": 0.0089,
+      "hungarian_acc": 0.1254,
+      "per_axis_ari": [
+        0.0053,
+        0.003,
+        0.0008
+      ]
+    },
+    "pca-tertile(blind product)": {
+      "ari_flat27": 0.0066,
+      "hungarian_acc": 0.0914,
+      "per_axis_ari": [
+        0.0077,
+        0.0055,
+        0.0226
+      ]
+    },
+    "random": {
+      "ari_flat27": 0.0,
+      "hungarian_acc": 0.0698,
+      "per_axis_ari": [
+        0.0004,
+        -0.0002,
+        0.0001
+      ]
+    }
+  }
+}
