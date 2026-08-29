@@ -219,53 +219,18 @@ def get_setting(key, prompt, secret=False, default=None):
 # these plain questions should recover them in embedding geometry.
 # ─────────────────────────────────────────────────────────────────────────────
 
-CLASSIFICATION_SYSTEM = """\
-You are a linguist analyzing clauses. For each clause you will answer three
-short questions about the kind of transformation the clause describes.
+# The EO prompts and value maps live in question_sets.py (entry name "eo").
+# Re-exporting them here keeps every existing caller of CLASSIFICATION_*
+# and Q*_MAP working unchanged, while alternative question sets can be
+# plugged into classify_clause_* via the new `question_set` argument.
+import question_sets as _question_sets
 
-Answer each question with exactly one of the options listed.
-Do not add explanation unless asked.
-Return your answer as JSON: {"q1": "...", "q2": "...", "q3": "..."}
-"""
-
-CLASSIFICATION_PROMPT = """\
-Clause: {clause}
-
-Answer these three questions about the transformation this clause describes:
-
-Q1 — How is the transformation structured?
-  SEPARATING   — the clause is primarily about dividing, distinguishing,
-                 analyzing, or drawing something apart
-  CONNECTING   — the clause is primarily about linking, bridging, relating,
-                 or holding things together
-  PRODUCING    — the clause is primarily about making, generating, creating,
-                 or causing something to happen
-
-Q2 — What level of reality is being transformed?
-  EXISTENCE    — whether something is: presence, absence, coming into being,
-                 disappearing
-  ORGANIZATION — how things are arranged: structure, boundaries, relations,
-                 composition
-  MEANING      — what something signifies: interpretation, value, perspective,
-                 what something registers as
-
-Q3 — What kind of thing is being acted on?
-  BACKGROUND   — an ambient condition, an environment, a field or substrate,
-                 the context something happens within
-  PARTICULAR   — a specific individual thing: this named object, this event,
-                 this person
-  PATTERN      — a recurring regularity: a rule, a type, a schema, something
-                 that holds across many instances
-
-Return JSON only: {{"q1": "SEPARATING|CONNECTING|PRODUCING",
-                   "q2": "EXISTENCE|ORGANIZATION|MEANING",
-                   "q3": "BACKGROUND|PARTICULAR|PATTERN"}}
-"""
-
-# Map plain-language answers back to EO axis values
-Q1_MAP = {"SEPARATING": "DIFFERENTIATING", "CONNECTING": "RELATING", "PRODUCING": "GENERATING"}
-Q2_MAP = {"EXISTENCE": "EXISTENCE", "ORGANIZATION": "STRUCTURE", "MEANING": "SIGNIFICANCE"}
-Q3_MAP = {"BACKGROUND": "CONDITION", "PARTICULAR": "ENTITY", "PATTERN": "PATTERN"}
+_EO = _question_sets.get("eo")
+CLASSIFICATION_SYSTEM = _EO.system_prompt
+CLASSIFICATION_PROMPT = _EO.user_prompt_template
+Q1_MAP = _EO.value_maps["q1"]
+Q2_MAP = _EO.value_maps["q2"]
+Q3_MAP = _EO.value_maps["q3"]
 
 # The 27 cells — derived from Q1 × Q2 × Q3
 ACT_FACE = {
@@ -2168,44 +2133,48 @@ AVAILABLE_CLASSIFIERS = {
     "gemini":  "gemini-1.5-flash",   # via OpenAI-compatible endpoint
 }
 
-def classify_clause_anthropic(clause: str, client) -> Optional[dict]:
+def classify_clause_anthropic(clause: str, client, question_set=None) -> Optional[dict]:
     """Send a clause to Claude and get Q1/Q2/Q3 back."""
-    prompt = CLASSIFICATION_PROMPT.format(clause=clause)
+    qs = question_set or _EO
+    prompt = qs.user_prompt_template.format(clause=clause)
     try:
         response = client.messages.create(
             model=AVAILABLE_CLASSIFIERS["claude"],
             max_tokens=100,
-            system=CLASSIFICATION_SYSTEM,
+            system=qs.system_prompt,
             messages=[{"role": "user", "content": prompt}]
         )
         text = response.content[0].text.strip()
-        return parse_classification(text)
+        return parse_classification(text, question_set=qs)
     except Exception as e:
         return None
 
-def classify_clause_openai(clause: str, client, model="gpt-4o") -> Optional[dict]:
+def classify_clause_openai(clause: str, client, model="gpt-4o", question_set=None) -> Optional[dict]:
     """Send a clause to GPT-4o and get Q1/Q2/Q3 back."""
-    prompt = CLASSIFICATION_PROMPT.format(clause=clause)
+    qs = question_set or _EO
+    prompt = qs.user_prompt_template.format(clause=clause)
     try:
         response = client.chat.completions.create(
             model=model,
             max_tokens=100,
             messages=[
-                {"role": "system", "content": CLASSIFICATION_SYSTEM},
+                {"role": "system", "content": qs.system_prompt},
                 {"role": "user",   "content": prompt}
             ],
             response_format={"type": "json_object"}
         )
         text = response.choices[0].message.content.strip()
-        return parse_classification(text)
+        return parse_classification(text, question_set=qs)
     except Exception as e:
         return None
 
-def parse_classification(text: str) -> Optional[dict]:
+def parse_classification(text: str, question_set=None) -> Optional[dict]:
     """
-    Parse the model's JSON response into EO axis values.
-    Maps plain-language answers (SEPARATING etc.) to axis names (DIFFERENTIATING etc.).
+    Parse the model's JSON response into canonical axis values.
+    For EO, augments the result with the 27-cell address (operator/site/resolution);
+    for other question sets, returns just the canonical q1/q2/q3 + raw answers.
     """
+    qs = question_set or _EO
     try:
         # Strip any markdown fences the model might have added
         text = re.sub(r"```json|```", "", text).strip()
@@ -2214,15 +2183,20 @@ def parse_classification(text: str) -> Optional[dict]:
         q2_raw = data.get("q2", "").upper().strip()
         q3_raw = data.get("q3", "").upper().strip()
 
-        q1 = Q1_MAP.get(q1_raw)
-        q2 = Q2_MAP.get(q2_raw)
-        q3 = Q3_MAP.get(q3_raw)
+        q1 = qs.value_maps["q1"].get(q1_raw)
+        q2 = qs.value_maps["q2"].get(q2_raw)
+        q3 = qs.value_maps["q3"].get(q3_raw)
 
         if not all([q1, q2, q3]):
             return None
 
-        address = derive_address(q1, q2, q3)
-        return {"q1_raw": q1_raw, "q2_raw": q2_raw, "q3_raw": q3_raw, **address}
+        result = {"q1_raw": q1_raw, "q2_raw": q2_raw, "q3_raw": q3_raw,
+                  "q1": q1, "q2": q2, "q3": q3}
+        if qs.name == "eo":
+            address = derive_address(q1, q2, q3)
+            # derive_address re-adds q1/q2/q3 plus operator/site/resolution
+            result.update(address)
+        return result
     except Exception:
         return None
 
