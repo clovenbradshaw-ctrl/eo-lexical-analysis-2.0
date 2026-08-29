@@ -296,7 +296,7 @@ def select_run() -> Path:
 
     if not runs:
         err("No run directories found with classified.jsonl")
-        err("Run the full pipeline (app2.py) first to generate data,")
+        err("Run the full pipeline (main.py) first to generate data,")
         err("or ensure run directories are present in the current directory.")
         sys.exit(1)
 
@@ -334,7 +334,7 @@ def select_run() -> Path:
 # RUN ANALYSIS ON A SINGLE DATASET
 # ─────────────────────────────────────────────────────────────────────────────
 
-def run_one(run_dir: Path, app2, force: bool = False):
+def run_one(run_dir: Path, pipeline, force: bool = False):
     """Download data if needed and run Phase 4 + Phase 5 on a single run directory."""
 
     # ── Download / validate data ──────────────────────────────────────────────
@@ -379,7 +379,7 @@ def run_one(run_dir: Path, app2, force: bool = False):
   (f) Helix dependency — Mode-Domain correlation structure
     """)
 
-    results = app2.run_analysis(
+    results = pipeline.run_analysis(
         embeddings_file=embeddings_file,
         classified_file=classified_file,
         run_dir=run_dir,
@@ -398,7 +398,7 @@ def run_one(run_dir: Path, app2, force: bool = False):
   address new text without any classification prompt.
     """)
 
-    centroid_ret = app2.run_centroids(
+    centroid_ret = pipeline.run_centroids(
         embeddings_file=embeddings_file,
         classified_file=classified_file,
         run_dir=run_dir,
@@ -412,7 +412,7 @@ def run_one(run_dir: Path, app2, force: bool = False):
 
     # ── Append centroid + exemplar sections to the analysis report ────────
     section("Integrating centroid results into analysis report")
-    app2.append_centroid_and_exemplar_sections(run_dir, centroid_results, exemplars_out)
+    pipeline.append_centroid_and_exemplar_sections(run_dir, centroid_results, exemplars_out)
     ok(f"Integrated report: {run_dir / 'analysis_report.txt'}")
 
     # ── Per-run summary ───────────────────────────────────────────────────────
@@ -511,27 +511,27 @@ def main():
 
     # ── Import analysis engine (once, before any runs) ──────────────────────
     section("Loading analysis engine")
-    app2_path = SCRIPT_DIR / "app2.py"
-    if not app2_path.exists():
-        err("app2.py not found — it must be in the same directory as this script.")
-        err("The analysis functions live in app2.py.")
+    pipeline_path = SCRIPT_DIR / "main.py"
+    if not pipeline_path.exists():
+        err("main.py not found — it must be in the same directory as this script.")
+        err("The analysis functions live in main.py.")
         sys.exit(1)
 
     import importlib.util
-    spec = importlib.util.spec_from_file_location("app2", str(app2_path))
-    app2 = importlib.util.module_from_spec(spec)
+    spec = importlib.util.spec_from_file_location("eo_pipeline", str(pipeline_path))
+    pipeline = importlib.util.module_from_spec(spec)
 
     # Suppress the interactive setup and corpus download code during import
     old_argv = sys.argv
-    sys.argv = ["app2.py", "--help-hidden"]  # won't trigger main()
+    sys.argv = ["main.py", "--help-hidden"]  # won't trigger main()
     try:
-        spec.loader.exec_module(app2)
+        spec.loader.exec_module(pipeline)
     except SystemExit:
         pass  # argparse --help would exit
     finally:
         sys.argv = old_argv
 
-    ok("Analysis engine loaded from app2.py")
+    ok("Analysis engine loaded from main.py")
 
     # ── Build list of run directories to process ──────────────────────────────
     section("Selecting dataset(s)")
@@ -562,7 +562,7 @@ def main():
         if len(run_dirs) > 1:
             header(f"DATASET {run_idx}/{len(run_dirs)} — {run_dir.name}")
 
-        run_one(run_dir, app2, force=args.force)
+        run_one(run_dir, pipeline, force=args.force)
         completed.append(run_dir)
 
     # ── Combine reports when --all is used ──────────────────────────────────

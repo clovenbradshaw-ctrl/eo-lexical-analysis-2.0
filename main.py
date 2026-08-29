@@ -9,8 +9,8 @@
 ║                                                                              ║
 ║  All corpus data is downloaded and cached locally in data/.                   ║
 ║                                                                              ║
-║  Run:  python app2.py                                                        ║
-║  Help: python app2.py --help                                                 ║
+║  Run:  python main.py                                                        ║
+║  Help: python main.py --help                                                 ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
 
@@ -7886,14 +7886,14 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=textwrap.dedent("""\
           Examples:
-            python app2.py                       # interactive setup + full run
-            python app2.py --phase corpus        # only download and extract clauses
-            python app2.py --phase classify      # only classify (needs data/)
-            python app2.py --phase embed         # only embed classified clauses
-            python app2.py --phase analyze       # only analyze (needs embeddings)
-            python app2.py --sample 200          # classify only 200 clauses (test run)
-            python app2.py --resume              # resume a previously interrupted run
-            python app2.py --no-ud --no-flores   # disable specific sources
+            python main.py                       # interactive setup + full run
+            python main.py --phase corpus        # only download and extract clauses
+            python main.py --phase classify      # only classify (needs data/)
+            python main.py --phase embed         # only embed classified clauses
+            python main.py --phase analyze       # only analyze (needs embeddings)
+            python main.py --sample 200          # classify only 200 clauses (test run)
+            python main.py --resume              # resume a previously interrupted run
+            python main.py --no-ud --no-flores   # disable specific sources
         """)
     )
     parser.add_argument("--phase",   choices=["corpus","classify","embed","analyze","centroids","all"],

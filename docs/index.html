@@ -50,7 +50,7 @@
 <code>data/proofwiki/titles_raw.json</code> and
 <code>data/proofwiki/pages/&lt;sha1&gt;.json</code> directly into your
 repo's <code>data/</code> folder. Matches exactly what
-<code>load_proofwiki_proofs</code> in <code>app2.py</code> reads. Runs in
+<code>load_proofwiki_proofs</code> in <code>main.py</code> reads. Runs in
 the browser — use a Chromium-based browser (Chrome, Edge, Arc, Brave)
 where you've cleared ProofWiki's Cloudflare captcha in another tab.</p>
 
@@ -190,7 +190,7 @@ async function fileExists(dirHandle, name) {
   catch (e) { return false; }
 }
 
-// ─── Title extraction (mirrors _pw_titles_from_obj in app2.py) ──────────
+// ─── Title extraction (mirrors _pw_titles_from_obj in main.py) ──────────
 function extractTitles(obj) {
   if (typeof obj === 'string') return [obj];
   if (Array.isArray(obj)) {
