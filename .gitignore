@@ -2,3 +2,7 @@ __pycache__/
 *.pyc
 .env
 *.tmp
+
+# local model weights (multi-GB; fetched on demand by
+# alt_structures/local_models/download_models.sh, not committed)
+alt_structures/local_models/weights/*.gguf
