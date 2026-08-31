@@ -1,0 +1,28 @@
+=== qwen / eo ===
+loading Qwen2.5-7B-Instruct (Q4_K_M) ...
+loaded in 7.3s
+81 clauses  model=qwen  scheme=eo
+[1/81]  19.1s  avg= 19.1s  ok=1/1  eta= 25.4min  id=6c70c05d
+[2/81]  18.9s  avg= 19.0s  ok=2/2  eta= 25.0min  id=90198b2f
+[3/81]  13.6s  avg= 17.2s  ok=3/3  eta= 22.4min  id=12f07fb3
+[4/81]  15.0s  avg= 16.6s  ok=4/4  eta= 21.4min  id=85fbe1ef
+[5/81]  14.5s  avg= 16.2s  ok=5/5  eta= 20.5min  id=919e8c64
+[6/81]  14.6s  avg= 15.9s  ok=6/6  eta= 19.9min  id=f1d27d11
+[7/81]  14.4s  avg= 15.7s  ok=7/7  eta= 19.4min  id=854eba63
+[8/81]  16.0s  avg= 15.8s  ok=8/8  eta= 19.2min  id=d6504b6b
+[9/81]  51.6s  avg= 19.7s  ok=9/9  eta= 23.7min  id=ba68cdb6
+[10/81]  20.0s  avg= 19.8s  ok=10/10  eta= 23.4min  id=9affec9a
+[11/81]  11.8s  avg= 19.0s  ok=11/11  eta= 22.2min  id=b1485f9d
+[12/81]  12.0s  avg= 18.5s  ok=12/12  eta= 21.2min  id=36da9597
+[13/81]  12.0s  avg= 18.0s  ok=13/13  eta= 20.4min  id=e61e6b32
+[14/81]  19.4s  avg= 18.1s  ok=14/14  eta= 20.2min  id=254ae6a0
+[15/81]  16.2s  avg= 17.9s  ok=15/15  eta= 19.7min  id=cc1a7762
+[16/81]  13.3s  avg= 17.6s  ok=16/16  eta= 19.1min  id=d5b5dbb9
+[17/81]  12.5s  avg= 17.3s  ok=17/17  eta= 18.5min  id=dad1381f
+[18/81]  13.2s  avg= 17.1s  ok=17/18  eta= 18.0min  id=3257b1ba
+[19/81]  12.7s  avg= 16.9s  ok=18/19  eta= 17.4min  id=3f7337d0
+[20/81]  13.4s  avg= 16.7s  ok=19/20  eta= 17.0min  id=53e07303
+[21/81]  12.5s  avg= 16.5s  ok=20/21  eta= 16.5min  id=8d6dc531
+[22/81]  12.7s  avg= 16.3s  ok=21/22  eta= 16.1min  id=8c22824f
+[23/81]  12.3s  avg= 16.2s  ok=22/23  eta= 15.6min  id=09c28b54
+[24/81]  12.3s  avg= 16.0s  ok=22/24  eta= 15.2min  id=0c539d50
