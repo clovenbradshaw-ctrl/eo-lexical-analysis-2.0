@@ -91,6 +91,48 @@
       }
     },
     {
+      "name": "qwen-srl",
+      "n": 79,
+      "n_lev": [
+        4
+      ],
+      "cells": 3,
+      "params": 4,
+      "future": -0.005811823356866697,
+      "unseen": NaN,
+      "past": -0.005811810493469238,
+      "product_ratio": NaN,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": NaN,
+        "null_mean": NaN,
+        "null_sd": NaN,
+        "z": NaN,
+        "n_perm": 0
+      }
+    },
+    {
+      "name": "qwen-discourse",
+      "n": 81,
+      "n_lev": [
+        5
+      ],
+      "cells": 4,
+      "params": 5,
+      "future": -0.0604010074316601,
+      "unseen": NaN,
+      "past": -0.060401082038879395,
+      "product_ratio": NaN,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": NaN,
+        "null_mean": NaN,
+        "null_sd": NaN,
+        "z": NaN,
+        "n_perm": 0
+      }
+    },
+    {
       "name": "mistral-eo",
       "n": 78,
       "n_lev": [
@@ -156,6 +198,48 @@
       }
     },
     {
+      "name": "mistral-srl",
+      "n": 80,
+      "n_lev": [
+        4
+      ],
+      "cells": 3,
+      "params": 4,
+      "future": -0.1228749472267634,
+      "unseen": NaN,
+      "past": -0.12287497520446777,
+      "product_ratio": NaN,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": NaN,
+        "null_mean": NaN,
+        "null_sd": NaN,
+        "z": NaN,
+        "n_perm": 0
+      }
+    },
+    {
+      "name": "mistral-discourse",
+      "n": 81,
+      "n_lev": [
+        5
+      ],
+      "cells": 4,
+      "params": 5,
+      "future": -0.012587366805393962,
+      "unseen": NaN,
+      "past": -0.012587308883666992,
+      "product_ratio": NaN,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": NaN,
+        "null_mean": NaN,
+        "null_sd": NaN,
+        "z": NaN,
+        "n_perm": 0
+      }
+    },
+    {
       "name": "tree(recursive kmeans)",
       "n": 81,
       "n_lev": [
@@ -193,6 +277,19 @@
       "future": -0.11625836683241642,
       "unseen": NaN,
       "past": -0.1885223388671875,
+      "product_ratio": NaN
+    },
+    {
+      "name": "verbnet-lexical(top5+other)",
+      "n": 81,
+      "n_lev": [
+        6
+      ],
+      "cells": 6,
+      "params": 6,
+      "future": -0.09648554114062957,
+      "unseen": NaN,
+      "past": -0.09648549556732178,
       "product_ratio": NaN
     }
   ],

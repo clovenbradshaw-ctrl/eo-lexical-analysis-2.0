@@ -141,8 +141,43 @@ BEHAVIOURAL / EXISTENTIAL`) — the closest established precedent to Q1's
 "how is the transformation structured" — an off-the-shelf, corpus
 -validated process-type typology instead of an invented 3-way split.
 
-Both are single-axis schemes (4 and 6 levels respectively, vs. EO's three
-3-level axes), which is exactly why `harness.py` imports its FUTURE/UNSEEN
+**SRL-style argument structure / valence pattern** (`COPULAR /
+INTRANSITIVE / TRANSITIVE / DITRANSITIVE`) — the conventional NLP answer:
+decompose the clause by predicate-argument structure the way
+PropBank/FrameNet semantic role labeling would, instead of Q1/Q2/Q3's
+invented 3-way split. A real SRL parser outputs free-form Arg0..Arg4 role
+spans, which don't reduce to a small discrete axis for this harness — this
+is an LLM-prompted proxy for the coarse valence-pattern summary of that
+output (argument count + type), not the parser itself.
+
+**PDTB-style discourse relation** (`EXPANSION / CONTINGENCY / COMPARISON /
+TEMPORAL / NONE`) — the conventional answer for how a clause relates to
+its context, as opposed to what it is (Vendler/Halliday) or does
+internally (SRL). Real PDTB annotates a connective between two argument
+spans (Arg1/Arg2); applied here to single extracted clauses, this asks
+what relation the clause's own connective/structure signals to its
+context — a stated simplification of PDTB's actual annotation unit.
+
+**VerbNet lexical class** (`candidates/verbnet_lexical.py`) — the one
+non-LLM addition: NLTK POS-tags the clause, lemmatizes the main verb, and
+looks up its VerbNet (Levin-style) class. VerbNet has no small textbook
+inventory the way Vendler's four categories do (~270 leaf classes, ~50+
+top-level ones), so there's no principled fixed axis to prompt an LLM
+for — this instead buckets to the 5 most frequent top-level classes
+observed when fit, plus OTHER, which is specific to whatever sample it's
+fit on rather than a universal taxonomy. Main-verb selection is a
+POS-tag heuristic (first non-auxiliary VB* token), not a dependency
+parse, and polysemous verbs take NLTK's first-listed class rather than a
+sense-disambiguated one — both stated simplifications.
+
+**Not added: AMR parsing.** A real AMR parser's output is a full semantic
+graph, which doesn't reduce to a small discrete axis without engineering
+disproportionate to what it would buy here (unlike SRL's argument count or
+PDTB's connective, there's no similarly natural coarse summary). Left out
+rather than faked.
+
+Five of the six new schemes are single-axis (4-6 levels), vs. EO's three
+3-level axes, which is exactly why `harness.py` imports its FUTURE/UNSEEN
 scorer from `dimensionality.py` rather than `recursive_split.py`'s
 EO-specific 3×3×3 version — it already generalizes to arbitrary axis/level
 counts (`dimensionality.py`'s own "blind sweep" needs the same thing).
@@ -174,12 +209,17 @@ eo-consensus                        81     27  -0.6297  -0.0445  -0.1834      4.
 qwen-eo                             79     12  -0.0646  -0.2048  -0.9273      1.16
 qwen-vendler                        81      4  -0.0806  -0.0806     nan       nan
 qwen-halliday                       70      5  -0.0671  -0.0671     nan       nan
+qwen-srl                            79      3  -0.0058  -0.0058     nan       nan
+qwen-discourse                      81      4  -0.0604  -0.0604     nan       nan
 mistral-eo                          78      5  -0.0318  -0.0426     nan       nan
 mistral-vendler                     80      2  -0.0278  -0.0288     nan       nan
 mistral-halliday                    75      5  -0.0241  -0.0241     nan       nan
+mistral-srl                         80      3  -0.1229  -0.1229     nan       nan
+mistral-discourse                   81      4  -0.0126  -0.0126     nan       nan
 tree(recursive kmeans)              81      -  insufficient data at this n (see below)
 pca-tertile(blind product)          81     23  -0.1884  -0.0199  -0.1304      nan
 surface(char/ttr/punct)             81     15  -0.1885  -0.1163     nan       nan
+verbnet-lexical(top5+other)         81      6  -0.0965  -0.0965     nan       nan
 ```
 
 4-way rater agreement (Cohen's kappa, flat 27-cell label):
@@ -247,15 +287,34 @@ does deliver, cleanly: a same-question, same-span comparison across two
 more model families with no shared pretraining lineage with Claude or
 GPT, which is strictly more than the 2-rater status quo had.
 
-Parse reliability was solid across both models (0–13.6% JSON-parse
-failure per scheme/model; `qwen-halliday` was the worst at 11/81).
+Parse reliability was solid across all six schemes × both models
+(0–2.5% JSON-parse failure for srl/discourse, 0–13.6% for eo/vendler
+/halliday; `qwen-halliday` was the overall worst at 11/81).
+
+### SRL, discourse, and VerbNet: no baseline to compare against
+
+Unlike the `eo` replication, SRL/discourse/VerbNet are new axes with no
+prior claude/gpt4 labels to compute agreement against — there's no
+non-circular kappa to report for them at any n. Their PAST/FUTURE/UNSEEN
+rows sit at the same n=81 noise floor as everything else above (`cells`
+2-6, mostly negative PAST/FUTURE, UNSEEN unscoreable). What this pilot
+does establish for them: the classification pipeline runs end-to-end on
+all three (parse failure 0-2.5% for the two LLM-based ones), and
+VerbNet's lexicon lookup correctly discriminates real clauses (spot
+-checked separately — "she gave him a book" and "he knows the answer"
+land in different classes). Whether any of them structure the embedding
+space better than EO or the other rivals is exactly the question a
+properly-powered run (below) would answer; this one can't.
 
 ### Scaling up
 
 To get a properly-powered structure comparison (matching the repo's own
 validated n≈270-540), re-run at `per_cell=10` or `per_cell=20`. Measured
-throughput here was ~7-16s/clause/model depending on scheme (shorter
-single-axis prompts were faster than the 3-axis EO replication). At
-`per_cell=10`: `10 × 27 cells × 3 schemes × 2 models ≈ 1,620 clauses`, or
-roughly **5-6 hours of CPU time** on this box's 4 vCPUs; `per_cell=20`
-roughly doubles that. Not run here to keep the pilot inside one session.
+throughput across all six schemes ranged ~6-16s/clause/model (srl/
+discourse were fastest at ~6-7s; eo, the only 3-axis scheme, slowest at
+~15-16s). At `per_cell=10` across all six schemes:
+`10 × 27 cells × 6 schemes × 2 models ≈ 3,240 clauses`, or roughly
+**8-9 hours of CPU time** on this box's 4 vCPUs; `per_cell=20` roughly
+doubles that. Scoped down to fewer schemes (e.g. just `eo` for the kappa
+question, or just the new candidates) proportionally less. Not run here
+to keep the pilot inside one session.
