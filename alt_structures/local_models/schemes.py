@@ -162,4 +162,129 @@ HALLIDAY_SCHEME = dict(
 )
 
 
-SCHEMES = {s["name"]: s for s in (EO_SCHEME, VENDLER_SCHEME, HALLIDAY_SCHEME)}
+# ── SRL-style argument structure (valence pattern) ───────────────────────────
+# The conventional NLP answer: instead of Q1/Q2/Q3's invented 3-way split,
+# decompose the clause by its predicate-argument structure the way
+# PropBank/FrameNet semantic role labeling would (core roles: who did what
+# to whom). A full SRL parser outputs free-form Arg0..Arg4 role spans, which
+# don't reduce to a small discrete axis for this harness -- this is the
+# coarse valence-pattern summary of that output (argument count + type),
+# the standard first cut in argument-structure typology. It is an
+# LLM-prompted PROXY for what an SRL parser's role count would give, not
+# the parser itself -- stated once here rather than left implicit.
+
+SRL_SYSTEM = """\
+You are a linguist analyzing predicate-argument (semantic role) structure,
+in the PropBank/FrameNet tradition.
+
+Answer with exactly one of the options listed.
+Do not add explanation unless asked.
+Return your answer as JSON: {"valence": "..."}
+"""
+
+SRL_PROMPT = """\
+Clause: {clause}
+
+Classify the MAIN predicate's core argument (semantic role) pattern:
+
+  COPULAR       — a linking/attributive predicate with no true verbal
+                  argument structure (be, seem, become + complement):
+                  "The sky is blue." / "She seems tired."
+  INTRANSITIVE  — one core argument (an Agent, Theme, or Experiencer;
+                  no direct object): "The mountain exists." / "She ran."
+  TRANSITIVE    — two core arguments (e.g. Agent+Patient/Theme):
+                  "She built a house." / "He knows the answer."
+  DITRANSITIVE  — three or more core arguments (e.g. Agent+Recipient+
+                  Theme): "She gave him a book." / "They told us the news."
+
+Return JSON only: {{"valence": "COPULAR|INTRANSITIVE|TRANSITIVE|DITRANSITIVE"}}
+"""
+
+_SRL_VALID = {"COPULAR", "INTRANSITIVE", "TRANSITIVE", "DITRANSITIVE"}
+
+
+def _parse_srl(text):
+    try:
+        data = json.loads(_strip_fences(text))
+        v = str(data.get("valence", "")).upper().strip()
+        return {"valence": v} if v in _SRL_VALID else None
+    except Exception:
+        return None
+
+
+SRL_SCHEME = dict(
+    name="srl",
+    label="SRL-style argument-structure / valence pattern",
+    system=SRL_SYSTEM,
+    prompt_template=SRL_PROMPT,
+    parser=_parse_srl,
+    axes=("valence",),
+    levels={"valence": tuple(sorted(_SRL_VALID))},
+)
+
+
+# ── PDTB-style discourse relation ────────────────────────────────────────────
+# The conventional answer for how clauses RELATE to their context, as
+# opposed to what a clause IS in isolation (Vendler/Halliday) or does
+# internally (SRL). Real PDTB annotation labels a connective between two
+# argument spans (Arg1/Arg2); applied here to single extracted clauses
+# (which mostly lack a paired neighbor span in this corpus), this asks
+# what relation the clause's OWN connective/structure signals to its
+# context, or NONE if it carries no such signal -- a stated
+# simplification of PDTB's actual annotation unit, not the full scheme.
+
+DISCOURSE_SYSTEM = """\
+You are a linguist analyzing discourse relations, in the Penn Discourse
+TreeBank (PDTB) tradition -- the level-1 sense classes.
+
+Answer with exactly one of the options listed.
+Do not add explanation unless asked.
+Return your answer as JSON: {"relation": "..."}
+"""
+
+DISCOURSE_PROMPT = """\
+Clause: {clause}
+
+Classify the discourse relation this clause signals to its surrounding
+context, via its own connective or structure (if any):
+
+  EXPANSION    — elaborates, restates, or adds to the surrounding context
+                 (and, in addition, for example, that is)
+  CONTINGENCY  — a cause/reason/condition/result relation
+                 (because, so, if, therefore, as a result)
+  COMPARISON   — a contrast or concession relation
+                 (but, however, although, on the other hand)
+  TEMPORAL     — a sequencing or synchrony relation
+                 (then, before, while, after, meanwhile)
+  NONE         — no discourse connective or relation signal; the clause
+                 reads as self-contained
+
+Return JSON only:
+{{"relation": "EXPANSION|CONTINGENCY|COMPARISON|TEMPORAL|NONE"}}
+"""
+
+_DISCOURSE_VALID = {"EXPANSION", "CONTINGENCY", "COMPARISON", "TEMPORAL", "NONE"}
+
+
+def _parse_discourse(text):
+    try:
+        data = json.loads(_strip_fences(text))
+        v = str(data.get("relation", "")).upper().strip()
+        return {"relation": v} if v in _DISCOURSE_VALID else None
+    except Exception:
+        return None
+
+
+DISCOURSE_SCHEME = dict(
+    name="discourse",
+    label="PDTB-style discourse relation (level-1 sense)",
+    system=DISCOURSE_SYSTEM,
+    prompt_template=DISCOURSE_PROMPT,
+    parser=_parse_discourse,
+    axes=("relation",),
+    levels={"relation": tuple(sorted(_DISCOURSE_VALID))},
+)
+
+
+SCHEMES = {s["name"]: s for s in
+           (EO_SCHEME, VENDLER_SCHEME, HALLIDAY_SCHEME, SRL_SCHEME, DISCOURSE_SCHEME)}

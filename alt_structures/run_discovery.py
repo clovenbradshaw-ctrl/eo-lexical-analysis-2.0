@@ -8,14 +8,18 @@ of docs/WHY-THESE-THREE.md's own tables.
 Candidates scored:
   eo-consensus          the original Q1xQ2xQ3, as already labeled in
                          classified.jsonl (claude+gpt4 consensus)
-  {model}-eo             qwen/mistral replaying the exact same rubric on
+  {model}-eo              qwen/mistral replaying the exact same rubric on
                          the exact same spans -> 4-way rater agreement
-  {model}-vendler         qwen/mistral under the Vendler aspect scheme
-  {model}-halliday        qwen/mistral under the Halliday transitivity scheme
+  {model}-vendler          qwen/mistral under the Vendler aspect scheme
+  {model}-halliday         qwen/mistral under the Halliday transitivity scheme
+  {model}-srl              qwen/mistral under the SRL-style valence-pattern scheme
+  {model}-discourse        qwen/mistral under the PDTB-style discourse-relation scheme
   tree(recursive kmeans)  blind, already in this repo (recursive_split.py)
   pca-tertile             blind product, already in this repo
   surface                 char-len x type-token x punct tertiles, already
                           in this repo (falsify_3x3x3.py), geometry-blind
+  verbnet-lexical         top-5 most frequent Levin-style VerbNet classes
+                          of the main verb (+OTHER), lexicon lookup, no LLM
 
 Usage:
   python run_discovery.py --per-cell 3
@@ -38,6 +42,9 @@ import harness  # noqa: E402
 from sampling import balanced_sample, load_local_labels  # noqa: E402
 from local_embeddings import embed_cached  # noqa: E402
 from candidates.blind_geometric import GEOMETRIC_CANDIDATES  # noqa: E402
+from candidates.verbnet_lexical import VERBNET_CANDIDATES  # noqa: E402
+
+ALL_GEOMETRIC_CANDIDATES = {**GEOMETRIC_CANDIDATES, **VERBNET_CANDIDATES}
 from schemes import SCHEMES  # noqa: E402
 
 RUN_DIR = HERE.parent / "run_2026-03-15_122636"
@@ -115,7 +122,7 @@ def main():
 
     # ── local-LLM schemes, both models: original rubric + 2 conventional alts ──
     for model in ("qwen", "mistral"):
-        for scheme_name in ("eo", "vendler", "halliday"):
+        for scheme_name in ("eo", "vendler", "halliday", "srl", "discourse"):
             path = results_dir / f"{model}_{scheme_name}.jsonl"
             local = load_local_labels(path)
             if not local:
@@ -133,7 +140,7 @@ def main():
 
     # ── blind geometric rivals already in this repo ─────────────────────────────
     tr, te = harness.train_test_split(len(sample), seed=args.seed)
-    for name, (needs_text, n_lev, factory) in GEOMETRIC_CANDIDATES.items():
+    for name, (needs_text, n_lev, factory) in ALL_GEOMETRIC_CANDIDATES.items():
         cand = factory(args.seed)
         try:
             if needs_text:
