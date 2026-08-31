@@ -166,12 +166,96 @@ comparing them directly, per that document's own rule of thumb: *"a null
 that EO beats tells you almost nothing; a ceiling that EO matches or beats
 is the whole result."*
 
-## Status
+## Results — pilot run, per_cell=3 (81 clauses)
 
-Infrastructure built and smoke-tested (synthetic-data unit checks on
-`harness.py` + all three geometric candidates; a 3-clause live run through
-Qwen at 100% JSON-parse success). The full classification + discovery
-pass for this pilot (`per_cell=3`, 81 clauses/scheme/model) was kicked off
-in the background; results and the filled-in comparison table will be
-appended here once it completes. See `results/discovery_report.json` for
-the machine-readable version once present.
+```
+candidate                            n  cells     PAST   FUTURE   UNSEEN   UNSEEN_z
+eo-consensus                        81     27  -0.6297  -0.0445  -0.1834      4.99
+qwen-eo                             79     12  -0.0646  -0.2048  -0.9273      1.16
+qwen-vendler                        81      4  -0.0806  -0.0806     nan       nan
+qwen-halliday                       70      5  -0.0671  -0.0671     nan       nan
+mistral-eo                          78      5  -0.0318  -0.0426     nan       nan
+mistral-vendler                     80      2  -0.0278  -0.0288     nan       nan
+mistral-halliday                    75      5  -0.0241  -0.0241     nan       nan
+tree(recursive kmeans)              81      -  insufficient data at this n (see below)
+pca-tertile(blind product)          81     23  -0.1884  -0.0199  -0.1304      nan
+surface(char/ttr/punct)             81     15  -0.1885  -0.1163     nan       nan
+```
+
+4-way rater agreement (Cohen's kappa, flat 27-cell label):
+
+```
+              claude      gpt4      qwen   mistral
+claude            --     1.000     0.079     0.067
+gpt4           1.000        --     0.079     0.067
+qwen           0.079     0.079        --     0.003
+mistral        0.067     0.067     0.003        --
+```
+
+Full machine-readable version: `results/discovery_report.json`.
+
+### Read this table carefully — three things are NOT what they look like
+
+**claude/gpt4 κ=1.000 is a sampling artifact, not a finding.**
+`balanced_sample()` draws only from clauses with a non-null `consensus`
+field, and `consensus` is only ever set when claude and gpt4 *already
+agreed* (see `app2.py`'s classification pipeline). Scoring agreement on a
+sample that is agreement by construction is circular. The real,
+non-circular claude/gpt4 kappa is the one already in this repo
+(`docs/WHY-THESE-THREE.md`: 0.585/0.534/0.457 per axis, computed over the
+full labeled corpus including disagreements) — don't cite the 1.000 above
+as if it were comparable to that number.
+
+**Most PAST/FUTURE values are noise, not signal.** `unique_exemplars.py`'s
+own finding (cited in `docs/WHY-THESE-THREE.md`) is that this kind of
+held-out structure score needs several hundred balanced clauses before it
+separates from a null — n=270 was their smallest clean signal (z=+11.5).
+This pilot ran at n=81 (`per_cell=3`) specifically to fit local-CPU
+classification into one session; most of the negative PAST/FUTURE values
+above are exactly the small-n noise floor that document describes, not
+evidence against any scheme (EO's own PAST is -0.63 here, which nobody
+should read as "EO has negative structure" — it's an n=81 artifact).
+
+**The `tree` candidate isn't broken, the sample is too small for it.**
+Recursive depth-3 KMeans needs enough points per branch to run
+`KMeans(k=3)` at the leaves; with ~56 training clauses spread (at depth 2)
+over up to 9 branches, some branches had a single point left. This needs
+a larger `per_cell` to even attempt, unrelated to whether it's a good
+scheme.
+
+### What IS real at this n: local-model agreement
+
+Kappa doesn't need as much data as the R²-based structure tests to be
+informative, and this result doesn't depend on the consensus-sampling
+artifact above (qwen/mistral never touch the consensus field):
+
+- **qwen vs mistral: κ=0.003** — indistinguishable from chance. Two
+  different 7B-class model families, given the identical prompt and the
+  identical clause, essentially don't converge on the same Q1/Q2/Q3
+  answer.
+- **qwen/mistral vs claude/gpt4: κ=0.067–0.079** — "slight" on the
+  standard Landis-Koch scale, well below the original pair's own
+  moderate 0.46–0.59 per-axis kappa.
+
+Read cautiously: this could mean the three-question rubric is genuinely
+hard to elicit consistently (strengthening `WHY-THESE-THREE.md`'s
+"poverty of stimulus" concern), or it could mean these particular 7B CPU
+models are simply less capable at this specific judgment call than
+`claude-sonnet-4-6`/`gpt-4o-mini` — this data can't separate those two
+explanations, and shouldn't be over-read as settling either one. What it
+does deliver, cleanly: a same-question, same-span comparison across two
+more model families with no shared pretraining lineage with Claude or
+GPT, which is strictly more than the 2-rater status quo had.
+
+Parse reliability was solid across both models (0–13.6% JSON-parse
+failure per scheme/model; `qwen-halliday` was the worst at 11/81).
+
+### Scaling up
+
+To get a properly-powered structure comparison (matching the repo's own
+validated n≈270-540), re-run at `per_cell=10` or `per_cell=20`. Measured
+throughput here was ~7-16s/clause/model depending on scheme (shorter
+single-axis prompts were faster than the 3-axis EO replication). At
+`per_cell=10`: `10 × 27 cells × 3 schemes × 2 models ≈ 1,620 clauses`, or
+roughly **5-6 hours of CPU time** on this box's 4 vCPUs; `per_cell=20`
+roughly doubles that. Not run here to keep the pilot inside one session.

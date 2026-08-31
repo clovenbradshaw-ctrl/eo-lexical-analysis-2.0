@@ -135,15 +135,25 @@ def main():
     tr, te = harness.train_test_split(len(sample), seed=args.seed)
     for name, (needs_text, n_lev, factory) in GEOMETRIC_CANDIDATES.items():
         cand = factory(args.seed)
-        if needs_text:
-            ctr, cte = [clauses[i] for i in tr], [clauses[i] for i in te]
-            cand.fit(ctr)
-            ltr, lte = cand.apply(ctr), cand.apply(cte)
-        else:
-            cand.fit(X_full[tr])
-            ltr, lte = cand.apply(X_full[tr]), cand.apply(X_full[te])
-        sc = harness.score_structure(X_full[tr], ltr, X_full[te], lte, n_lev)
-        report["candidates"].append({"name": name, "n": len(sample), "n_lev": n_lev, **sc})
+        try:
+            if needs_text:
+                ctr, cte = [clauses[i] for i in tr], [clauses[i] for i in te]
+                cand.fit(ctr)
+                ltr, lte = cand.apply(ctr), cand.apply(cte)
+            else:
+                cand.fit(X_full[tr])
+                ltr, lte = cand.apply(X_full[tr]), cand.apply(X_full[te])
+            sc = harness.score_structure(X_full[tr], ltr, X_full[te], lte, n_lev)
+            report["candidates"].append({"name": name, "n": len(sample), "n_lev": n_lev, **sc})
+        except ValueError as e:
+            # e.g. Tree's depth-3 recursive KMeans needs more train points per
+            # branch than a small pilot sample provides (~len(train)/27 avg).
+            # Not a bug in the candidate -- this sample is just too small for
+            # it; report that rather than aborting the whole run.
+            print(f"skip {name}: {e} (sample too small for this candidate -- "
+                  f"needs more train points per branch than {len(tr)} total gives it)", file=sys.stderr)
+            report["candidates"].append({"name": name, "n": len(sample), "n_lev": n_lev,
+                                          "error": f"insufficient data: {e}"})
 
     # ── 4-way rater agreement on the EO scheme ───────────────────────────────────
     raw = {}
@@ -167,6 +177,9 @@ def main():
     print(f"\n{'candidate':32} {'n':>5} {'cells':>6} {'PAST':>8} {'FUTURE':>8} {'UNSEEN':>8} {'ratio':>7} {'UNSEEN_z':>9}")
     print("-" * 92)
     for c in report["candidates"]:
+        if "error" in c:
+            print(f"{c['name']:32} {c['n']:5d}    -- {c['error']}")
+            continue
         z = c.get("unseen_null", {}).get("z", float("nan"))
         print(f"{c['name']:32} {c['n']:5d} {c['cells']:6d} {c['past']:+8.4f} {c['future']:+8.4f} "
               f"{c['unseen']:+8.4f} {c['product_ratio']:7.3f} {z:9.2f}")

@@ -83,6 +83,9 @@ def shuffled_null(Xtr, ltr, Xte, lte, n_lev, n_perm=200, seed=0, metric="unseen"
         if not np.isnan(v):
             vals.append(v)
     vals = np.array(vals)
+    if len(vals) == 0:
+        return {"metric": metric, "observed": float(observed), "null_mean": float("nan"),
+                "null_sd": float("nan"), "z": float("nan"), "n_perm": 0}
     mean, sd = float(vals.mean()), float(vals.std())
     z = (observed - mean) / sd if sd > 0 else float("nan")
     return {"metric": metric, "observed": float(observed), "null_mean": mean,
