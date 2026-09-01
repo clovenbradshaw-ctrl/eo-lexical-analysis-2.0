@@ -1,0 +1,553 @@
+=== qwen / eo ===
+loading Qwen2.5-7B-Instruct (Q4_K_M) ...
+loaded in 15.9s
+270 clauses  model=qwen  scheme=eo
+[1/270]  34.4s  avg= 34.4s  ok=1/1  eta=154.1min  id=6c70c05d
+[2/270]  28.2s  avg= 31.3s  ok=2/2  eta=139.6min  id=90198b2f
+[3/270]  28.0s  avg= 30.2s  ok=3/3  eta=134.3min  id=12f07fb3
+[4/270]  29.3s  avg= 30.0s  ok=4/4  eta=132.8min  id=af15e54c
+[5/270]  26.9s  avg= 29.4s  ok=5/5  eta=129.7min  id=de07579a
+[6/270]  28.9s  avg= 29.3s  ok=6/6  eta=128.9min  id=302cd59c
+[7/270]  29.8s  avg= 29.4s  ok=7/7  eta=128.7min  id=d2e5d541
+[8/270]  27.5s  avg= 29.1s  ok=8/8  eta=127.2min  id=9e390ca0
+[9/270]  30.3s  avg= 29.2s  ok=9/9  eta=127.2min  id=1eda66a0
+[10/270]  30.2s  avg= 29.3s  ok=10/10  eta=127.2min  id=d51d7dc7
+[11/270]  27.9s  avg= 29.2s  ok=11/11  eta=126.1min  id=85fbe1ef
+[12/270]  28.4s  avg= 29.1s  ok=12/12  eta=125.3min  id=919e8c64
+[13/270]  28.4s  avg= 29.1s  ok=13/13  eta=124.6min  id=f1d27d11
+[14/270]  29.0s  avg= 29.1s  ok=14/14  eta=124.0min  id=9e58d6d7
+[15/270]  31.0s  avg= 29.2s  ok=15/15  eta=124.1min  id=b6f10b5e
+[16/270]  30.1s  avg= 29.3s  ok=16/16  eta=123.9min  id=486537d3
+[17/270]  28.5s  avg= 29.2s  ok=17/17  eta=123.2min  id=0b14f3ab
+[18/270]  28.1s  avg= 29.2s  ok=18/18  eta=122.4min  id=f6b98bc4
+[19/270]  28.1s  avg= 29.1s  ok=19/19  eta=121.7min  id=b87a1185
+[20/270]  27.3s  avg= 29.0s  ok=20/20  eta=120.9min  id=1fc26111
+[21/270]  28.4s  avg= 29.0s  ok=21/21  eta=120.3min  id=854eba63
+[22/270]  31.7s  avg= 29.1s  ok=22/22  eta=120.3min  id=d6504b6b
+[23/270]  32.8s  avg= 29.3s  ok=23/23  eta=120.5min  id=ba68cdb6
+[24/270]  32.9s  avg= 29.4s  ok=24/24  eta=120.6min  id=801de88e
+[25/270]  28.0s  avg= 29.4s  ok=25/25  eta=119.9min  id=4c8d0f67
+[26/270]  30.1s  avg= 29.4s  ok=26/26  eta=119.5min  id=29ede257
+[27/270]  29.6s  avg= 29.4s  ok=27/27  eta=119.0min  id=03229375
+[28/270]  30.1s  avg= 29.4s  ok=28/28  eta=118.6min  id=e3c0e3c1
+[29/270]  28.3s  avg= 29.4s  ok=29/29  eta=118.0min  id=2fa2a26b
+[30/270]  29.0s  avg= 29.4s  ok=30/30  eta=117.5min  id=2c3c1555
+[31/270]  27.3s  avg= 29.3s  ok=31/31  eta=116.7min  id=9affec9a
+[32/270]  27.3s  avg= 29.2s  ok=32/32  eta=116.0min  id=b1485f9d
+[33/270]  30.2s  avg= 29.3s  ok=33/33  eta=115.6min  id=36da9597
+[34/270]  28.6s  avg= 29.2s  ok=34/34  eta=115.0min  id=20edae01
+[35/270]  28.3s  avg= 29.2s  ok=34/35  eta=114.4min  id=4fe7d517
+[36/270]  28.7s  avg= 29.2s  ok=35/36  eta=113.9min  id=6f31e710
+[37/270]  31.5s  avg= 29.3s  ok=36/37  eta=113.7min  id=92ea7c83
+[38/270]  30.9s  avg= 29.3s  ok=37/38  eta=113.3min  id=078f0809
+[39/270]  28.1s  avg= 29.3s  ok=38/39  eta=112.7min  id=c750bb02
+[40/270]  27.8s  avg= 29.2s  ok=39/40  eta=112.1min  id=f5bd7e2e
+[41/270]  27.6s  avg= 29.2s  ok=40/41  eta=111.5min  id=e61e6b32
+[42/270]  29.9s  avg= 29.2s  ok=41/42  eta=111.0min  id=254ae6a0
+[43/270]  29.4s  avg= 29.2s  ok=42/43  eta=110.6min  id=cc1a7762
+[44/270]  28.2s  avg= 29.2s  ok=43/44  eta=110.0min  id=5ae88c92
+[45/270]  29.9s  avg= 29.2s  ok=44/45  eta=109.6min  id=a0a6e2e0
+[46/270]  28.6s  avg= 29.2s  ok=45/46  eta=109.0min  id=feb351c2
+[47/270]  29.2s  avg= 29.2s  ok=46/47  eta=108.5min  id=fad8b0a4
+[48/270]  29.4s  avg= 29.2s  ok=47/48  eta=108.1min  id=1b60f613
+[49/270]  28.9s  avg= 29.2s  ok=48/49  eta=107.6min  id=5b451541
+[50/270]  28.1s  avg= 29.2s  ok=49/50  eta=107.0min  id=c7d64612
+[51/270]  28.2s  avg= 29.2s  ok=49/51  eta=106.4min  id=d5b5dbb9
+[52/270]  29.3s  avg= 29.2s  ok=50/52  eta=106.0min  id=dad1381f
+[53/270]  29.5s  avg= 29.2s  ok=50/53  eta=105.5min  id=3257b1ba
+[54/270]  29.8s  avg= 29.2s  ok=51/54  eta=105.1min  id=c5e978c2
+[55/270]  27.2s  avg= 29.1s  ok=52/55  eta=104.4min  id=04b5313d
+[56/270]  28.5s  avg= 29.1s  ok=53/56  eta=103.9min  id=7c2a6f1b
+[57/270]  28.5s  avg= 29.1s  ok=54/57  eta=103.4min  id=c3a7f95b
+[58/270]  27.6s  avg= 29.1s  ok=55/58  eta=102.8min  id=e86979bc
+[59/270]  29.0s  avg= 29.1s  ok=56/59  eta=102.3min  id=48791e81
+[60/270]  29.0s  avg= 29.1s  ok=57/60  eta=101.8min  id=19b2e81f
+[61/270]  27.5s  avg= 29.1s  ok=58/61  eta=101.3min  id=3f7337d0
+[62/270]  28.0s  avg= 29.0s  ok=59/62  eta=100.7min  id=53e07303
+[63/270]  28.5s  avg= 29.0s  ok=60/63  eta=100.2min  id=8d6dc531
+[64/270]  29.4s  avg= 29.0s  ok=61/64  eta= 99.7min  id=78b12d4e
+[65/270]  26.7s  avg= 29.0s  ok=62/65  eta= 99.1min  id=ed4d039e
+[66/270]  27.2s  avg= 29.0s  ok=63/66  eta= 98.5min  id=706bc7dc
+[67/270]  27.8s  avg= 29.0s  ok=64/67  eta= 98.0min  id=63b10563
+[68/270]  27.5s  avg= 28.9s  ok=65/68  eta= 97.4min  id=2b433807
+[69/270]  27.9s  avg= 28.9s  ok=66/69  eta= 96.9min  id=5b0b66d4
+[70/270]  29.4s  avg= 28.9s  ok=67/70  eta= 96.4min  id=a24c40af
+[71/270]  27.5s  avg= 28.9s  ok=68/71  eta= 95.9min  id=8c22824f
+[72/270]  29.4s  avg= 28.9s  ok=68/72  eta= 95.4min  id=09c28b54
+[73/270]  30.1s  avg= 28.9s  ok=68/73  eta= 95.0min  id=0c539d50
+[74/270]  29.1s  avg= 28.9s  ok=69/74  eta= 94.5min  id=f5f230f6
+[75/270]  28.7s  avg= 28.9s  ok=70/75  eta= 94.0min  id=4fcf836a
+[76/270]  28.9s  avg= 28.9s  ok=71/76  eta= 93.6min  id=d0687992
+[77/270]  29.4s  avg= 28.9s  ok=72/77  eta= 93.1min  id=d6c37395
+[78/270]  27.6s  avg= 28.9s  ok=73/78  eta= 92.6min  id=35f063d9
+[79/270]  29.1s  avg= 28.9s  ok=74/79  eta= 92.1min  id=50aa5f33
+[80/270]  31.1s  avg= 29.0s  ok=75/80  eta= 91.7min  id=2d1ac6b4
+[81/270]  27.9s  avg= 28.9s  ok=76/81  eta= 91.2min  id=5c175f9b
+[82/270]  29.4s  avg= 28.9s  ok=77/82  eta= 90.7min  id=aa45604e
+[83/270]  28.4s  avg= 28.9s  ok=78/83  eta= 90.2min  id=8f30fd87
+[84/270]  28.9s  avg= 28.9s  ok=79/84  eta= 89.7min  id=80dac3aa
+[85/270]  29.7s  avg= 28.9s  ok=79/85  eta= 89.3min  id=c4a31e16
+[86/270]  29.6s  avg= 29.0s  ok=80/86  eta= 88.8min  id=168ae78a
+[87/270]  28.6s  avg= 29.0s  ok=81/87  eta= 88.3min  id=d2a91293
+[88/270]  28.2s  avg= 28.9s  ok=82/88  eta= 87.8min  id=e38f90c4
+[89/270]  29.3s  avg= 28.9s  ok=83/89  eta= 87.3min  id=dd85cd49
+[90/270]  28.2s  avg= 28.9s  ok=84/90  eta= 86.8min  id=c2d26a94
+[91/270]  28.6s  avg= 28.9s  ok=85/91  eta= 86.3min  id=149ee200
+[92/270]  27.1s  avg= 28.9s  ok=86/92  eta= 85.8min  id=f611c08f
+[93/270]  29.2s  avg= 28.9s  ok=87/93  eta= 85.3min  id=4bc9d48d
+[94/270]  28.6s  avg= 28.9s  ok=88/94  eta= 84.8min  id=cab1db52
+[95/270]  28.1s  avg= 28.9s  ok=89/95  eta= 84.3min  id=f07589aa
+[96/270]  27.5s  avg= 28.9s  ok=90/96  eta= 83.8min  id=d2005592
+[97/270]  28.6s  avg= 28.9s  ok=91/97  eta= 83.3min  id=c210faf1
+[98/270]  30.0s  avg= 28.9s  ok=92/98  eta= 82.8min  id=b831ec91
+[99/270]  32.2s  avg= 28.9s  ok=93/99  eta= 82.5min  id=6ca765e1
+[100/270]  28.1s  avg= 28.9s  ok=94/100  eta= 82.0min  id=d4e252c4
+[101/270]  28.5s  avg= 28.9s  ok=95/101  eta= 81.5min  id=a0a638e7
+[102/270]  29.3s  avg= 28.9s  ok=96/102  eta= 81.0min  id=96f1ca71
+[103/270]  29.0s  avg= 28.9s  ok=97/103  eta= 80.5min  id=91b25250
+[104/270]  29.6s  avg= 28.9s  ok=98/104  eta= 80.0min  id=433d757b
+[105/270]  29.0s  avg= 28.9s  ok=99/105  eta= 79.6min  id=1430378f
+[106/270]  29.0s  avg= 28.9s  ok=100/106  eta= 79.1min  id=5ef67c1f
+[107/270]  27.8s  avg= 28.9s  ok=101/107  eta= 78.6min  id=0e6f3b71
+[108/270]  27.9s  avg= 28.9s  ok=102/108  eta= 78.1min  id=2ca89c37
+[109/270]  26.6s  avg= 28.9s  ok=103/109  eta= 77.5min  id=43b1dbd4
+[110/270]  27.2s  avg= 28.9s  ok=104/110  eta= 77.0min  id=9630fa43
+[111/270]  28.5s  avg= 28.9s  ok=105/111  eta= 76.5min  id=fc2be294
+[112/270]  28.0s  avg= 28.9s  ok=106/112  eta= 76.0min  id=66eb98e8
+[113/270]  28.5s  avg= 28.9s  ok=107/113  eta= 75.5min  id=defff373
+[114/270]  26.7s  avg= 28.8s  ok=108/114  eta= 75.0min  id=f83bf6fc
+[115/270]  27.7s  avg= 28.8s  ok=109/115  eta= 74.5min  id=1474355d
+[116/270]  27.1s  avg= 28.8s  ok=110/116  eta= 74.0min  id=6e18a1e2
+[117/270]  28.5s  avg= 28.8s  ok=111/117  eta= 73.5min  id=f6b317c1
+[118/270]  27.9s  avg= 28.8s  ok=112/118  eta= 73.0min  id=8a5da413
+[119/270]  28.6s  avg= 28.8s  ok=113/119  eta= 72.5min  id=3b642ba6
+[120/270]  29.0s  avg= 28.8s  ok=114/120  eta= 72.0min  id=90b801e0
+[121/270]  30.0s  avg= 28.8s  ok=115/121  eta= 71.6min  id=cb8565e3
+[122/270]  28.6s  avg= 28.8s  ok=116/122  eta= 71.1min  id=85050eed
+[123/270]  30.4s  avg= 28.8s  ok=117/123  eta= 70.6min  id=230775d0
+[124/270]  32.0s  avg= 28.9s  ok=118/124  eta= 70.2min  id=65b44288
+[125/270]  30.9s  avg= 28.9s  ok=119/125  eta= 69.8min  id=b0b52795
+[126/270]  29.4s  avg= 28.9s  ok=120/126  eta= 69.3min  id=600b9335
+[127/270]  29.1s  avg= 28.9s  ok=121/127  eta= 68.8min  id=186cbf52
+[128/270]  29.9s  avg= 28.9s  ok=122/128  eta= 68.4min  id=069b7944
+[129/270]  27.4s  avg= 28.9s  ok=123/129  eta= 67.8min  id=f18e8a77
+[130/270]  27.2s  avg= 28.9s  ok=124/130  eta= 67.3min  id=7fdf259e
+[131/270]  27.9s  avg= 28.9s  ok=125/131  eta= 66.8min  id=e73d0abb
+[132/270]  27.7s  avg= 28.8s  ok=126/132  eta= 66.3min  id=404ced89
+[133/270]  28.7s  avg= 28.8s  ok=127/133  eta= 65.9min  id=864599dc
+[134/270]  28.0s  avg= 28.8s  ok=128/134  eta= 65.4min  id=e885feee
+[135/270]  29.7s  avg= 28.8s  ok=129/135  eta= 64.9min  id=3be6f443
+[136/270]  28.8s  avg= 28.8s  ok=130/136  eta= 64.4min  id=c2751026
+[137/270]  28.3s  avg= 28.8s  ok=131/137  eta= 63.9min  id=eb2603c6
+[138/270]  28.6s  avg= 28.8s  ok=132/138  eta= 63.4min  id=e5eaa480
+[139/270]  28.3s  avg= 28.8s  ok=133/139  eta= 62.9min  id=f372c6b9
+[140/270]  28.5s  avg= 28.8s  ok=134/140  eta= 62.5min  id=ba97a0d6
+[141/270]  28.7s  avg= 28.8s  ok=135/141  eta= 62.0min  id=01adeba3
+[142/270]  27.5s  avg= 28.8s  ok=136/142  eta= 61.5min  id=33d2389b
+[143/270]  27.3s  avg= 28.8s  ok=137/143  eta= 61.0min  id=48e3b2dc
+[144/270]  28.8s  avg= 28.8s  ok=138/144  eta= 60.5min  id=74f1e81d
+[145/270]  30.2s  avg= 28.8s  ok=139/145  eta= 60.0min  id=65b4a22e
+[146/270]  28.2s  avg= 28.8s  ok=140/146  eta= 59.5min  id=de4a8fd3
+[147/270]  30.2s  avg= 28.8s  ok=141/147  eta= 59.1min  id=e98e5fb6
+[148/270]  31.0s  avg= 28.8s  ok=142/148  eta= 58.6min  id=35468d6e
+[149/270]  28.2s  avg= 28.8s  ok=143/149  eta= 58.1min  id=b3af3ebf
+[150/270]  26.9s  avg= 28.8s  ok=144/150  eta= 57.6min  id=612ef989
+[151/270]  29.3s  avg= 28.8s  ok=145/151  eta= 57.2min  id=1099d881
+[152/270]  29.1s  avg= 28.8s  ok=146/152  eta= 56.7min  id=8b576093
+[153/270]  30.2s  avg= 28.8s  ok=147/153  eta= 56.2min  id=517b0621
+[154/270]  27.5s  avg= 28.8s  ok=148/154  eta= 55.7min  id=7426cb47
+[155/270]  29.8s  avg= 28.8s  ok=149/155  eta= 55.3min  id=9c749a89
+[156/270]  30.8s  avg= 28.8s  ok=150/156  eta= 54.8min  id=600fd530
+[157/270]  29.5s  avg= 28.8s  ok=151/157  eta= 54.3min  id=23ebdd4c
+[158/270]  28.4s  avg= 28.8s  ok=152/158  eta= 53.8min  id=40d787d0
+[159/270]  28.6s  avg= 28.8s  ok=153/159  eta= 53.4min  id=98f83b7b
+[160/270]  30.6s  avg= 28.9s  ok=154/160  eta= 52.9min  id=fa228aec
+[161/270]  28.7s  avg= 28.9s  ok=155/161  eta= 52.4min  id=99d422b9
+[162/270]  26.9s  avg= 28.8s  ok=156/162  eta= 51.9min  id=a4549b4f
+[163/270]  27.6s  avg= 28.8s  ok=157/163  eta= 51.4min  id=866a15ed
+[164/270]  28.4s  avg= 28.8s  ok=158/164  eta= 50.9min  id=8175b505
+[165/270]  28.4s  avg= 28.8s  ok=159/165  eta= 50.5min  id=1b4ed692
+[166/270]  27.4s  avg= 28.8s  ok=160/166  eta= 50.0min  id=dfd7d56c
+[167/270]  29.9s  avg= 28.8s  ok=161/167  eta= 49.5min  id=8abb4078
+[168/270]  27.7s  avg= 28.8s  ok=162/168  eta= 49.0min  id=5962ad9a
+[169/270]  28.1s  avg= 28.8s  ok=163/169  eta= 48.5min  id=d07ec7bc
+[170/270]  29.7s  avg= 28.8s  ok=164/170  eta= 48.0min  id=b54deca3
+[171/270]  27.7s  avg= 28.8s  ok=165/171  eta= 47.5min  id=6a06ab7d
+[172/270]  28.9s  avg= 28.8s  ok=166/172  eta= 47.1min  id=f1c54d9d
+[173/270]  28.0s  avg= 28.8s  ok=167/173  eta= 46.6min  id=5510c719
+[174/270]  29.4s  avg= 28.8s  ok=168/174  eta= 46.1min  id=a00aa266
+[175/270]  27.6s  avg= 28.8s  ok=169/175  eta= 45.6min  id=d3f05905
+[176/270]  27.1s  avg= 28.8s  ok=170/176  eta= 45.1min  id=34cee780
+[177/270]  27.7s  avg= 28.8s  ok=171/177  eta= 44.6min  id=3a9fff5a
+[178/270]  27.0s  avg= 28.8s  ok=172/178  eta= 44.1min  id=5e6d1bb3
+[179/270]  27.5s  avg= 28.8s  ok=173/179  eta= 43.6min  id=2fd281f4
+[180/270]  28.7s  avg= 28.8s  ok=174/180  eta= 43.2min  id=02de8641
+[181/270]  26.3s  avg= 28.8s  ok=175/181  eta= 42.7min  id=bad43436
+[182/270]  28.0s  avg= 28.8s  ok=176/182  eta= 42.2min  id=5b72156d
+[183/270]  28.4s  avg= 28.8s  ok=177/183  eta= 41.7min  id=4b4d7c63
+[184/270]  28.0s  avg= 28.7s  ok=178/184  eta= 41.2min  id=96b9ccf0
+[185/270]  27.4s  avg= 28.7s  ok=179/185  eta= 40.7min  id=96648628
+[186/270]  27.2s  avg= 28.7s  ok=180/186  eta= 40.2min  id=627af459
+[187/270]  26.9s  avg= 28.7s  ok=181/187  eta= 39.7min  id=cdf82246
+[188/270]  29.7s  avg= 28.7s  ok=182/188  eta= 39.3min  id=22c05fde
+[189/270]  27.4s  avg= 28.7s  ok=183/189  eta= 38.8min  id=4533dad5
+[190/270]  28.6s  avg= 28.7s  ok=184/190  eta= 38.3min  id=7a6e3466
+[191/270]  26.4s  avg= 28.7s  ok=185/191  eta= 37.8min  id=7aaecc5b
+[192/270]  26.8s  avg= 28.7s  ok=186/192  eta= 37.3min  id=82c58e4c
+[193/270]  26.1s  avg= 28.7s  ok=187/193  eta= 36.8min  id=65e6cfee
+[194/270]  26.9s  avg= 28.7s  ok=188/194  eta= 36.3min  id=13cd0480
+[195/270]  26.1s  avg= 28.7s  ok=189/195  eta= 35.8min  id=a84dc4dd
+[196/270]  29.1s  avg= 28.7s  ok=190/196  eta= 35.4min  id=1d835b20
+[197/270]  28.6s  avg= 28.7s  ok=191/197  eta= 34.9min  id=9bee0259
+[198/270]  27.8s  avg= 28.7s  ok=192/198  eta= 34.4min  id=9f33b70c
+[199/270]  27.6s  avg= 28.7s  ok=193/199  eta= 33.9min  id=ec949231
+[200/270]  27.7s  avg= 28.7s  ok=194/200  eta= 33.4min  id=14c101c9
+[201/270]  27.7s  avg= 28.6s  ok=195/201  eta= 32.9min  id=8b21c9f1
+[202/270]  28.3s  avg= 28.6s  ok=196/202  eta= 32.5min  id=4ed06393
+[203/270]  28.3s  avg= 28.6s  ok=197/203  eta= 32.0min  id=b731d69f
+[204/270]  29.1s  avg= 28.6s  ok=198/204  eta= 31.5min  id=1fb5f539
+[205/270]  27.5s  avg= 28.6s  ok=199/205  eta= 31.0min  id=2fe0b5a0
+[206/270]  28.5s  avg= 28.6s  ok=200/206  eta= 30.5min  id=01899f2c
+[207/270]  27.6s  avg= 28.6s  ok=201/207  eta= 30.1min  id=b270062b
+[208/270]  26.8s  avg= 28.6s  ok=202/208  eta= 29.6min  id=870f497f
+[209/270]  29.6s  avg= 28.6s  ok=203/209  eta= 29.1min  id=ac6d16d0
+[210/270]  27.5s  avg= 28.6s  ok=204/210  eta= 28.6min  id=7c702bf7
+[211/270]  27.1s  avg= 28.6s  ok=205/211  eta= 28.1min  id=e77c2c0a
+[212/270]  28.3s  avg= 28.6s  ok=206/212  eta= 27.7min  id=9836b4c5
+[213/270]  28.0s  avg= 28.6s  ok=207/213  eta= 27.2min  id=e748ffff
+[214/270]  27.4s  avg= 28.6s  ok=208/214  eta= 26.7min  id=0f8fa780
+[215/270]  28.5s  avg= 28.6s  ok=209/215  eta= 26.2min  id=ec1588f8
+[216/270]  29.3s  avg= 28.6s  ok=210/216  eta= 25.7min  id=03e9bb56
+[217/270]  27.9s  avg= 28.6s  ok=211/217  eta= 25.3min  id=0e9f04da
+[218/270]  28.9s  avg= 28.6s  ok=212/218  eta= 24.8min  id=85266a81
+[219/270]  29.3s  avg= 28.6s  ok=213/219  eta= 24.3min  id=a5aeac0e
+[220/270]  27.1s  avg= 28.6s  ok=214/220  eta= 23.8min  id=e400db06
+[221/270]  27.1s  avg= 28.6s  ok=215/221  eta= 23.4min  id=8436f36e
+[222/270]  27.0s  avg= 28.6s  ok=216/222  eta= 22.9min  id=88fd1ad2
+[223/270]  26.7s  avg= 28.6s  ok=217/223  eta= 22.4min  id=b260db45
+[224/270]  28.3s  avg= 28.6s  ok=218/224  eta= 21.9min  id=ee0b28df
+[225/270]  28.9s  avg= 28.6s  ok=219/225  eta= 21.4min  id=f15953fe
+[226/270]  27.2s  avg= 28.6s  ok=220/226  eta= 21.0min  id=7f0b5a94
+[227/270]  27.6s  avg= 28.6s  ok=221/227  eta= 20.5min  id=3ce15389
+[228/270]  28.3s  avg= 28.6s  ok=222/228  eta= 20.0min  id=5ef854ca
+[229/270]  27.3s  avg= 28.6s  ok=223/229  eta= 19.5min  id=2f4d01eb
+[230/270]  28.3s  avg= 28.6s  ok=224/230  eta= 19.0min  id=67ea205c
+[231/270]  28.8s  avg= 28.6s  ok=225/231  eta= 18.6min  id=9803dd21
+[232/270]  29.9s  avg= 28.6s  ok=226/232  eta= 18.1min  id=30d69ed8
+[233/270]  27.6s  avg= 28.6s  ok=227/233  eta= 17.6min  id=12073c5c
+[234/270]  27.4s  avg= 28.6s  ok=228/234  eta= 17.1min  id=d94d71d5
+[235/270]  27.6s  avg= 28.6s  ok=229/235  eta= 16.7min  id=e09e0b57
+[236/270]  27.9s  avg= 28.6s  ok=230/236  eta= 16.2min  id=b62e7ed6
+[237/270]  29.9s  avg= 28.6s  ok=231/237  eta= 15.7min  id=fe150477
+[238/270]  29.4s  avg= 28.6s  ok=232/238  eta= 15.2min  id=16afba15
+[239/270]  29.1s  avg= 28.6s  ok=233/239  eta= 14.8min  id=b9dbe6b0
+[240/270]  28.0s  avg= 28.6s  ok=234/240  eta= 14.3min  id=213f56b4
+[241/270]  29.6s  avg= 28.6s  ok=235/241  eta= 13.8min  id=56c4ad27
+[242/270]  29.9s  avg= 28.6s  ok=236/242  eta= 13.3min  id=ebaa1e16
+[243/270]  28.5s  avg= 28.6s  ok=237/243  eta= 12.9min  id=16e8253e
+[244/270]  29.2s  avg= 28.6s  ok=238/244  eta= 12.4min  id=cadcf2f9
+[245/270]  29.0s  avg= 28.6s  ok=239/245  eta= 11.9min  id=16b19e01
+[246/270]  28.5s  avg= 28.6s  ok=240/246  eta= 11.4min  id=00c722b7
+[247/270]  28.5s  avg= 28.6s  ok=241/247  eta= 11.0min  id=f01aae7f
+[248/270]  29.0s  avg= 28.6s  ok=242/248  eta= 10.5min  id=f215e43e
+[249/270]  28.0s  avg= 28.6s  ok=243/249  eta= 10.0min  id=ef5c5d00
+[250/270]  27.1s  avg= 28.6s  ok=244/250  eta=  9.5min  id=677cf04f
+[251/270]  27.6s  avg= 28.6s  ok=245/251  eta=  9.0min  id=a19ee40d
+[252/270]  27.5s  avg= 28.6s  ok=246/252  eta=  8.6min  id=b864e123
+[253/270]  26.9s  avg= 28.6s  ok=247/253  eta=  8.1min  id=110e0229
+[254/270]  26.9s  avg= 28.5s  ok=248/254  eta=  7.6min  id=63ffbae0
+[255/270]  26.4s  avg= 28.5s  ok=249/255  eta=  7.1min  id=5dac1838
+[256/270]  26.7s  avg= 28.5s  ok=250/256  eta=  6.7min  id=d2a1ac3d
+[257/270]  26.5s  avg= 28.5s  ok=251/257  eta=  6.2min  id=a2143d29
+[258/270]  27.5s  avg= 28.5s  ok=252/258  eta=  5.7min  id=4e434b4e
+[259/270]  27.2s  avg= 28.5s  ok=253/259  eta=  5.2min  id=239331d0
+[260/270]  28.1s  avg= 28.5s  ok=254/260  eta=  4.8min  id=68086230
+[261/270]  27.6s  avg= 28.5s  ok=255/261  eta=  4.3min  id=f4beaedd
+[262/270]  27.6s  avg= 28.5s  ok=256/262  eta=  3.8min  id=99418d10
+[263/270]  27.6s  avg= 28.5s  ok=257/263  eta=  3.3min  id=9e5c7160
+[264/270]  27.7s  avg= 28.5s  ok=258/264  eta=  2.9min  id=68c21aa4
+[265/270]  27.4s  avg= 28.5s  ok=259/265  eta=  2.4min  id=c462fa5c
+[266/270]  28.5s  avg= 28.5s  ok=260/266  eta=  1.9min  id=d4e4f610
+[267/270]  28.2s  avg= 28.5s  ok=261/267  eta=  1.4min  id=1c19e961
+[268/270]  28.1s  avg= 28.5s  ok=262/268  eta=  0.9min  id=ce5b82cf
+[269/270]  27.3s  avg= 28.5s  ok=263/269  eta=  0.5min  id=725912e5
+[270/270]  27.8s  avg= 28.5s  ok=264/270  eta=  0.0min  id=fba9743a
+
+done. 264 parsed, 6 failed (2.2% parse failure). avg 28.5s/clause. wrote ../results/qwen_eo.jsonl
+=== mistral / eo ===
+loading Mistral-7B-Instruct-v0.3 (Q4_K_M) ...
+loaded in 392.1s
+270 clauses  model=mistral  scheme=eo
+[1/270]  39.4s  avg= 39.4s  ok=1/1  eta=176.7min  id=6c70c05d
+[2/270]  33.9s  avg= 36.7s  ok=2/2  eta=163.8min  id=90198b2f
+[3/270]  34.3s  avg= 35.9s  ok=3/3  eta=159.7min  id=12f07fb3
+[4/270]  36.9s  avg= 36.1s  ok=4/4  eta=160.3min  id=af15e54c
+[5/270]  34.9s  avg= 35.9s  ok=5/5  eta=158.5min  id=de07579a
+[6/270]  35.1s  avg= 35.8s  ok=6/6  eta=157.4min  id=302cd59c
+[7/270]  35.5s  avg= 35.7s  ok=7/7  eta=156.6min  id=d2e5d541
+[8/270]  34.0s  avg= 35.5s  ok=8/8  eta=155.1min  id=9e390ca0
+[9/270]  39.8s  avg= 36.0s  ok=9/9  eta=156.5min  id=1eda66a0
+[10/270]  36.2s  avg= 36.0s  ok=10/10  eta=156.0min  id=d51d7dc7
+[11/270]  33.9s  avg= 35.8s  ok=11/11  eta=154.6min  id=85fbe1ef
+[12/270]  34.9s  avg= 35.7s  ok=12/12  eta=153.7min  id=919e8c64
+[13/270]  33.5s  avg= 35.6s  ok=13/13  eta=152.3min  id=f1d27d11
+[14/270]  36.6s  avg= 35.6s  ok=14/14  eta=152.1min  id=9e58d6d7
+[15/270]  37.9s  avg= 35.8s  ok=15/15  eta=152.1min  id=b6f10b5e
+[16/270]  40.5s  avg= 36.1s  ok=16/16  eta=152.8min  id=486537d3
+[17/270]  35.4s  avg= 36.0s  ok=17/17  eta=152.0min  id=0b14f3ab
+[18/270]  35.2s  avg= 36.0s  ok=18/18  eta=151.2min  id=f6b98bc4
+[19/270]  36.6s  avg= 36.0s  ok=19/19  eta=150.7min  id=b87a1185
+[20/270]  35.3s  avg= 36.0s  ok=20/20  eta=149.9min  id=1fc26111
+[21/270]  34.6s  avg= 35.9s  ok=21/21  eta=149.1min  id=854eba63
+[22/270]  39.9s  avg= 36.1s  ok=22/22  eta=149.2min  id=d6504b6b
+[23/270]  39.9s  avg= 36.3s  ok=23/23  eta=149.3min  id=ba68cdb6
+[24/270]  37.9s  avg= 36.3s  ok=24/24  eta=149.0min  id=801de88e
+[25/270]  35.8s  avg= 36.3s  ok=25/25  eta=148.3min  id=4c8d0f67
+[26/270]  37.4s  avg= 36.4s  ok=26/26  eta=147.9min  id=29ede257
+[27/270]  35.5s  avg= 36.3s  ok=27/27  eta=147.1min  id=03229375
+[28/270]  38.1s  avg= 36.4s  ok=28/28  eta=146.8min  id=e3c0e3c1
+[29/270]  35.8s  avg= 36.4s  ok=29/29  eta=146.1min  id=2fa2a26b
+[30/270]  35.6s  avg= 36.3s  ok=30/30  eta=145.4min  id=2c3c1555
+[31/270]  33.8s  avg= 36.3s  ok=31/31  eta=144.4min  id=9affec9a
+[32/270]  37.2s  avg= 36.3s  ok=32/32  eta=143.9min  id=b1485f9d
+[33/270]  36.9s  avg= 36.3s  ok=33/33  eta=143.4min  id=36da9597
+[34/270]  35.6s  avg= 36.3s  ok=34/34  eta=142.7min  id=20edae01
+[35/270]  34.9s  avg= 36.2s  ok=35/35  eta=142.0min  id=4fe7d517
+[36/270]  35.8s  avg= 36.2s  ok=36/36  eta=141.3min  id=6f31e710
+[37/270]  37.3s  avg= 36.3s  ok=37/37  eta=140.8min  id=92ea7c83
+[38/270]  37.1s  avg= 36.3s  ok=38/38  eta=140.3min  id=078f0809
+[39/270]  35.6s  avg= 36.3s  ok=39/39  eta=139.6min  id=c750bb02
+[40/270]  34.5s  avg= 36.2s  ok=40/40  eta=138.8min  id=f5bd7e2e
+[41/270]  35.0s  avg= 36.2s  ok=41/41  eta=138.1min  id=e61e6b32
+[42/270]  36.3s  avg= 36.2s  ok=42/42  eta=137.5min  id=254ae6a0
+[43/270]  37.2s  avg= 36.2s  ok=43/43  eta=137.0min  id=cc1a7762
+[44/270]  35.6s  avg= 36.2s  ok=44/44  eta=136.4min  id=5ae88c92
+[45/270]  33.6s  avg= 36.1s  ok=45/45  eta=135.5min  id=a0a6e2e0
+[46/270]  35.1s  avg= 36.1s  ok=46/46  eta=134.9min  id=feb351c2
+[47/270]  34.3s  avg= 36.1s  ok=47/47  eta=134.1min  id=fad8b0a4
+[48/270]  34.7s  avg= 36.1s  ok=48/48  eta=133.4min  id=1b60f613
+[49/270]  33.0s  avg= 36.0s  ok=49/49  eta=132.6min  id=5b451541
+[50/270]  32.7s  avg= 35.9s  ok=50/50  eta=131.7min  id=c7d64612
+[51/270]  33.1s  avg= 35.9s  ok=51/51  eta=130.9min  id=d5b5dbb9
+[52/270]  35.8s  avg= 35.9s  ok=52/52  eta=130.3min  id=dad1381f
+[53/270]  36.3s  avg= 35.9s  ok=53/53  eta=129.7min  id=3257b1ba
+[54/270]  35.1s  avg= 35.9s  ok=54/54  eta=129.1min  id=c5e978c2
+[55/270]  34.1s  avg= 35.8s  ok=55/55  eta=128.4min  id=04b5313d
+[56/270]  34.4s  avg= 35.8s  ok=56/56  eta=127.7min  id=7c2a6f1b
+[57/270]  34.4s  avg= 35.8s  ok=57/57  eta=127.0min  id=c3a7f95b
+[58/270]  35.0s  avg= 35.8s  ok=58/58  eta=126.4min  id=e86979bc
+[59/270]  38.1s  avg= 35.8s  ok=59/59  eta=125.9min  id=48791e81
+[60/270]  38.7s  avg= 35.9s  ok=60/60  eta=125.5min  id=19b2e81f
+[61/270]  35.1s  avg= 35.8s  ok=61/61  eta=124.8min  id=3f7337d0
+[62/270]  34.9s  avg= 35.8s  ok=62/62  eta=124.2min  id=53e07303
+[63/270]  34.9s  avg= 35.8s  ok=63/63  eta=123.5min  id=8d6dc531
+[64/270]  36.8s  avg= 35.8s  ok=64/64  eta=123.0min  id=78b12d4e
+[65/270]  34.8s  avg= 35.8s  ok=65/65  eta=122.4min  id=ed4d039e
+[66/270]  34.3s  avg= 35.8s  ok=66/66  eta=121.7min  id=706bc7dc
+[67/270]  34.8s  avg= 35.8s  ok=67/67  eta=121.0min  id=63b10563
+[68/270]  36.0s  avg= 35.8s  ok=68/68  eta=120.5min  id=2b433807
+[69/270]  36.4s  avg= 35.8s  ok=69/69  eta=119.9min  id=5b0b66d4
+[70/270]  34.9s  avg= 35.8s  ok=70/70  eta=119.2min  id=a24c40af
+[71/270]  34.8s  avg= 35.8s  ok=71/71  eta=118.6min  id=8c22824f
+[72/270]  35.0s  avg= 35.7s  ok=72/72  eta=118.0min  id=09c28b54
+[73/270]  33.7s  avg= 35.7s  ok=73/73  eta=117.3min  id=0c539d50
+[74/270]  33.5s  avg= 35.7s  ok=74/74  eta=116.6min  id=f5f230f6
+[75/270]  33.2s  avg= 35.7s  ok=75/75  eta=115.9min  id=4fcf836a
+[76/270]  33.8s  avg= 35.6s  ok=76/76  eta=115.2min  id=d0687992
+[77/270]  36.3s  avg= 35.6s  ok=77/77  eta=114.6min  id=d6c37395
+[78/270]  35.1s  avg= 35.6s  ok=78/78  eta=114.0min  id=35f063d9
+[79/270]  37.9s  avg= 35.7s  ok=79/79  eta=113.5min  id=50aa5f33
+[80/270]  38.1s  avg= 35.7s  ok=80/80  eta=113.0min  id=2d1ac6b4
+[81/270]  34.5s  avg= 35.7s  ok=81/81  eta=112.4min  id=5c175f9b
+[82/270]  41.0s  avg= 35.7s  ok=82/82  eta=112.0min  id=aa45604e
+[83/270]  36.3s  avg= 35.8s  ok=83/83  eta=111.4min  id=8f30fd87
+[84/270]  36.4s  avg= 35.8s  ok=84/84  eta=110.8min  id=80dac3aa
+[85/270]  36.1s  avg= 35.8s  ok=85/85  eta=110.3min  id=c4a31e16
+[86/270]  35.6s  avg= 35.8s  ok=86/86  eta=109.7min  id=168ae78a
+[87/270]  33.9s  avg= 35.7s  ok=87/87  eta=109.0min  id=d2a91293
+[88/270]  36.0s  avg= 35.7s  ok=88/88  eta=108.4min  id=e38f90c4
+[89/270]  36.3s  avg= 35.7s  ok=89/89  eta=107.8min  id=dd85cd49
+[90/270]  36.2s  avg= 35.8s  ok=90/90  eta=107.3min  id=c2d26a94
+[91/270]  33.5s  avg= 35.7s  ok=91/91  eta=106.6min  id=149ee200
+[92/270]  34.7s  avg= 35.7s  ok=92/92  eta=106.0min  id=f611c08f
+[93/270]  34.3s  avg= 35.7s  ok=93/93  eta=105.3min  id=4bc9d48d
+[94/270]  42.4s  avg= 35.8s  ok=93/94  eta=104.9min  id=cab1db52
+[95/270]  35.3s  avg= 35.8s  ok=94/95  eta=104.3min  id=f07589aa
+[96/270]  34.5s  avg= 35.8s  ok=95/96  eta=103.7min  id=d2005592
+[97/270]  34.3s  avg= 35.7s  ok=96/97  eta=103.0min  id=c210faf1
+[98/270]  37.2s  avg= 35.8s  ok=97/98  eta=102.5min  id=b831ec91
+[99/270]  37.9s  avg= 35.8s  ok=98/99  eta=102.0min  id=6ca765e1
+[100/270]  36.9s  avg= 35.8s  ok=99/100  eta=101.4min  id=d4e252c4
+[101/270]  35.7s  avg= 35.8s  ok=100/101  eta=100.8min  id=a0a638e7
+[102/270]  34.0s  avg= 35.8s  ok=101/102  eta=100.1min  id=96f1ca71
+[103/270]  35.6s  avg= 35.8s  ok=102/103  eta= 99.5min  id=91b25250
+[104/270]  35.6s  avg= 35.8s  ok=103/104  eta= 98.9min  id=433d757b
+[105/270]  35.3s  avg= 35.8s  ok=104/105  eta= 98.3min  id=1430378f
+[106/270]  35.6s  avg= 35.8s  ok=105/106  eta= 97.7min  id=5ef67c1f
+[107/270]  35.2s  avg= 35.8s  ok=106/107  eta= 97.1min  id=0e6f3b71
+[108/270]  35.3s  avg= 35.7s  ok=107/108  eta= 96.5min  id=2ca89c37
+[109/270]  32.9s  avg= 35.7s  ok=108/109  eta= 95.9min  id=43b1dbd4
+[110/270]  34.4s  avg= 35.7s  ok=108/110  eta= 95.2min  id=9630fa43
+[111/270]  33.5s  avg= 35.7s  ok=109/111  eta= 94.6min  id=fc2be294
+[112/270]  37.2s  avg= 35.7s  ok=110/112  eta= 94.0min  id=66eb98e8
+[113/270]  35.7s  avg= 35.7s  ok=110/113  eta= 93.4min  id=defff373
+[114/270]  33.9s  avg= 35.7s  ok=111/114  eta= 92.8min  id=f83bf6fc
+[115/270]  36.7s  avg= 35.7s  ok=112/115  eta= 92.2min  id=1474355d
+[116/270]  36.4s  avg= 35.7s  ok=113/116  eta= 91.6min  id=6e18a1e2
+[117/270]  35.4s  avg= 35.7s  ok=114/117  eta= 91.0min  id=f6b317c1
+[118/270]  36.8s  avg= 35.7s  ok=115/118  eta= 90.5min  id=8a5da413
+[119/270]  36.0s  avg= 35.7s  ok=116/119  eta= 89.9min  id=3b642ba6
+[120/270]  36.9s  avg= 35.7s  ok=117/120  eta= 89.3min  id=90b801e0
+[121/270]  37.5s  avg= 35.7s  ok=118/121  eta= 88.7min  id=cb8565e3
+[122/270]  35.4s  avg= 35.7s  ok=119/122  eta= 88.1min  id=85050eed
+[123/270]  35.5s  avg= 35.7s  ok=120/123  eta= 87.5min  id=230775d0
+[124/270]  39.8s  avg= 35.8s  ok=121/124  eta= 87.0min  id=65b44288
+[125/270]  40.1s  avg= 35.8s  ok=122/125  eta= 86.5min  id=b0b52795
+[126/270]  36.7s  avg= 35.8s  ok=123/126  eta= 85.9min  id=600b9335
+[127/270]  35.7s  avg= 35.8s  ok=124/127  eta= 85.3min  id=186cbf52
+[128/270]  34.8s  avg= 35.8s  ok=125/128  eta= 84.7min  id=069b7944
+[129/270]  34.1s  avg= 35.8s  ok=126/129  eta= 84.1min  id=f18e8a77
+[130/270]  37.2s  avg= 35.8s  ok=127/130  eta= 83.5min  id=7fdf259e
+[131/270]  36.3s  avg= 35.8s  ok=128/131  eta= 82.9min  id=e73d0abb
+[132/270]  33.6s  avg= 35.8s  ok=129/132  eta= 82.3min  id=404ced89
+[133/270]  36.9s  avg= 35.8s  ok=130/133  eta= 81.7min  id=864599dc
+[134/270]  35.6s  avg= 35.8s  ok=131/134  eta= 81.1min  id=e885feee
+[135/270]  40.5s  avg= 35.8s  ok=132/135  eta= 80.6min  id=3be6f443
+[136/270]  36.8s  avg= 35.8s  ok=133/136  eta= 80.0min  id=c2751026
+[137/270]  37.5s  avg= 35.8s  ok=134/137  eta= 79.5min  id=eb2603c6
+[138/270]  36.2s  avg= 35.8s  ok=135/138  eta= 78.9min  id=e5eaa480
+[139/270]  36.3s  avg= 35.9s  ok=136/139  eta= 78.3min  id=f372c6b9
+[140/270]  36.8s  avg= 35.9s  ok=137/140  eta= 77.7min  id=ba97a0d6
+[141/270]  33.6s  avg= 35.8s  ok=138/141  eta= 77.1min  id=01adeba3
+[142/270]  33.2s  avg= 35.8s  ok=139/142  eta= 76.4min  id=33d2389b
+[143/270]  33.8s  avg= 35.8s  ok=140/143  eta= 75.8min  id=48e3b2dc
+[144/270]  37.0s  avg= 35.8s  ok=141/144  eta= 75.2min  id=74f1e81d
+[145/270]  37.5s  avg= 35.8s  ok=142/145  eta= 74.6min  id=65b4a22e
+[146/270]  35.5s  avg= 35.8s  ok=143/146  eta= 74.0min  id=de4a8fd3
+[147/270]  34.9s  avg= 35.8s  ok=144/147  eta= 73.4min  id=e98e5fb6
+[148/270]  38.3s  avg= 35.8s  ok=145/148  eta= 72.9min  id=35468d6e
+[149/270]  35.7s  avg= 35.8s  ok=146/149  eta= 72.3min  id=b3af3ebf
+[150/270]  33.5s  avg= 35.8s  ok=147/150  eta= 71.6min  id=612ef989
+[151/270]  35.7s  avg= 35.8s  ok=148/151  eta= 71.0min  id=1099d881
+[152/270]  36.1s  avg= 35.8s  ok=149/152  eta= 70.4min  id=8b576093
+[153/270]  39.6s  avg= 35.8s  ok=150/153  eta= 69.9min  id=517b0621
+[154/270]  36.5s  avg= 35.9s  ok=150/154  eta= 69.3min  id=7426cb47
+[155/270]  40.3s  avg= 35.9s  ok=151/155  eta= 68.8min  id=9c749a89
+[156/270]  38.1s  avg= 35.9s  ok=152/156  eta= 68.2min  id=600fd530
+[157/270]  35.1s  avg= 35.9s  ok=153/157  eta= 67.6min  id=23ebdd4c
+[158/270]  35.7s  avg= 35.9s  ok=154/158  eta= 67.0min  id=40d787d0
+[159/270]  36.8s  avg= 35.9s  ok=155/159  eta= 66.4min  id=98f83b7b
+[160/270]  38.3s  avg= 35.9s  ok=156/160  eta= 65.8min  id=fa228aec
+[161/270]  34.7s  avg= 35.9s  ok=157/161  eta= 65.2min  id=99d422b9
+[162/270]  33.0s  avg= 35.9s  ok=158/162  eta= 64.6min  id=a4549b4f
+[163/270]  33.8s  avg= 35.9s  ok=159/163  eta= 64.0min  id=866a15ed
+[164/270]  34.7s  avg= 35.9s  ok=160/164  eta= 63.4min  id=8175b505
+[165/270]  35.6s  avg= 35.9s  ok=161/165  eta= 62.8min  id=1b4ed692
+[166/270]  35.4s  avg= 35.9s  ok=162/166  eta= 62.2min  id=dfd7d56c
+[167/270]  35.0s  avg= 35.9s  ok=163/167  eta= 61.5min  id=8abb4078
+[168/270]  34.5s  avg= 35.8s  ok=164/168  eta= 60.9min  id=5962ad9a
+[169/270]  34.2s  avg= 35.8s  ok=165/169  eta= 60.3min  id=d07ec7bc
+[170/270]  39.5s  avg= 35.9s  ok=166/170  eta= 59.8min  id=b54deca3
+[171/270]  34.8s  avg= 35.9s  ok=167/171  eta= 59.2min  id=6a06ab7d
+[172/270]  41.1s  avg= 35.9s  ok=168/172  eta= 58.6min  id=f1c54d9d
+[173/270]  38.1s  avg= 35.9s  ok=168/173  eta= 58.0min  id=5510c719
+[174/270]  35.3s  avg= 35.9s  ok=169/174  eta= 57.4min  id=a00aa266
+[175/270]  34.4s  avg= 35.9s  ok=170/175  eta= 56.8min  id=d3f05905
+[176/270]  36.6s  avg= 35.9s  ok=170/176  eta= 56.2min  id=34cee780
+[177/270]  37.1s  avg= 35.9s  ok=171/177  eta= 55.6min  id=3a9fff5a
+[178/270]  35.8s  avg= 35.9s  ok=172/178  eta= 55.0min  id=5e6d1bb3
+[179/270]  35.0s  avg= 35.9s  ok=172/179  eta= 54.4min  id=2fd281f4
+[180/270]  36.8s  avg= 35.9s  ok=173/180  eta= 53.8min  id=02de8641
+[181/270]  34.5s  avg= 35.9s  ok=174/181  eta= 53.2min  id=bad43436
+[182/270]  37.2s  avg= 35.9s  ok=175/182  eta= 52.6min  id=5b72156d
+[183/270]  34.5s  avg= 35.9s  ok=176/183  eta= 52.0min  id=4b4d7c63
+[184/270]  35.6s  avg= 35.9s  ok=177/184  eta= 51.4min  id=96b9ccf0
+[185/270]  34.6s  avg= 35.9s  ok=178/185  eta= 50.8min  id=96648628
+[186/270]  33.8s  avg= 35.9s  ok=179/186  eta= 50.2min  id=627af459
+[187/270]  35.3s  avg= 35.9s  ok=180/187  eta= 49.6min  id=cdf82246
+[188/270]  35.2s  avg= 35.9s  ok=181/188  eta= 49.0min  id=22c05fde
+[189/270]  35.3s  avg= 35.9s  ok=182/189  eta= 48.4min  id=4533dad5
+[190/270]  35.0s  avg= 35.9s  ok=183/190  eta= 47.8min  id=7a6e3466
+[191/270]  32.6s  avg= 35.8s  ok=184/191  eta= 47.2min  id=7aaecc5b
+[192/270]  33.4s  avg= 35.8s  ok=185/192  eta= 46.6min  id=82c58e4c
+[193/270]  33.8s  avg= 35.8s  ok=186/193  eta= 46.0min  id=65e6cfee
+[194/270]  35.1s  avg= 35.8s  ok=187/194  eta= 45.4min  id=13cd0480
+[195/270]  33.3s  avg= 35.8s  ok=188/195  eta= 44.7min  id=a84dc4dd
+[196/270]  33.4s  avg= 35.8s  ok=189/196  eta= 44.1min  id=1d835b20
+[197/270]  38.1s  avg= 35.8s  ok=190/197  eta= 43.5min  id=9bee0259
+[198/270]  39.1s  avg= 35.8s  ok=191/198  eta= 43.0min  id=9f33b70c
+[199/270]  36.4s  avg= 35.8s  ok=192/199  eta= 42.4min  id=ec949231
+[200/270]  36.3s  avg= 35.8s  ok=193/200  eta= 41.8min  id=14c101c9
+[201/270]  35.1s  avg= 35.8s  ok=194/201  eta= 41.2min  id=8b21c9f1
+[202/270]  36.8s  avg= 35.8s  ok=195/202  eta= 40.6min  id=4ed06393
+[203/270]  36.6s  avg= 35.8s  ok=196/203  eta= 40.0min  id=b731d69f
+[204/270]  35.4s  avg= 35.8s  ok=197/204  eta= 39.4min  id=1fb5f539
+[205/270]  33.8s  avg= 35.8s  ok=198/205  eta= 38.8min  id=2fe0b5a0
+[206/270]  34.6s  avg= 35.8s  ok=199/206  eta= 38.2min  id=01899f2c
+[207/270]  33.4s  avg= 35.8s  ok=200/207  eta= 37.6min  id=b270062b
+[208/270]  33.9s  avg= 35.8s  ok=201/208  eta= 37.0min  id=870f497f
+[209/270]  35.7s  avg= 35.8s  ok=202/209  eta= 36.4min  id=ac6d16d0
+[210/270]  33.8s  avg= 35.8s  ok=203/210  eta= 35.8min  id=7c702bf7
+[211/270]  33.9s  avg= 35.8s  ok=204/211  eta= 35.2min  id=e77c2c0a
+[212/270]  35.7s  avg= 35.8s  ok=205/212  eta= 34.6min  id=9836b4c5
+[213/270]  35.8s  avg= 35.8s  ok=206/213  eta= 34.0min  id=e748ffff
+[214/270]  34.1s  avg= 35.8s  ok=207/214  eta= 33.4min  id=0f8fa780
+[215/270]  37.2s  avg= 35.8s  ok=208/215  eta= 32.8min  id=ec1588f8
+[216/270]  40.3s  avg= 35.8s  ok=208/216  eta= 32.2min  id=03e9bb56
+[217/270]  36.3s  avg= 35.8s  ok=209/217  eta= 31.6min  id=0e9f04da
+[218/270]  38.0s  avg= 35.8s  ok=210/218  eta= 31.0min  id=85266a81
+[219/270]  37.7s  avg= 35.8s  ok=211/219  eta= 30.4min  id=a5aeac0e
+[220/270]  37.0s  avg= 35.8s  ok=212/220  eta= 29.8min  id=e400db06
+[221/270]  34.2s  avg= 35.8s  ok=213/221  eta= 29.2min  id=8436f36e
+[222/270]  33.8s  avg= 35.8s  ok=214/222  eta= 28.6min  id=88fd1ad2
+[223/270]  35.5s  avg= 35.8s  ok=215/223  eta= 28.0min  id=b260db45
+[224/270]  35.3s  avg= 35.8s  ok=216/224  eta= 27.4min  id=ee0b28df
+[225/270]  34.9s  avg= 35.8s  ok=217/225  eta= 26.8min  id=f15953fe
+[226/270]  32.9s  avg= 35.8s  ok=218/226  eta= 26.2min  id=7f0b5a94
+[227/270]  34.6s  avg= 35.8s  ok=219/227  eta= 25.6min  id=3ce15389
+[228/270]  34.4s  avg= 35.8s  ok=220/228  eta= 25.0min  id=5ef854ca
+[229/270]  34.4s  avg= 35.8s  ok=221/229  eta= 24.4min  id=2f4d01eb
+[230/270]  33.3s  avg= 35.7s  ok=222/230  eta= 23.8min  id=67ea205c
+[231/270]  33.5s  avg= 35.7s  ok=223/231  eta= 23.2min  id=9803dd21
+[232/270]  34.8s  avg= 35.7s  ok=224/232  eta= 22.6min  id=30d69ed8
+[233/270]  34.8s  avg= 35.7s  ok=225/233  eta= 22.0min  id=12073c5c
+[234/270]  34.5s  avg= 35.7s  ok=226/234  eta= 21.4min  id=d94d71d5
+[235/270]  34.3s  avg= 35.7s  ok=227/235  eta= 20.8min  id=e09e0b57
+[236/270]  33.3s  avg= 35.7s  ok=228/236  eta= 20.2min  id=b62e7ed6
+[237/270]  32.9s  avg= 35.7s  ok=229/237  eta= 19.6min  id=fe150477
+[238/270]  33.2s  avg= 35.7s  ok=230/238  eta= 19.0min  id=16afba15
+[239/270]  35.0s  avg= 35.7s  ok=231/239  eta= 18.4min  id=b9dbe6b0
+[240/270]  34.3s  avg= 35.7s  ok=232/240  eta= 17.8min  id=213f56b4
+[241/270]  34.7s  avg= 35.7s  ok=233/241  eta= 17.2min  id=56c4ad27
+[242/270]  34.2s  avg= 35.7s  ok=234/242  eta= 16.6min  id=ebaa1e16
+[243/270]  38.5s  avg= 35.7s  ok=235/243  eta= 16.1min  id=16e8253e
+[244/270]  39.0s  avg= 35.7s  ok=236/244  eta= 15.5min  id=cadcf2f9
+[245/270]  37.1s  avg= 35.7s  ok=237/245  eta= 14.9min  id=16b19e01
+[246/270]  37.7s  avg= 35.7s  ok=238/246  eta= 14.3min  id=00c722b7
+[247/270]  38.9s  avg= 35.7s  ok=239/247  eta= 13.7min  id=f01aae7f
+[248/270]  34.4s  avg= 35.7s  ok=240/248  eta= 13.1min  id=f215e43e
+[249/270]  34.8s  avg= 35.7s  ok=241/249  eta= 12.5min  id=ef5c5d00
+[250/270]  36.1s  avg= 35.7s  ok=242/250  eta= 11.9min  id=677cf04f
+[251/270]  36.2s  avg= 35.7s  ok=243/251  eta= 11.3min  id=a19ee40d
+[252/270]  35.3s  avg= 35.7s  ok=244/252  eta= 10.7min  id=b864e123
+[253/270]  35.3s  avg= 35.7s  ok=245/253  eta= 10.1min  id=110e0229
+[254/270]  34.9s  avg= 35.7s  ok=246/254  eta=  9.5min  id=63ffbae0
+[255/270]  35.0s  avg= 35.7s  ok=247/255  eta=  8.9min  id=5dac1838
+[256/270]  33.7s  avg= 35.7s  ok=248/256  eta=  8.3min  id=d2a1ac3d
+[257/270]  33.4s  avg= 35.7s  ok=249/257  eta=  7.7min  id=a2143d29
+[258/270]  33.7s  avg= 35.7s  ok=250/258  eta=  7.1min  id=4e434b4e
+[259/270]  33.6s  avg= 35.7s  ok=251/259  eta=  6.5min  id=239331d0
+[260/270]  34.3s  avg= 35.7s  ok=252/260  eta=  5.9min  id=68086230
+[261/270]  35.8s  avg= 35.7s  ok=252/261  eta=  5.4min  id=f4beaedd
+[262/270]  35.4s  avg= 35.7s  ok=253/262  eta=  4.8min  id=99418d10
+[263/270]  35.2s  avg= 35.7s  ok=254/263  eta=  4.2min  id=9e5c7160
+[264/270]  35.2s  avg= 35.7s  ok=255/264  eta=  3.6min  id=68c21aa4
+[265/270]  36.0s  avg= 35.7s  ok=256/265  eta=  3.0min  id=c462fa5c
+[266/270]  38.1s  avg= 35.7s  ok=257/266  eta=  2.4min  id=d4e4f610
+[267/270]  35.8s  avg= 35.7s  ok=258/267  eta=  1.8min  id=1c19e961
+[268/270]  38.3s  avg= 35.7s  ok=259/268  eta=  1.2min  id=ce5b82cf
+[269/270]  37.8s  avg= 35.7s  ok=260/269  eta=  0.6min  id=725912e5
+[270/270]  38.5s  avg= 35.7s  ok=261/270  eta=  0.0min  id=fba9743a
+
+done. 261 parsed, 9 failed (3.3% parse failure). avg 35.7s/clause. wrote ../results/mistral_eo.jsonl
+=== eo at per_cell=10 done, both models ===

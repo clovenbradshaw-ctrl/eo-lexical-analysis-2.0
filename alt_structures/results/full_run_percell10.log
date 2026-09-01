@@ -1,0 +1,3 @@
+=== qwen / eo ===
+loading Qwen2.5-7B-Instruct (Q4_K_M) ...
+./run_model_suite.sh: line 15:  1642 Illegal instruction     python3 classify_local.py --model "$MODEL" --scheme "$SCHEME" --in "$IN" --balanced-by consensus --per-cell "$PER_CELL" --threads "$THREADS" --out "../results/${MODEL}_${SCHEME}.jsonl"

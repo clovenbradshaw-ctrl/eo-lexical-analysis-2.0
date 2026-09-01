@@ -89,25 +89,48 @@ strictly more than the 2-rater status quo, and directly produces the `A`
 ```bash
 cd alt_structures/local_models
 ./download_models.sh                     # fetch weights (~8.9GB total)
-pip install llama-cpp-python
+
+# check /proc/cpuinfo for avx512 before a plain `pip install`. If present,
+# build with it disabled from the start (see "A CPU-instability tax" below)
+# rather than risk an illegal-instruction crash partway through a run:
+CMAKE_ARGS="-DGGML_NATIVE=OFF -DGGML_AVX512=OFF -DGGML_AVX2=ON -DGGML_FMA=ON -DGGML_F16C=ON" \
+  pip install --no-cache-dir llama-cpp-python
 
 # classify a balanced sample (N/cell x 27 cells) through both models,
-# all three schemes — this is the slow step, budget real CPU time (see below)
+# all six schemes — this is the slow step, budget real CPU time (see below)
 ./run_model_suite.sh qwen    4 <per-cell>
 ./run_model_suite.sh mistral 4 <per-cell>
 
 cd ..
-pip install sentence-transformers scikit-learn scipy
+pip install sentence-transformers scikit-learn scipy nltk
 python run_discovery.py --per-cell <same per-cell as above>
 ```
 
 **Timing, measured on this box (4 vCPU, 15GB RAM):** ~13-16s/clause/model
-running one model at a time at full thread count. Running both models
-*concurrently* at half the threads each was **not** faster — thread
-contention on 4 cores pushed per-clause time to ~40s, worse than serial —
-so `run_model_suite.sh` is meant to be run sequentially per model, not
-backgrounded in parallel. Budget roughly `81 clauses/scheme × 3 schemes ×
-2 models × ~15s ≈ 2 hours` at `per-cell=3`; scale linearly with per-cell.
+running one model at a time at full thread count with AVX512 (see below
+if that's not available/stable on yours — budget ~2x that). Running both
+models *concurrently* at half the threads each was **not** faster —
+thread contention on 4 cores pushed per-clause time to ~40s, worse than
+serial — so `run_model_suite.sh` is meant to be run sequentially per
+model, not backgrounded in parallel. Budget roughly `81 clauses/scheme ×
+3 schemes × 2 models × ~15s ≈ 2 hours` at `per-cell=3`; scale linearly
+with per-cell and scheme count.
+
+### A CPU-instability tax, found the hard way
+
+Mid-run at `per_cell=10`, `llama-cpp-python`'s CPU backend (`libggml
+-cpu.so.0`) crashed with an illegal-instruction trap — confirmed via
+`dmesg` (`trap invalid opcode ... in libggml-cpu.so.0`). `/proc/cpuinfo`
+on this box advertises full AVX512 (including VNNI), and a plain `pip
+install llama-cpp-python` builds with `-march=native`, which trusts that
+advertisement. On at least this cloud VM, that trust wasn't warranted —
+a known class of issue where advertised CPUID flags aren't reliably
+executable in some virtualized environments. Rebuilding with AVX512
+disabled (command above) fixed it — verified stable across dozens of
+subsequent calls — at a real cost: **roughly 2x slower per clause**
+(AVX512 was genuinely accelerating the quantized matmuls). If your box's
+CPU is stable with AVX512, skip the CMAKE_ARGS and get the faster
+numbers above; if you hit the same crash, this is the fix.
 
 ## Sampling
 
@@ -306,15 +329,84 @@ land in different classes). Whether any of them structure the embedding
 space better than EO or the other rivals is exactly the question a
 properly-powered run (below) would answer; this one can't.
 
-### Scaling up
+## Results — properly-powered eo run, per_cell=10 (270 clauses)
 
-To get a properly-powered structure comparison (matching the repo's own
-validated n≈270-540), re-run at `per_cell=10` or `per_cell=20`. Measured
-throughput across all six schemes ranged ~6-16s/clause/model (srl/
-discourse were fastest at ~6-7s; eo, the only 3-axis scheme, slowest at
-~15-16s). At `per_cell=10` across all six schemes:
-`10 × 27 cells × 6 schemes × 2 models ≈ 3,240 clauses`, or roughly
-**8-9 hours of CPU time** on this box's 4 vCPUs; `per_cell=20` roughly
-doubles that. Scoped down to fewer schemes (e.g. just `eo` for the kappa
+The `eo` scheme was rerun at `per_cell=10` (270 clauses, vs. the 81-clause
+pilot above) specifically because it's the one with a prior baseline to
+compare against. `vendler`/`halliday`/`srl`/`discourse` below are still
+the OLD 81-clause files — `run_discovery.py` correctly reports their true
+(smaller) `n`, so don't read them as upgraded; only `eo-consensus`,
+`qwen-eo`, `mistral-eo`, and the candidates that don't depend on
+pre-existing label files (`pca-tertile`, `surface`, `verbnet-lexical`; not
+`tree`, which needed still more data) got the full n=270.
+
+```
+candidate                            n  cells     PAST   FUTURE   UNSEEN   UNSEEN_z
+eo-consensus                       270     27  -0.0967  +0.0155  +0.0173     14.95
+qwen-eo                            264     15  -0.0279  -0.0646  -0.5082      3.74
+mistral-eo                         261     11  -0.0450  -0.1122  -1.4971      0.22
+pca-tertile(blind product)         270     27  -0.0410  +0.0563  +0.1360       nan
+surface(char/ttr/punct)            270     16  -0.0686  -0.0425     nan        nan
+verbnet-lexical(top5+other)        270      6  -0.0128  -0.0128     nan        nan
+(qwen/mistral-vendler/halliday/srl/discourse: unchanged, still n=70-81)
+```
+
+kappa (unchanged raters, larger sample):
+
+```
+              claude      gpt4      qwen   mistral
+claude            --     1.000     0.098     0.064
+qwen           0.098                          0.006
+mistral        0.064               0.006
+```
+
+### This is where the story changes
+
+**EO's own structure flips from noise to real signal.** At n=81:
+FUTURE=-0.044, UNSEEN=-0.183, z=4.99. At n=270: FUTURE=**+0.016**,
+UNSEEN=**+0.017**, **z=14.95**. This is exactly the pattern
+`WHY-THESE-THREE.md`'s own power curve describes (their Table: estimator
+crosses zero around n≈2,700 *random* clauses; balanced sampling gets
+there far faster) — reproduced independently here at a smaller scale,
+which is a real validation that this suite's methodology is sound, not
+just a restatement of their number.
+
+**pca-tertile still beats EO on UNSEEN (+0.136 vs +0.017)**, replicating
+`WHY-THESE-THREE.md`'s own Result 1 (there: pca-tertile +0.498 vs EO
++0.277, at their larger n) — the same qualitative finding shows up here
+independently, at a fraction of their sample size. That result carried a
+big caveat there (partly a language-identity confound); this pilot
+doesn't have the language-AMI check needed to say whether the same
+caveat applies here.
+
+**qwen and mistral diverge, not just in agreement but in whether their
+labels carry structure at all.** qwen-eo's UNSEEN is still negative
+(-0.508) but clears the null meaningfully (z=3.74); mistral-eo's UNSEEN
+(-1.497) does not (z=0.22, indistinguishable from shuffled labels). Both
+produced valid JSON at a similar rate (97.8%/96.7%), so this isn't a
+parsing artifact — mistral's classifications, even though well-formed,
+don't carry a coherent geometric pattern the way qwen's (weakly) do.
+
+**The kappa finding gets more robust, not less, with 3.3x the data.**
+qwen-vs-mistral: 0.003 → 0.006. Still chance-level. This was always
+going to be the more likely explanation once ruled out as small-sample
+noise: two 7B-class model families, prompted identically, genuinely do
+not converge on this task.
+
+## Scaling up further
+
+The other five schemes could get the same per_cell=10 treatment. A real
+constraint surfaced doing this run, worth knowing before requesting it:
+partway through the original attempt at all six schemes, `llama-cpp
+-python`'s CPU backend crashed with an illegal-instruction trap (confirmed
+via `dmesg`) tied to this box's AVX512 support being unreliable at
+runtime despite being advertised in `/proc/cpuinfo` — a known class of
+issue on some cloud VMs. Fixed by rebuilding with
+`CMAKE_ARGS="-DGGML_NATIVE=OFF -DGGML_AVX512=OFF -DGGML_AVX2=ON -DGGML_FMA=ON -DGGML_F16C=ON"`,
+verified stable, but at roughly **2x slower per clause** (AVX512 was
+genuinely accelerating the quantized matmuls). Re-running the remaining
+five schemes at `per_cell=10` (`5 schemes × 10 × 27 cells × 2 models ≈
+2,700 clauses`) is now roughly **10-13 hours of CPU time** at the
+post-fix rate, not the ~8-9h estimated before the crash was found.
 question, or just the new candidates) proportionally less. Not run here
 to keep the pilot inside one session.

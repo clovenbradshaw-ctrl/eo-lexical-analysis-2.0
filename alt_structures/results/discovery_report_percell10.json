@@ -1,0 +1,330 @@
+{
+  "n_sample": 270,
+  "per_cell": 10,
+  "candidates": [
+    {
+      "name": "eo-consensus",
+      "n": 270,
+      "n_lev": [
+        3,
+        3,
+        3
+      ],
+      "cells": 27,
+      "params": 7,
+      "future": 0.01553620030421432,
+      "unseen": 0.017272849579792027,
+      "past": -0.09669661521911621,
+      "product_ratio": NaN,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": 0.017272849579792027,
+        "null_mean": -0.2996628915792503,
+        "null_sd": 0.02119762992857184,
+        "z": 14.951470623225255,
+        "n_perm": 200
+      }
+    },
+    {
+      "name": "qwen-eo",
+      "n": 264,
+      "n_lev": [
+        3,
+        3,
+        3
+      ],
+      "cells": 15,
+      "params": 7,
+      "future": -0.0646010201227647,
+      "unseen": -0.508183998750303,
+      "past": -0.02790355682373047,
+      "product_ratio": NaN,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": -0.508183998750303,
+        "null_mean": -0.7848151930508241,
+        "null_sd": 0.07392289319189849,
+        "z": 3.7421586514803553,
+        "n_perm": 200
+      }
+    },
+    {
+      "name": "qwen-vendler",
+      "n": 81,
+      "n_lev": [
+        4
+      ],
+      "cells": 4,
+      "params": 4,
+      "future": -0.0806065440788899,
+      "unseen": NaN,
+      "past": -0.08060657978057861,
+      "product_ratio": NaN,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": NaN,
+        "null_mean": NaN,
+        "null_sd": NaN,
+        "z": NaN,
+        "n_perm": 0
+      }
+    },
+    {
+      "name": "qwen-halliday",
+      "n": 70,
+      "n_lev": [
+        6
+      ],
+      "cells": 5,
+      "params": 6,
+      "future": -0.06707630775620044,
+      "unseen": NaN,
+      "past": -0.06707632541656494,
+      "product_ratio": NaN,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": NaN,
+        "null_mean": NaN,
+        "null_sd": NaN,
+        "z": NaN,
+        "n_perm": 0
+      }
+    },
+    {
+      "name": "qwen-srl",
+      "n": 79,
+      "n_lev": [
+        4
+      ],
+      "cells": 3,
+      "params": 4,
+      "future": -0.005811823356866697,
+      "unseen": NaN,
+      "past": -0.005811810493469238,
+      "product_ratio": NaN,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": NaN,
+        "null_mean": NaN,
+        "null_sd": NaN,
+        "z": NaN,
+        "n_perm": 0
+      }
+    },
+    {
+      "name": "qwen-discourse",
+      "n": 81,
+      "n_lev": [
+        5
+      ],
+      "cells": 4,
+      "params": 5,
+      "future": -0.0604010074316601,
+      "unseen": NaN,
+      "past": -0.060401082038879395,
+      "product_ratio": NaN,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": NaN,
+        "null_mean": NaN,
+        "null_sd": NaN,
+        "z": NaN,
+        "n_perm": 0
+      }
+    },
+    {
+      "name": "mistral-eo",
+      "n": 261,
+      "n_lev": [
+        3,
+        3,
+        3
+      ],
+      "cells": 11,
+      "params": 7,
+      "future": -0.11223848119539914,
+      "unseen": -1.4970890750835633,
+      "past": -0.04502677917480469,
+      "product_ratio": NaN,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": -1.4970890750835633,
+        "null_mean": -1.5357152478533476,
+        "null_sd": 0.1786603425142625,
+        "z": 0.21619891816059164,
+        "n_perm": 200
+      }
+    },
+    {
+      "name": "mistral-vendler",
+      "n": 80,
+      "n_lev": [
+        4
+      ],
+      "cells": 2,
+      "params": 4,
+      "future": -0.028774058070913267,
+      "unseen": NaN,
+      "past": -0.027846217155456543,
+      "product_ratio": NaN,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": NaN,
+        "null_mean": NaN,
+        "null_sd": NaN,
+        "z": NaN,
+        "n_perm": 0
+      }
+    },
+    {
+      "name": "mistral-halliday",
+      "n": 75,
+      "n_lev": [
+        6
+      ],
+      "cells": 5,
+      "params": 6,
+      "future": -0.02409242887019536,
+      "unseen": NaN,
+      "past": -0.024092435836791992,
+      "product_ratio": NaN,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": NaN,
+        "null_mean": NaN,
+        "null_sd": NaN,
+        "z": NaN,
+        "n_perm": 0
+      }
+    },
+    {
+      "name": "mistral-srl",
+      "n": 80,
+      "n_lev": [
+        4
+      ],
+      "cells": 3,
+      "params": 4,
+      "future": -0.1228749472267634,
+      "unseen": NaN,
+      "past": -0.12287497520446777,
+      "product_ratio": NaN,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": NaN,
+        "null_mean": NaN,
+        "null_sd": NaN,
+        "z": NaN,
+        "n_perm": 0
+      }
+    },
+    {
+      "name": "mistral-discourse",
+      "n": 81,
+      "n_lev": [
+        5
+      ],
+      "cells": 4,
+      "params": 5,
+      "future": -0.012587366805393962,
+      "unseen": NaN,
+      "past": -0.012587308883666992,
+      "product_ratio": NaN,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": NaN,
+        "null_mean": NaN,
+        "null_sd": NaN,
+        "z": NaN,
+        "n_perm": 0
+      }
+    },
+    {
+      "name": "tree(recursive kmeans)",
+      "n": 270,
+      "n_lev": [
+        3,
+        3,
+        3
+      ],
+      "error": "insufficient data: n_samples=2 should be >= n_clusters=3."
+    },
+    {
+      "name": "pca-tertile(blind product)",
+      "n": 270,
+      "n_lev": [
+        3,
+        3,
+        3
+      ],
+      "cells": 27,
+      "params": 7,
+      "future": 0.05633452238320091,
+      "unseen": 0.13597775952656954,
+      "past": -0.041048407554626465,
+      "product_ratio": NaN
+    },
+    {
+      "name": "surface(char/ttr/punct)",
+      "n": 270,
+      "n_lev": [
+        3,
+        3,
+        3
+      ],
+      "cells": 16,
+      "params": 7,
+      "future": -0.04254738125629509,
+      "unseen": NaN,
+      "past": -0.06864213943481445,
+      "product_ratio": NaN
+    },
+    {
+      "name": "verbnet-lexical(top5+other)",
+      "n": 270,
+      "n_lev": [
+        6
+      ],
+      "cells": 6,
+      "params": 6,
+      "future": -0.012793375112847283,
+      "unseen": NaN,
+      "past": -0.012793421745300293,
+      "product_ratio": NaN
+    }
+  ],
+  "rater_agreement": {
+    "raters": [
+      "claude",
+      "gpt4",
+      "qwen",
+      "mistral"
+    ],
+    "kappa": [
+      [
+        NaN,
+        1.0,
+        0.09846553035386729,
+        0.06377360218582562
+      ],
+      [
+        1.0,
+        NaN,
+        0.09846553035386729,
+        0.06377360218582562
+      ],
+      [
+        0.09846553035386751,
+        0.09846553035386751,
+        NaN,
+        0.00580934776868236
+      ],
+      [
+        0.06377360218582573,
+        0.06377360218582573,
+        0.005809347768682471,
+        NaN
+      ]
+    ]
+  }
+}
