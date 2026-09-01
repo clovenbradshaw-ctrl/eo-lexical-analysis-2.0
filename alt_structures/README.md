@@ -30,22 +30,32 @@ alt_structures/
 │                            classification and scoring so labels line up
 ├── local_embeddings.py      self-contained clause embeddings (see below)
 ├── candidates/
-│   └── blind_geometric.py   Tree / PcaProduct (imported from
-│                            recursive_split.py) + Surface (reproduces
-│                            falsify_3x3x3.py's feature defs), wrapped to
-│                            harness.py's contract
+│   ├── blind_geometric.py   Tree / PcaProduct (imported from
+│   │                        recursive_split.py) + Surface (reproduces
+│   │                        falsify_3x3x3.py's feature defs), wrapped to
+│   │                        harness.py's contract
+│   ├── verbnet_lexical.py   top-5-most-frequent-VerbNet-class heuristic
+│   │                        (superseded in practice by act_prior_lexical.py
+│   │                        below -- kept for the comparison)
+│   └── act_prior_lexical.py live_priors' own ActPrior@1 lexicon
+│                            (cross-repo dependency, by design -- see
+│                            "live_priors, eoreader7, and the-fold" below)
 ├── local_models/
 │   ├── registry.py          the two GGUF models
 │   ├── download_models.sh   idempotent fetch (weights/*.gguf is gitignored)
 │   ├── schemes.py           prompt/parser for eo (imported verbatim from
-│                            app2.py) / vendler / halliday
+│                            app2.py) / vendler / halliday / srl / discourse
 │   ├── classify_local.py    runs one (model, scheme) over a balanced
 │                            sample; output matches classified.jsonl's
 │                            per-rater shape
-│   └── run_model_suite.sh   runs all 3 schemes through one model
-├── run_discovery.py         scores every candidate, prints/writes the
-│                            comparison report + 4-way kappa
-└── results/                 jsonl label files + discovery_report.json
+│   └── run_model_suite.sh   runs all six schemes through one model
+├── run_discovery.py         scores every candidate on a balanced sample,
+│                            prints/writes the comparison report + 4-way kappa
+├── run_full_corpus.py       the no-LLM candidates, on the FULL 7,808
+│                            -clause corpus (fast: embeddings only)
+├── run_actprior_english_only.py  act_prior_lexical.py, correctly scoped
+│                            to the 213 English clauses it can cover
+└── results/                 jsonl label files + *_report.json files
 ```
 
 ## Why a fresh, self-contained embedding
@@ -408,5 +418,132 @@ genuinely accelerating the quantized matmuls). Re-running the remaining
 five schemes at `per_cell=10` (`5 schemes × 10 × 27 cells × 2 models ≈
 2,700 clauses`) is now roughly **10-13 hours of CPU time** at the
 post-fix rate, not the ~8-9h estimated before the crash was found.
-question, or just the new candidates) proportionally less. Not run here
-to keep the pilot inside one session.
+Scoped down to fewer schemes (e.g. just `eo` for the kappa question, or
+just the new candidates) proportionally less. Not run here to keep the
+pilot inside one session.
+
+## The full 7,808-clause corpus — the no-LLM candidates, decisively
+
+Since `pca-tertile`, `tree`, `surface`, and `verbnet-lexical` need only
+embeddings + labels already in `classified.jsonl` (no new LLM
+classification), they aren't bottlenecked by CPU generation time. Run at
+the corpus's actual scale (`run_full_corpus.py`, ~131s total — embedding
+7,808 clauses is minutes, not hours):
+
+```
+candidate                             n  cells     PAST   FUTURE   UNSEEN  UNSEEN_z
+eo-consensus                       7808     27  +0.0208  +0.0156  +0.4009     26.22
+tree(recursive kmeans)             7808     27  +0.1829  +0.0940  +0.4724     33.90
+pca-tertile(blind product)         7808     27  +0.1141  +0.0943  +0.6353     38.73
+surface(char/ttr/punct)            7808     18  +0.0150  +0.0102     nan        nan
+verbnet-lexical(top5+other)        7808      6  -0.0004  -0.0004     nan        nan
+```
+
+**pca-tertile wins outright at full scale** — UNSEEN +0.635 vs EO's own
++0.401, the highest z of any candidate (38.7). This is the clearest,
+least caveated version of the "does a blind split beat EO" finding
+across this whole suite.
+
+**tree (recursive KMeans) also beats EO here** — UNSEEN +0.472 vs +0.401.
+Worth flagging precisely: `WHY-THESE-THREE.md`'s own Result 1 found the
+*opposite* for tree (UNSEEN ≈ -0.01, "not a product, it's a hierarchy,"
+confirmed by a branch-consistency diagnostic this run doesn't reproduce).
+Both runs use the identical `Tree` class from `recursive_split.py` — the
+difference is the embedding space (this suite's self-generated
+`paraphrase-multilingual-MiniLM-L12-v2` vs. their original 3072-d model).
+**This is a real, unresolved discrepancy, not a replication** — it says
+tree's product-vs-hierarchy behavior may be embedding-space-dependent,
+not that their finding was wrong. Confirming which requires running their
+own branch-consistency check (principal angles between depth-2 splits
+inside each depth-1 branch) here, which hasn't been done.
+
+**verbnet-lexical (the top-5-VerbNet-class heuristic) is confirmed dead
+weight at full scale** (-0.0004) — not small-n noise this time, a real
+null result for that specific bucketing. Motivated building something
+better, below.
+
+## live_priors, eoreader7, and the-fold: a real bridge, and its limits
+
+This session doesn't have GitHub access to `eoreader7` or `the-fold` —
+only `eo-lexical-analysis-2.0` and `live_priors` are in scope, and
+`list_repos`/`add_repo` aren't available in this session to add them.
+That matters here because those two repos are where the cube is actually
+*used* — `the-fold` is the workbench/server that consumes readings
+(`explore-server.mjs`'s `/api/priors/*`), `eoreader7` is the reading
+engine whose organs produce them (`native/adapters/text/phasepost.js`
+consumes the 27-cell overlay this section is about). Testing whether the
+cube earns its keep *inside that live pipeline* — as opposed to testing
+its geometry in isolation, which is all this suite has done — needs
+access to those repos. Grant it (org admin at
+`claude.ai/admin-settings/claude-tag`, or reconnect GitHub at
+`claude.ai/customize/connectors`) and this can go further.
+
+What `live_priors` alone already provides, though, is real: **`ActPrior@1`**
+(`derived-priors/act-priors/act-prior-en.json`) — a disclosed, hand-built
+mapping from every VerbNet-attested verb FORM (4,569 of them, from 325
+VerbNet classes) to one of the ecosystem's nine acts, built by
+`scripts/build-act-prior.mjs` and consumed for real by eoreader7's
+`phasepost.js`. Its own header names 872/4,569 forms (19.1%) as
+"contested" (multiple candidate acts, each with the VerbNet class that
+produced it) rather than silently picking one.
+
+**A small but real cross-repo finding along the way:** `live_priors`'s
+own canonical grid (`goldens/reading/RULE.md`, Part II) is:
+
+| | Existence | Structure | Interpretation |
+|---|---|---|---|
+| Differentiate | NUL | SEG | **DEF** |
+| Relate | **SIG** | CON | **EVA** |
+| Generate | INS | SYN | REC |
+
+`eo-lexical-analysis-2.0`'s own `ACT_FACE` table (`app2.py`) has the
+identical 3×3 layout but three different names at the same three
+positions: **ALT** (not DEF), **SEN** (not SIG), **SUP** (not EVA). Six
+of nine match exactly; three don't. Worth knowing if anyone treats the
+two as interchangeable — they're the same shape, not the same table.
+
+### Building the better VerbNet candidate — and a bug it caught immediately
+
+`candidates/act_prior_lexical.py` looks up each clause's main verb (same
+POS-tag heuristic as `verbnet_lexical.py`) against ActPrior's lexicon.
+First run, full corpus: **4.5% coverage** (352/7,808) — because
+`act-prior-en.json` is English-only and this corpus is 2.7% English
+spread across ~39 languages, and the lookup was run against all of it
+regardless of language. Not a bug in the lexicon; a bug in testing it
+against 97% of a corpus it was never going to cover. Restricted to the
+213 actual English consensus clauses: coverage jumps to **89.7%**
+(191/213).
+
+At that corrected, fair n=213, scored against `eo-consensus` on the exact
+same subset for a clean comparison:
+
+```
+actprior-lexical    cells=9   PAST=-0.0616  FUTURE=-0.0616  UNSEEN=nan
+eo-consensus (n=213) cells=21 PAST=-0.0700  FUTURE=-0.0699  UNSEEN=-0.3039  z=3.59
+```
+
+**Genuinely inconclusive, not a loss for ActPrior** — EO's own structure
+is *also* close to the noise floor at this same n (z=3.59, the same
+small-n regime as the 81-clause pilot earlier in this document). Unlike
+the LLM-classified schemes, this one can't just be scaled up with more
+CPU time: 213 is *all* the English in this corpus. Answering it properly
+needs either an English-heavy corpus or extending `act-prior-en.json`'s
+approach to another language ActPrior doesn't yet cover.
+
+### A concrete limitation the RULE.md examples caught
+
+`act_prior_lexical.py` resolves a contested verb form by taking the
+first-listed candidate — documented as a stated simplification when
+written. Checking it against RULE.md's own worked examples immediately
+found a real miss: **"divide"** is contested (`EVA` from a "multiply"
+VerbNet sense, `SYN` from a change-of-state sense, `SEG` from a
+"separate" sense) and the first-candidate policy picks `EVA` — but
+RULE.md's own table lists "divided" as *its* worked example for `SEG`
+("cutting an arrangement"). Same story for **"marry"** (`SYN` picked,
+`CON` intended). This isn't a hypothetical caveat; it's confirmed on two
+of the ecosystem's own canonical examples. A context-aware disambiguation
+pass (e.g. asking a local model to pick among the lexicon's *own* listed
+candidates for that specific clause, rather than open-ended
+classification) is the natural fix — out of scope here since it
+reintroduces the LLM-classification bottleneck this candidate was built
+specifically to avoid.

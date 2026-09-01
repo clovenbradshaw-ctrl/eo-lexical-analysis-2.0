@@ -1,0 +1,20 @@
+7,808 consensus clauses loaded
+embedding (this is the slow step at this scale, cached)...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights:  35%|███▍      | 69/199 [00:00<00:00, 599.18it/s]Loading weights:  79%|███████▉  | 157/199 [00:00<00:00, 752.62it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 812.49it/s]
+embedded in 94s, shape=(7808, 384)
+eo-consensus done (96s elapsed)
+tree(recursive kmeans) done in 11s
+pca-tertile(blind product) done in 3s
+surface(char/ttr/punct) done in 2s
+verbnet-lexical(top5+other) done in 18s
+
+candidate                             n  cells     PAST   FUTURE   UNSEEN  UNSEEN_z
+--------------------------------------------------------------------------------
+eo-consensus                       7808     27  +0.0208  +0.0156  +0.4009     26.22
+tree(recursive kmeans)             7808     27  +0.1829  +0.0940  +0.4724     33.90
+pca-tertile(blind product)         7808     27  +0.1141  +0.0943  +0.6353     38.73
+surface(char/ttr/punct)            7808     18  +0.0150  +0.0102     +nan       nan
+verbnet-lexical(top5+other)        7808      6  -0.0004  -0.0004     +nan       nan
+
+total time 131s, wrote /home/user/eo-lexical-analysis-2.0/alt_structures/results/full_corpus_report.json

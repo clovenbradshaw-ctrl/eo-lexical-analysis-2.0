@@ -1,0 +1,36 @@
+{
+  "n": 213,
+  "coverage": 0.8967136150234741,
+  "actprior": {
+    "cells": 9,
+    "params": 10,
+    "future": -0.061586579763589056,
+    "unseen": NaN,
+    "past": -0.06158649921417236,
+    "product_ratio": NaN,
+    "unseen_null": {
+      "metric": "unseen",
+      "observed": NaN,
+      "null_mean": NaN,
+      "null_sd": NaN,
+      "z": NaN,
+      "n_perm": 0
+    }
+  },
+  "eo_consensus_same_n": {
+    "cells": 21,
+    "params": 7,
+    "future": -0.06994555535537339,
+    "unseen": -0.3038974565520465,
+    "past": -0.07003557682037354,
+    "product_ratio": NaN,
+    "unseen_null": {
+      "metric": "unseen",
+      "observed": -0.3038974565520465,
+      "null_mean": -0.4389474040831493,
+      "null_sd": 0.03762275434575609,
+      "z": 3.5895816210047546,
+      "n_perm": 200
+    }
+  }
+}
