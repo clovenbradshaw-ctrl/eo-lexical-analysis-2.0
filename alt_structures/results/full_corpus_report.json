@@ -1,0 +1,135 @@
+{
+  "n": 7808,
+  "candidates": [
+    {
+      "name": "eo-consensus",
+      "n": 7808,
+      "cells": 27,
+      "params": 7,
+      "future": 0.015621341181483617,
+      "unseen": 0.4009090514563183,
+      "past": 0.02078402042388916,
+      "product_ratio": 0.7516034368176641,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": 0.4009090514563183,
+        "null_mean": -0.2985877039742498,
+        "null_sd": 0.026679790980422474,
+        "z": 26.218224720870413,
+        "n_perm": 100
+      }
+    },
+    {
+      "name": "tree(recursive kmeans)",
+      "n": 7808,
+      "n_lev": [
+        3,
+        3,
+        3
+      ],
+      "cells": 27,
+      "params": 7,
+      "future": 0.09400404850558919,
+      "unseen": 0.47244889232515574,
+      "past": 0.18287307024002075,
+      "product_ratio": 0.5140398659146967,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": 0.47244889232515574,
+        "null_mean": -0.3051384328482229,
+        "null_sd": 0.022938287560279037,
+        "z": 33.899100930266634,
+        "n_perm": 100
+      }
+    },
+    {
+      "name": "pca-tertile(blind product)",
+      "n": 7808,
+      "n_lev": [
+        3,
+        3,
+        3
+      ],
+      "cells": 27,
+      "params": 7,
+      "future": 0.09434979942259081,
+      "unseen": 0.6352666227640849,
+      "past": 0.11414515972137451,
+      "product_ratio": 0.8265773130713235,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": 0.6352666227640849,
+        "null_mean": -0.30381644760052884,
+        "null_sd": 0.0242438537218563,
+        "z": 38.73489260983341,
+        "n_perm": 100
+      }
+    },
+    {
+      "name": "surface(char/ttr/punct)",
+      "n": 7808,
+      "n_lev": [
+        3,
+        3,
+        3
+      ],
+      "cells": 18,
+      "params": 7,
+      "future": 0.010213677461784143,
+      "unseen": NaN,
+      "past": 0.01499330997467041,
+      "product_ratio": 0.6812156541176736,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": NaN,
+        "null_mean": NaN,
+        "null_sd": NaN,
+        "z": NaN,
+        "n_perm": 0
+      }
+    },
+    {
+      "name": "verbnet-lexical(top5+other)",
+      "n": 7808,
+      "n_lev": [
+        6
+      ],
+      "cells": 6,
+      "params": 6,
+      "future": -0.0004086188098573196,
+      "unseen": NaN,
+      "past": -0.0004086494445800781,
+      "product_ratio": NaN,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": NaN,
+        "null_mean": NaN,
+        "null_sd": NaN,
+        "z": NaN,
+        "n_perm": 0
+      }
+    },
+    {
+      "name": "actprior-lexical(9 acts+other)",
+      "n": 7808,
+      "n_lev": [
+        10
+      ],
+      "n_covered_by_lexicon": 352,
+      "cells": 9,
+      "params": 10,
+      "future": -0.0009625991422879121,
+      "unseen": NaN,
+      "past": -0.0009626150131225586,
+      "product_ratio": NaN,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": NaN,
+        "null_mean": NaN,
+        "null_sd": NaN,
+        "z": NaN,
+        "n_perm": 0
+      }
+    }
+  ]
+}
