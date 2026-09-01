@@ -1,0 +1,170 @@
+{
+  "n_all": 3595,
+  "n_consensus": 1354,
+  "coverage_all_english": {
+    "contested": 1381,
+    "lexical": 905,
+    "no_match (extractRelations found no SVO triple)": 622,
+    "copula": 246,
+    "gap": 236,
+    "copula-participle": 178,
+    "mechanical": 27
+  },
+  "structure_rows": [
+    {
+      "name": "eo-consensus",
+      "n": 1354,
+      "n_lev": [
+        3,
+        3,
+        3
+      ],
+      "cells": 27,
+      "params": 7,
+      "future": 0.02381349665285959,
+      "unseen": 0.04799803287926485,
+      "past": 0.032910823822021484,
+      "product_ratio": 0.7235764373945985,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": 0.04799803287926485,
+        "null_mean": -0.3015352647466111,
+        "null_sd": 0.03226796544324941,
+        "z": 10.832207510591582,
+        "n_perm": 200
+      }
+    },
+    {
+      "name": "phasepost-live-typed(9 acts+other)",
+      "n": 1354,
+      "n_lev": [
+        10
+      ],
+      "cells": 9,
+      "params": 10,
+      "future": -0.010595420245306242,
+      "unseen": NaN,
+      "past": -0.010595440864562988,
+      "product_ratio": NaN,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": NaN,
+        "null_mean": NaN,
+        "null_sd": NaN,
+        "z": NaN,
+        "n_perm": 0
+      }
+    },
+    {
+      "name": "phasepost-live-firstcand(9 acts+other)",
+      "n": 1354,
+      "n_lev": [
+        10
+      ],
+      "cells": 9,
+      "params": 10,
+      "future": -0.0004850893521590738,
+      "unseen": NaN,
+      "past": -0.0004850625991821289,
+      "product_ratio": NaN,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": NaN,
+        "null_mean": NaN,
+        "null_sd": NaN,
+        "z": NaN,
+        "n_perm": 0
+      }
+    },
+    {
+      "name": "phasepost-live-cell(op x grain)",
+      "n": 1354,
+      "n_lev": [
+        10,
+        4
+      ],
+      "cells": 22,
+      "params": 13,
+      "future": -0.04234507487936412,
+      "unseen": NaN,
+      "past": -0.0009291172027587891,
+      "product_ratio": NaN,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": NaN,
+        "null_mean": NaN,
+        "null_sd": NaN,
+        "z": NaN,
+        "n_perm": 0
+      }
+    },
+    {
+      "name": "actprior-lexical(9 acts+other) [PR#18 baseline, same subset]",
+      "n": 1354,
+      "n_lev": [
+        10
+      ],
+      "cells": 9,
+      "params": 10,
+      "future": -0.0017773497109181413,
+      "unseen": NaN,
+      "past": -0.0017772912979125977,
+      "product_ratio": NaN,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": NaN,
+        "null_mean": NaN,
+        "null_sd": NaN,
+        "z": NaN,
+        "n_perm": 0
+      }
+    },
+    {
+      "name": "tree(recursive kmeans)",
+      "n": 1354,
+      "n_lev": [
+        3,
+        3,
+        3
+      ],
+      "cells": 27,
+      "params": 7,
+      "future": 0.12907666413213237,
+      "unseen": 0.2700860666315559,
+      "past": 0.19974792003631592,
+      "product_ratio": 0.6461977882356177,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": 0.2700860666315559,
+        "null_mean": -0.29795795658754487,
+        "null_sd": 0.029703995059298667,
+        "z": 19.123489015033275,
+        "n_perm": 200
+      }
+    },
+    {
+      "name": "pca-tertile(blind product)",
+      "n": 1354,
+      "n_lev": [
+        3,
+        3,
+        3
+      ],
+      "cells": 27,
+      "params": 7,
+      "future": 0.14408666279947846,
+      "unseen": 0.5837250651843111,
+      "past": 0.14521420001983643,
+      "product_ratio": 0.9922353515000327,
+      "unseen_null": {
+        "metric": "unseen",
+        "observed": 0.5837250651843111,
+        "null_mean": -0.30040842821730673,
+        "null_sd": 0.029065437386295547,
+        "z": 30.41872316081126,
+        "n_perm": 200
+      }
+    }
+  ],
+  "dr45": true
+}

@@ -37,9 +37,16 @@ alt_structures/
 │   ├── verbnet_lexical.py   top-5-most-frequent-VerbNet-class heuristic
 │   │                        (superseded in practice by act_prior_lexical.py
 │   │                        below -- kept for the comparison)
-│   └── act_prior_lexical.py live_priors' own ActPrior@1 lexicon
-│                            (cross-repo dependency, by design -- see
-│                            "live_priors, eoreader7, and the-fold" below)
+│   ├── act_prior_lexical.py live_priors' own ActPrior@1 lexicon
+│   │                        (cross-repo dependency, by design -- see
+│   │                        "live_priors, eoreader7, and the-fold" below)
+│   └── phasepost_live.py    the REAL production classifier (eoreader7's
+│                            extractRelations -> phasepost.js, live_priors'
+│                            real ActPrior@1) via bridge/ -- see "The live
+│                            pipeline, tested for real" below
+├── bridge/
+│   └── phasepost_live_bridge.mjs  the one crossing: imports eoreader7 +
+│                            live_priors modules unmodified, emits JSONL
 ├── local_models/
 │   ├── registry.py          the two GGUF models
 │   ├── download_models.sh   idempotent fetch (weights/*.gguf is gitignored)
@@ -55,6 +62,8 @@ alt_structures/
 │                            -clause corpus (fast: embeddings only)
 ├── run_actprior_english_only.py  act_prior_lexical.py, correctly scoped
 │                            to the 213 English clauses it can cover
+├── run_phasepost_live.py    the REAL live pipeline, scored at n=1,354/3,595
+│                            -- see "The live pipeline, tested for real" below
 └── results/                 jsonl label files + *_report.json files
 ```
 
@@ -547,3 +556,226 @@ candidates for that specific clause, rather than open-ended
 classification) is the natural fix — out of scope here since it
 reintroduces the LLM-classification bottleneck this candidate was built
 specifically to avoid.
+
+---
+
+# The live pipeline, tested for real — 2026-09-01
+
+Access to `eoreader7` and `the-fold` — named above as the exact blocker
+("Grant it... and this can go further") — is now in scope for this
+session. This section is that test: does the cube earn its keep *inside*
+the live pipeline, not just in isolation, using the REAL, unmodified
+production code, not another Python port of it?
+
+## The bridge, and what it is honest about not being
+
+`bridge/phasepost_live_bridge.mjs` + `candidates/phasepost_live.py` chain
+eoreader7's real `extractRelations` into eoreader7's real `phasepost.js`
+(the 27-cell overlay), backed by live_priors' real `ActPrior@1` lexicon —
+all three imported unmodified from their sibling checkouts. Neither
+eoreader7 nor live_priors needed a single line changed to answer this
+question; both were already general enough.
+
+One thing does not carry over cleanly, and it was checked rather than
+assumed: `extractRelations`'s vocabulary-*discovery* step
+(`discoverRelationVocab`) anchors candidate verbs on capitalised
+referents that **recur across a document** (`relations.js`'s own header:
+"the token immediately FOLLOWING a candidate referent surface"). This
+corpus is one decontextualized clause per row — concatenating 60 real
+clauses from this run and feeding them through the real
+`extractSurfaces`/`discoverRelationVocab` pair (`minSurfaces: 2`, the
+same recurrence floor production uses) surfaced 14 real proper-noun
+surfaces (Schrodinger, Bob, Einstein, Alice, Heisenberg, …) but discovered
+a "verb vocabulary" of exactly `{"'s", "state"}` — noise, not verbs. That
+mechanism is real and does real work on a real document (this repo's own
+sibling files record it working on Frankenstein, civic prose, Shakespeare);
+it is simply not the tool for a corpus with no document to recur across,
+confirmed by running it rather than inferred from the header comment
+alone. So this bridge supplies each clause's own main verb directly (the
+same POS-tag heuristic `act_prior_lexical.py`/`verbnet_lexical.py` already
+use in this repo) as a one-word vocabulary, and lets the REAL, unmodified
+`extractRelations` do everything downstream of that — subject/object
+capture, NP structure, negation/polarity, clause-boundary arithmetic —
+exactly as any other caller would get it.
+
+**Configuration, stated rather than defaulted silently.** `extractRelations`
+has two opt-in flags, DR4 (`nounPhraseSubjects`) and DR5
+(`phrasalPredicates`). live_priors' own actual corpus-mining driver
+(`scripts/eot-digest.mjs`'s `loadOrgans()`, called with no arguments at
+its top-level call site) runs with **both off** — a separate goldens
+-evaluation path in that repo (`measure-dr45-at-scale.mjs`,
+`goldens/reading/diff-golden.mjs`) turns both on. This bridge defaults to
+the same (off, off) configuration the actual mining driver runs today
+(`DR45=1` reproduces the other reading) — the numbers below are both
+reported, and they barely move (see below), so nothing here turns on this
+choice.
+
+## Coverage, at real scale — the P56 finding revised, not the "limitation"
+
+Run over all 3,595 English clauses in `run_2026-03-19_144302` (not just
+PR#18's own 213-clause subset — this run is drawn from a **held-out
+register**, arXiv quantum-physics prose, that `WHY-THESE-THREE.md`'s own
+Arm C.2 names as untested):
+
+```
+                                                            n     %
+contested (P56: a candidate set, never a coin-flip)      1391  38.7%
+lexical (unanimous ActPrior@1 verdict)                   1091  30.3%
+no_match (extractRelations found no SVO triple)           622  17.3%
+copula (RULE.md's predicate-shape rules)                   244   6.8%
+gap (verb unattested, even lemma-widened)                   222   6.2%
+mechanical (existential-negative subject, A4)                25   0.7%
+```
+
+**82.7% of clauses (2,973/3,595) got a real subject/verb/object match** —
+from a corpus this pipeline was never tuned against, in a register
+(technical academic prose) neither `relations.js` nor `ActPrior@1` were
+built for. Of those, every one of the 1,391 contested verdicts carried
+`op: null` — **zero** silently resolved to a single act. Asserted, not
+just observed: the run script's own `assert` on this fails loudly if it
+is ever untrue.
+
+**This directly revises PR#18's own "concrete limitation," without
+touching PR#18's text** (append, don't rewrite — see above). PR#18 found
+`act_prior_lexical.py`'s *first-candidate* policy mis-resolves "divide"
+and "marry" against RULE.md's own worked examples. Checked against the
+REAL production classifier, not the Python stand-in:
+
+```
+classify(subject:"the surveyor", verb:"divided", object:"the plot into three lots")
+  -> standing: "contested", op: null, candidates: [EVA, SYN, SEG]
+classify(subject:"the priest", verb:"married", object:"the couple")
+  -> standing: "contested", op: null, candidates: [SYN, CON]
+```
+
+`phasepost.js` never picks either — it types the ambiguity and stops,
+exactly as P56 requires. The "concrete limitation… confirmed on two of
+the ecosystem's own canonical examples" is real, but it describes
+`act_prior_lexical.py`'s own simplification, not eoreader7's production
+code, which was never at risk of it. The disambiguation pass PR#18 named
+as "the natural fix" is a fix for the Python test harness, not for
+production.
+
+**DR4/DR5 barely change the coverage shape.** With both on: contested
+38.4%, lexical drops to 25.2% (some of it now typed `copula-participle`,
+5.0%, a bucket the (off,off) run folds into `lexical`/`copula`), gap 6.6%,
+no_match unchanged at 17.3% (DR4/DR5 widen *captured spans*, not *whether*
+a match is found at all). Full numbers: `results/phasepost_live_report_dr45.json`.
+
+## Structure — the real classifier, scored the same way EO is
+
+On the 1,354-clause claude/gpt4-consensus subset (6.4x PR#18's own
+213-clause English sample — large enough that `unique_exemplars.py`'s own
+power finding, echoed in `WHY-THESE-THREE.md`, puts this comfortably past
+the noise floor), the SAME held-out split, embedded once and reused:
+
+```
+candidate                                   n  cells     PAST   FUTURE   UNSEEN  UNSEEN_z
+eo-consensus                             1354     27  +0.0329  +0.0238  +0.0480     10.83
+phasepost-live-typed (9 acts+OTHER)      1354      9  -0.0103  -0.0103     nan        nan
+phasepost-live-firstcand (control)       1354      9  -0.0005  -0.0005     nan        nan
+phasepost-live-cell (op x grain)         1354     21  -0.0005  -0.0552     nan        nan
+actprior-lexical [PR#18 baseline]        1354      9  -0.0018  -0.0018     nan        nan
+tree (recursive kmeans)                  1354     27  +0.1997  +0.1291  +0.2701     19.12
+pca-tertile (blind product)              1354     27  +0.1452  +0.1441  +0.5837     30.42
+```
+
+**UNSEEN is `nan` for every single-axis/near-single-axis scheme here, not
+a bug** — `dimensionality.py::score`'s leave-one-cell-out step requires
+every declared level of every axis to still be observed after removing
+one cell; a 9-op(+OTHER)-level axis with only 9 of 10 declared levels
+ever occupied can never satisfy that for *any* held-out cell, the same
+reason `verbnet-lexical`/`actprior-lexical` already show `UNSEEN nan`
+earlier in this document. FUTURE is the load-bearing number here.
+
+**The honest reading: op alone does not structure this space, on this
+corpus, at this register — and neither does the coin-flip control.**
+`phasepost-live-typed`'s FUTURE (-0.0103) and `phasepost-live-firstcand`'s
+(-0.0005) are both indistinguishable from `actprior-lexical`'s own
+-0.0018 — all three sit in the same noise band. **Typing the ambiguity
+honestly, versus coin-flipping it, changes almost nothing geometrically
+here** — which means PR#18's own finding (EO-consensus's real signal
+"genuinely inconclusive, not a loss for ActPrior" at n=213) was the right
+call, not an artifact of too little data: at 6.4x the n, op-only structure
+is still flat. `phasepost-live-cell` (adding grain as a second axis) is
+*worse* (FUTURE -0.0552) than op alone — grain, as currently computed
+(occurrence-level, "honestly rough" by its own docstring), adds noise
+here, not signal. Meanwhile **eo-consensus's own three axes (mode x
+domain x object) show real, positive, non-null structure on this same
+subset** (FUTURE +0.0238, UNSEEN +0.0480, z=10.83) — richer than op alone
+by construction (three questions, not one), and it shows.
+
+**pca-tertile beats everything, again, on an independent corpus.**
+UNSEEN +0.584 (z=30.42) vs. eo-consensus's +0.048 — replicating PR#18's
+own full-corpus finding (there: pca-tertile +0.635 vs EO +0.401) on a
+corpus this suite never touched before, in a different register. This
+was not the question this section set out to answer, but it is exactly
+the cross-corpus transportability check `WHY-THESE-THREE.md`'s own Arm
+C.2 names as unrun ("Hold out an entire register — the arXiv
+quantum-physics slice is the obvious one") — landing, incidentally, on
+the same side PR#18 already found.
+
+**DR4/DR5 do not change this reading.** With both on, `phasepost-live
+-typed` FUTURE is -0.0106 (vs -0.0103 off); `-cell` is -0.0423 (vs
+-0.0552). Same noise band either way.
+
+## Why the gaps are shaped the way they are, checked not guessed
+
+Sampling `no_match` clauses directly: the dominant pattern is **passive
+voice and nominalised predicates** typical of academic prose — "Three
+frequent objections to this solution *are rebutted*," "the problem…
+*remains* unresolved," "we propose a two-ancilla protocol that *provides*
+an experimentally accessible readout" — constructions where the
+POS-tagged "main verb" is a past participle in a passive frame, or sits
+too far from any subject the regex's literal subject-verb adjacency can
+reach. `extractRelations` is doing exactly what it says: declining to
+fabricate a triple it cannot literally match, on a register (arXiv
+abstracts) it was never built against — the SAME "will not fabricate,
+declared as such" discipline `relations.js`'s own header states, now
+observed on a corpus that stresses it harder than civic prose or
+Gutenberg novels do.
+
+Sampling `gap` clauses: the verbs ARE found — "contradicts," "generalized,"
+"proven," "postulates," "hypothesize," "bunching" — they simply are not
+in `ActPrior@1`'s 4,569-form VerbNet-derived lexicon. This is a REGISTER
+coverage gap, the same shape as PR#18's own LANGUAGE coverage finding
+(an English-only lexicon against a 97%-non-English corpus) one level
+over: a general-domain lexicon (VerbNet) against a technical-academic
+register whose predicates ("hypothesize," "postulate," "bunching" as a
+verbed nominalisation) skew toward exactly the vocabulary a general
+resource under-covers.
+
+## What this settles, and what it doesn't
+
+**Settled:** the live pipeline is not a paper exercise — it runs, at real
+coverage (82.7%), on a real independent corpus, in a register it was
+never tuned for, without a single code change to either consuming repo.
+Its P56 discipline (never coin-flip a contested verb) holds at scale, not
+just on hand-picked examples. PR#18's "concrete limitation" was real but
+mis-attributed to the wrong layer — corrected here, not erased there.
+
+**Not settled, and not oversold:** the cube's OP axis alone — the one
+axis `phasepost.js` actually computes from real material today — does not
+structure this embedding space, on this corpus. That is a materially
+narrower claim than "the cube doesn't structure the space": EO's own
+three-axis consensus labels (mode x domain x object, still the richer,
+LLM-elicited reading of "what transformation is this") DO show real
+structure on the identical subset. Whether a richer, three-axis LIVE
+reading — closer in spirit to EO's own Q1/Q2/Q3 rather than op alone —
+would recover eo-consensus's signal from real material is the natural
+next question this leaves open, not answered here.
+
+## Reproducing
+
+```bash
+cd alt_structures
+python3 run_phasepost_live.py            # DR4/DR5 off (live_priors' own mining default)
+python3 run_phasepost_live.py --dr45     # DR4/DR5 on (live_priors' own goldens config)
+PHASEPOST_LIVE_LIMIT=80 python3 run_phasepost_live.py   # fast smoke run
+```
+
+Needs `EOREADER7_PATH`/`LIVE_PRIORS_PATH`/`THE_FOLD_PATH` only if those
+repos aren't sibling checkouts of this one (`bridge/phasepost_live_bridge.mjs`'s
+own default, matching `act_prior_lexical.py`'s existing convention).
+Full reports: `results/phasepost_live_report.json`,
+`results/phasepost_live_report_dr45.json`.
